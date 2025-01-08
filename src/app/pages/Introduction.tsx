@@ -41,8 +41,7 @@ const Introduction = () => {
   return (
     <div
       id="intro"
-      className="introduction-section intro-bg flex flex-col md:flex-row items-center justify-center gap-10 min-h-screen p-10"
-      style={{ height: "100vh" }}
+      className="introduction-section intro-bg flex flex-col md:flex-row items-center justify-center gap-10 min-h-screen"
     >
       <ProfileImage />
       <IntroductionText />
