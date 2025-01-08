@@ -6,7 +6,7 @@ const Introduction = () => {
   return (
     <div
       id="intro"
-      className="introduction-section intro-bg flex flex-col md:flex-row items-center justify-center gap-10 min-h-screen"
+      className="introduction-section intro-bg flex flex-col md:flex-row items-center justify-center gap-10 min-h-screen p-10"
     >
       {/* Imagen circular y responsiva */}
       <div className="relative w-[200px] h-[200px] md:w-[300px] md:h-[300px] lg:w-[400px] lg:h-[400px] rounded-full overflow-hidden shadow-lg">
@@ -22,7 +22,7 @@ const Introduction = () => {
 
       {/* Texto con buena responsividad */}
       <div className="text-center md:text-left md:w-[600px] w-full">
-        <h1 className="text-2xl md:text-4xl lg:text-6xl py-5 lg:py-10">
+        <h1 className="text-3xl md:text-4xl lg:text-6xl py-5 lg:py-10">
           <TypeAnimation
             sequence={[
               "Hello, I am Emiliano.",
