@@ -1,4 +1,5 @@
 "use client";
+import { useEffect } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
@@ -11,6 +12,11 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ textcolor = "black" }) => {
+  useEffect(() => {
+    // Cualquier configuración global para GSAP o ScrollTrigger que necesite ejecutarse una vez en el cliente
+    gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+  }, []);
+
   const handleMouseEnter = (id: string) => {
     const button = document.getElementById(`btn-${id}`);
     if (button) {

@@ -5,7 +5,7 @@ import Header from "@/app/components/Header";
 
 const Introduction = () => {
   return (
-    <div>
+    <div className="bg-blue-300">
       <div className="hidden md:block -mb-12">
         <Header textcolor="white" />
       </div>

@@ -14,7 +14,7 @@ const AboutMe = () => {
   return (
     <div
       id="aboutme"
-      className="aboutme-section aboutme-bg -mt-12 flex flex-col items-center text-white p-10 md:px-10 lg:px-20 min-h-screen pb-24 md:pb-16"
+      className="aboutme-section bg-blue-500 flex flex-col items-center text-white p-10 md:px-10 lg:px-20 min-h-screen pb-24 md:pb-16"
     >
       {/* Título */}
       <div className="text-start w-full">
@@ -23,7 +23,7 @@ const AboutMe = () => {
         </h1>
       </div>
 
-      <Divider size="full" />
+      <Divider />
 
       {/* Desarrollo Web */}
       <div>
@@ -79,7 +79,7 @@ const AboutMe = () => {
         </div>
       </div>
 
-      <Divider size="full" />
+      <Divider />
 
       {/* Desarrollo Móvil */}
       <div>
