@@ -1,4 +1,8 @@
-import ScrollAnimation from "@/app/components/ScrollAnimation";
+"use client";
+import dynamic from "next/dynamic";
+
+// Carga dinámica del componente ScrollAnimation
+const ScrollAnimation = dynamic(() => import("@/app/components/ScrollAnimation"), { ssr: false });
 import Introduction from "./pages/Introduction";
 import AboutMe from "./pages/AboutMe";
 
@@ -6,10 +10,13 @@ export default function Home() {
   return (
     <ScrollAnimation>
       <div className="w-full">
-        <section className="section introduction-section w-full">
+        {/* Sección de Introduction */}
+        <section className="section introduction-section w-full min-h-screen">
           <Introduction />
         </section>
-        <section className="section aboutme-section w-full">
+
+        {/* Sección de AboutMe */}
+        <section className="section aboutme-section w-full min-h-screen">
           <AboutMe />
         </section>
       </div>
