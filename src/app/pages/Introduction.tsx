@@ -6,7 +6,7 @@ import { TypeAnimation } from "react-type-animation";
 import ProfileImage from "@/app/components/ProfileImage";
 
 const IntroductionText = () => (
-  <div className="text-center md:text-left md:w-[800px] w-full px-10 md:px-0 lg:px-0 introduction-content">
+  <div className="text-center md:text-left md:w-[800px] w-full px-10 md:px-0 lg:px-0 introduction-start">
     <h1 className="text-3xl md:text-4xl lg:text-6xl py-5 lg:py-10">
       <TypeAnimation
         sequence={[
@@ -42,7 +42,7 @@ const IntroductionText = () => (
 const Introduction = () => {
   useEffect(() => {
     // Selecciona los elementos que deseas animar
-    const elements = document.querySelectorAll(".introduction-content");
+    const elements = document.querySelectorAll(".introduction-start");
 
     // Aplica la animación a cada elemento
     elements.forEach((element, index) => {
@@ -65,7 +65,7 @@ const Introduction = () => {
       id="intro"
       className="introduction-section intro-bg flex flex-col md:flex-row items-center justify-center min-h-screen w-full"
     >
-      <div className="flex flex-col md:flex-row items-center justify-center gap-10">
+      <div className="introduction-content flex flex-col md:flex-row items-center justify-center gap-10">
         <ProfileImage />
         <IntroductionText />
       </div>
