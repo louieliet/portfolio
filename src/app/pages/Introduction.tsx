@@ -4,7 +4,7 @@ import { TypeAnimation } from "react-type-animation";
 import ProfileImage from "@/app/components/ProfileImage";
 
 const IntroductionText = () => (
-  <div className="text-center md:text-left md:w-[800px] w-full px-10 md:px-0 lg:px-0">
+  <div className="text-center md:text-left md:w-[800px] w-full px-10 md:px-0 lg:px-0" >
     <h1 className="text-3xl md:text-4xl lg:text-6xl py-5 lg:py-10">
       <TypeAnimation
         sequence={[

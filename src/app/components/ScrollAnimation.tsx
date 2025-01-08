@@ -1,24 +1,24 @@
-"use client"; // Asegúrate de que este componente se ejecute en el cliente
+"use client";
 
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function ScrollAnimation({ children }: { children: React.ReactNode }) {
-  useEffect(() => {
-    // Selecciona todas las secciones para crear el efecto
+  useLayoutEffect(() => {
     const sections = gsap.utils.toArray<HTMLElement>(".section");
 
     sections.forEach((section, index) => {
       if (index < sections.length - 1) {
         const nextSection = sections[index + 1];
 
+
         gsap.timeline({
           scrollTrigger: {
             trigger: section,
-            start: "top top", 
+            start: "top top",
             end: "bottom top",
             pin: true,
             scrub: 1.5,
@@ -31,15 +31,18 @@ export default function ScrollAnimation({ children }: { children: React.ReactNod
         })
         .fromTo(
           nextSection,
-          { y: "100%" },
-          { y: "0%", ease: "power4.out" }
+          { y: "100%" }, // Inicio: parte inferior fuera de vista
+          { y: "0%", ease: "power4.out" } // Fin: posicionamiento normal
         );
       }
     });
+
+    ScrollTrigger.refresh();
+
+    return () => {
+      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+    };
   }, []);
 
-  return (
-    // Agrega suppressHydrationWarning para ignorar discrepancias entre servidor y cliente
-    <div suppressHydrationWarning>{children}</div>
-  );
+  return <div suppressHydrationWarning>{children}</div>;
 }
