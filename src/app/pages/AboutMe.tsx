@@ -9,14 +9,14 @@ import WebProject from "@/app/components/WebProject";
 import ReactIcon from "@/app/assets/reacticon.svg";
 import GoogleCloudIcon from "@/app/assets/gcicon.svg";
 import SwiftIcon from "@/app/assets/swifticon.svg";
+import AboutSection from "@/app/components/AboutSection";
 
 const AboutMe = () => {
   return (
     <div
       id="aboutme"
-      className="aboutme-section bg-[#121B30] flex flex-col items-center text-white p-10 md:px-10 lg:px-20 min-h-screen pb-24 md:pb-16"
+      className="aboutme-section aboutme-bg flex flex-col items-center text-white p-10 md:px-10 lg:px-20 min-h-screen pb-24 md:pb-16"
     >
-      {/* Título */}
       <div className="text-start w-full">
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold py-5">
           [01] ¿Qué hago?
@@ -25,23 +25,14 @@ const AboutMe = () => {
 
       <Divider />
 
-      {/* Desarrollo Web */}
-      <div>
-        <div className="text-start">
-          <h2 className="text-2xl md:text-3xl font-bold py-5">
-            Desarrollo Web
-          </h2>
-          <p className="text-base md:text-lg text-gray-300 leading-relaxed">
-            Construyo experiencias digitales intuitivas y eficientes que
-            combinan creatividad y funcionalidad. Como desarrollador web, me
-            especializo principalmente en{" "}
-            <span className="font-bold">frontend</span> para crear sitios
-            modernos y aplicaciones robustas utilizando tecnologías de
-            vanguardia.
-          </p>
-        </div>
-
-        {/* Tecnologías */}
+      <AboutSection title="Desarrollo Web">
+        <p className="text-base md:text-lg text-gray-300 leading-relaxed">
+          Construyo experiencias digitales intuitivas y eficientes que combinan
+          creatividad y funcionalidad. Como desarrollador web, me especializo
+          principalmente en{" "}
+          <span className="font-bold">frontend</span> para crear sitios modernos
+          y aplicaciones robustas utilizando tecnologías de vanguardia.
+        </p>
         <div className="py-10">
           <h2 className="text-2xl md:text-3xl font-bold pb-5">
             Tecnologías que uso
@@ -56,19 +47,15 @@ const AboutMe = () => {
             />
           </div>
         </div>
-
-        {/* Proyectos */}
         <div>
           <h2 className="text-2xl md:text-3xl font-bold pb-5">Mi trabajo</h2>
           <div className="flex flex-col gap-10 items-center">
-            {/* Proyecto 1 */}
             <WebProject
               src="https://hus-demo.vercel.app/"
               title="Página de Hus"
               projectTitle="Página de Hus"
               description="Realizada con NextJS y Tailwind CSS"
             />
-            {/* Proyecto 2 */}
             <WebProject
               src="https://dev.ragabe.git.chainsol.io/"
               title="Página de Ragabe"
@@ -77,27 +64,18 @@ const AboutMe = () => {
             />
           </div>
         </div>
-      </div>
+      </AboutSection>
 
       <Divider />
 
-      {/* Desarrollo Móvil */}
-      <div>
-        <div className="text-start">
-          <h2 className="text-2xl md:text-3xl font-bold py-5">
-            Desarrollo Web
-          </h2>
-          <p className="text-base md:text-lg text-gray-300 leading-relaxed">
-            Construyo experiencias digitales intuitivas y eficientes que
-            combinan creatividad y funcionalidad. Como desarrollador web, me
-            especializo principalmente en{" "}
-            <span className="font-bold">frontend</span> para crear sitios
-            modernos y aplicaciones robustas utilizando tecnologías de
-            vanguardia.
-          </p>
-        </div>
-
-        {/* Tecnologías */}
+      <AboutSection title="Desarrollo Móvil">
+        <p className="text-base md:text-lg text-gray-300 leading-relaxed">
+          Construyo experiencias digitales intuitivas y eficientes que combinan
+          creatividad y funcionalidad. Como desarrollador móvil, me especializo
+          principalmente en{" "}
+          <span className="font-bold">frontend</span> para crear aplicaciones
+          modernas y robustas utilizando tecnologías de vanguardia.
+        </p>
         <div className="py-10">
           <h2 className="text-2xl md:text-3xl font-bold pb-5">
             Tecnologías que uso
@@ -112,12 +90,9 @@ const AboutMe = () => {
             />
           </div>
         </div>
-
-        {/* Proyectos */}
         <div>
           <h2 className="text-2xl md:text-3xl font-bold pb-5">Mi trabajo</h2>
           <div className="flex flex-col gap-10 items-center">
-            {/* Proyecto 1 */}
             <MobileProject
               videoSrc="/videos/FFVideo.webm"
               icons={[
@@ -130,7 +105,6 @@ const AboutMe = () => {
                   el clima y tus preferencias."
               videoFirst={true}
             />
-            {/* Proyecto 2 */}
             <MobileProject
               videoSrc="/videos/HabitusVideo.webm"
               icons={[
@@ -144,7 +118,7 @@ const AboutMe = () => {
             />
           </div>
         </div>
-      </div>
+      </AboutSection>
     </div>
   );
 };
