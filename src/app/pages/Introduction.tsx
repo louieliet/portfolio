@@ -41,10 +41,12 @@ const Introduction = () => {
   return (
     <div
       id="intro"
-      className="introduction-section intro-bg flex flex-col md:flex-row items-center justify-center gap-10 min-h-screen w-full"
+      className="introduction-section intro-bg flex flex-col md:flex-row items-center justify-center min-h-screen w-full"
     >
-      <ProfileImage />
-      <IntroductionText />
+      <div className="introduction-content flex flex-col md:flex-row items-center justify-center gap-10">
+        <ProfileImage />
+        <IntroductionText />
+      </div>
     </div>
   );
 };

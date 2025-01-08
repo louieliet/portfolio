@@ -74,6 +74,7 @@ a,
   background: #121b30;
   border-top-left-radius: 50px;
   border-top-right-radius: 50px;
+  box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.5);
 }
 
 .aboutme-bg::before {

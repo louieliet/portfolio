@@ -11,11 +11,14 @@ export default function ScrollAnimation({ children }: { children: React.ReactNod
     const sections = gsap.utils.toArray<HTMLElement>(".section");
 
     sections.forEach((section, index) => {
+      const content = section.querySelector('.introduction-content'); 
       if (index < sections.length - 1) {
         const nextSection = sections[index + 1];
 
+        // Opcional: Asegurarse de que nextSection comience fuera de la vista si es necesario
+        gsap.set(nextSection, { y: "100%" });
 
-        gsap.timeline({
+        const tl = gsap.timeline({
           scrollTrigger: {
             trigger: section,
             start: "top top",
@@ -28,12 +31,20 @@ export default function ScrollAnimation({ children }: { children: React.ReactNod
               ease: "power1.inOut",
             },
           },
-        })
-        .fromTo(
-          nextSection,
-          { y: "100%" }, // Inicio: parte inferior fuera de vista
-          { y: "0%", ease: "power4.out" } // Fin: posicionamiento normal
-        );
+        });
+
+        tl
+          .fromTo(
+            nextSection,
+            { y: "100%" },
+            { y: "0%", ease: "power4.out" }
+          )
+          // Agregar desvanecimiento al contenido de la sección actual
+          .to(
+            content,
+            { opacity: 0, ease: "power1.out" },
+            "<" // Sincroniza este paso con el anterior
+          );
       }
     });
 
