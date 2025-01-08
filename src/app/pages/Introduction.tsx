@@ -12,9 +12,8 @@ const Introduction = () => {
       <div className="relative w-[200px] h-[200px] md:w-[300px] md:h-[300px] lg:w-[400px] lg:h-[400px] rounded-full overflow-hidden shadow-lg">
         <Image
           src="/pp.png"
-          priority
           alt="Profile picture"
-          className="object-cover object-center w-full h-full"
+          className="object-cover object-center w-full h-full pointer-events-none"
           width={900}
           height={900}
         />
