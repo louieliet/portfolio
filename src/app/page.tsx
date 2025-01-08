@@ -1,18 +1,11 @@
-import ScrollAnimation from "@/app/components/ScrollAnimation";
-import Introduction from "./pages/Introduction";
-import AboutMe from "./pages/AboutMe";
+"use client";
+import dynamic from "next/dynamic";
 
-export default function Home() {
-  return (
-    <ScrollAnimation>
-      <div className="w-full">
-        <section className="section introduction-section w-full">
-          <Introduction />
-        </section>
-        <section className="section aboutme-section w-full">
-          <AboutMe />
-        </section>
-      </div>
-    </ScrollAnimation>
-  );
+// Cargamos el componente Home dinámicamente, deshabilitando SSR
+const DynamicHome = dynamic(() => import("@/app/pages/Home"), {
+  ssr: false,
+});
+
+export default function Page() {
+  return <DynamicHome />;
 }

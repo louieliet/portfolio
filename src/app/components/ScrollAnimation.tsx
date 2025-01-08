@@ -1,4 +1,4 @@
-"use client"; // Asegúrate de usar este modo ya que es un hook en el cliente
+"use client"; // Asegúrate de que este componente se ejecute en el cliente
 
 import { useEffect } from "react";
 import { gsap } from "gsap";
@@ -18,25 +18,28 @@ export default function ScrollAnimation({ children }: { children: React.ReactNod
         gsap.timeline({
           scrollTrigger: {
             trigger: section,
-            start: "top top", // Cuando la sección superior toca el top del viewport
-            end: "bottom top", // Finaliza cuando el bottom de la sección toca el top del viewport
-            pin: true, // Mantiene la sección actual fija
-            scrub: 1.5, // Hace el scroll más fluido
+            start: "top top", 
+            end: "bottom top",
+            pin: true,
+            scrub: 1.5,
             snap: {
-              snapTo: "labels", // Salta a etiquetas o posiciones clave
-              duration: 0.5, // Tiempo que toma el snap
-              ease: "power1.inOut", // Easing elegante para el snap
+              snapTo: "labels",
+              duration: 0.5,
+              ease: "power1.inOut",
             },
           },
         })
         .fromTo(
           nextSection,
-          { y: "100%" }, // Comienza desde abajo
-          { y: "0%", ease: "power4.out" } // Llega a su posición
+          { y: "100%" },
+          { y: "0%", ease: "power4.out" }
         );
       }
     });
   }, []);
 
-  return <div>{children}</div>;
+  return (
+    // Agrega suppressHydrationWarning para ignorar discrepancias entre servidor y cliente
+    <div suppressHydrationWarning>{children}</div>
+  );
 }

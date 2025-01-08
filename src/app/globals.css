@@ -37,7 +37,7 @@ body {
 }
 
 .section {
-  height: 100vh; /* Cada sección ocupa el 100% de la pantalla */
+  min-height: 100vh; /* Cada sección ocupa el 100% de la pantalla */
   width: 100%; /* Asegúrate de que ocupen todo el ancho */
   display: flex;
   align-items: center;
