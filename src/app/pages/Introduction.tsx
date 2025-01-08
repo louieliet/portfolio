@@ -1,14 +1,10 @@
 "use client";
 import Image from "next/image";
 import { TypeAnimation } from "react-type-animation";
-import Header from "@/app/components/Header";
 
 const Introduction = () => {
   return (
     <div className="bg-[#FAEBD7]">
-      <div className="hidden md:block -mb-12">
-        <Header />
-      </div>
       <div
         id="intro"
         className="introduction-section flex flex-col md:flex-row items-center justify-center gap-10 min-h-screen p-10"
