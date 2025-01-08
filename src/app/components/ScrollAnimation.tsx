@@ -1,4 +1,4 @@
-"use client";
+"use client"; // Asegúrate de que este componente se ejecute en el cliente
 
 import { useEffect } from "react";
 import { gsap } from "gsap";
@@ -8,34 +8,38 @@ gsap.registerPlugin(ScrollTrigger);
 
 export default function ScrollAnimation({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    if (typeof window === "undefined") return; // Verifica que el código se ejecute solo en el cliente
-
+    // Selecciona todas las secciones para crear el efecto
     const sections = gsap.utils.toArray<HTMLElement>(".section");
 
     sections.forEach((section, index) => {
       if (index < sections.length - 1) {
         const nextSection = sections[index + 1];
 
-        // Configuración de la animación para cada sección
         gsap.timeline({
           scrollTrigger: {
             trigger: section,
-            start: "top top", // Inicia la animación cuando la sección llega al tope
-            end: "bottom top", // Finaliza cuando el fondo de la sección llega al tope
-            pin: true, // Fija la sección actual
-            scrub: 1.5, // Sincroniza con el scroll
-            anticipatePin: 1, // Mejora la transición
+            start: "top top", 
+            end: "bottom top",
+            pin: true,
+            scrub: 1.5,
+            snap: {
+              snapTo: "labels",
+              duration: 0.5,
+              ease: "power1.inOut",
+            },
           },
-        }).fromTo(
+        })
+        .fromTo(
           nextSection,
-          { y: "100%" }, // Estado inicial de la siguiente sección
-          { y: "0%", ease: "power4.out" } // Estado final de la siguiente sección
+          { y: "100%" },
+          { y: "0%", ease: "power4.out" }
         );
       }
     });
-
-    ScrollTrigger.refresh(); // Refresca los cálculos de GSAP
   }, []);
 
-  return <div>{children}</div>;
+  return (
+    // Agrega suppressHydrationWarning para ignorar discrepancias entre servidor y cliente
+    <div suppressHydrationWarning>{children}</div>
+  );
 }
