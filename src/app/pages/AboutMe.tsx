@@ -41,8 +41,8 @@ const AboutMe = () => {
             <Image
               src={tecsweb}
               alt="Tecnologías web"
-              width={300}
-              height={300}
+              width={800}
+              height={800}
               className="w-full px-3 md:w-[40%] pointer-events-none"
             />
           </div>
@@ -87,7 +87,6 @@ const AboutMe = () => {
               width={800}
               height={800}
               className="w-full px-3 md:w-1/4 portrait:"
-              priority
             />
           </div>
         </div>
