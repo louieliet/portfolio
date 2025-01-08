@@ -79,7 +79,7 @@ const AboutMe = () => {
         </div>
       </div>
 
-      <Divider size="[80%]" />
+      <Divider size="full" />
 
       {/* Desarrollo Móvil */}
       <div>
