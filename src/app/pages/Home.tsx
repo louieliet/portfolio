@@ -1,23 +1,26 @@
 "use client";
+
 import { useEffect } from "react";
-import Introduction from "./Introduction";
-import AboutMe from "./AboutMe";
-import Experience from "./Experience";
-import Activities from "./Activities";
-import Contact from "./Contact";
+import ScrollAnimation from "@/app/components/ScrollAnimation";
+import Introduction from "@/app/pages/Introduction";
+import AboutMe from "@/app/pages/AboutMe";
 
 export default function Home() {
+  // Al montar el componente, desplazarse hasta la parte superior de la página
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
   return (
-      <div>
-        <Introduction />
-        <AboutMe />
-        <Experience />
-        <Activities />
-        <Contact />
+    <ScrollAnimation>
+      <div className="w-full">
+        <section className="section introduction-section w-full">
+          <Introduction />
+        </section>
+        <section className="section aboutme-section w-full">
+          <AboutMe />
+        </section>
       </div>
+    </ScrollAnimation>
   );
 }
