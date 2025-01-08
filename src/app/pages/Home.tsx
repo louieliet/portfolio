@@ -1,23 +1,9 @@
-"use client";
-import { useEffect } from "react";
-import Introduction from "./Introduction";
-import AboutMe from "./AboutMe";
-import Experience from "./Experience";
-import Activities from "./Activities";
-import Contact from "./Contact";
+const Home = () => {
+    return (
+        <div>
+        <h1>Home</h1>
+        </div>
+    );
+};
 
-export default function Home() {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
-  return (
-      <div>
-        <Introduction />
-        <AboutMe />
-        <Experience />
-        <Activities />
-        <Contact />
-      </div>
-  );
-}
+export default Home;
