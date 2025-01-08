@@ -64,6 +64,7 @@ img, iframe {
 .intro-bg {
   position: relative;
   background: #faebd7;
+  z-index: 1;
 }
 
 .intro-bg::before {

@@ -20,10 +20,10 @@ export default function ScrollAnimation({ children }: { children: React.ReactNod
         gsap.timeline({
           scrollTrigger: {
             trigger: section,
-            start: "top top", // Inicia la animación cuando la sección llega al tope
-            end: "bottom top", // Finaliza cuando el fondo de la sección llega al tope
+            start: "top top", // La animación comienza cuando la sección llega al tope
+            end: "bottom top", // Termina cuando el fondo de la sección llega al tope
             pin: true, // Fija la sección actual
-            scrub: 1.5, // Sincroniza con el scroll
+            scrub: 1.5, // Hace que el scroll sea más fluido
             anticipatePin: 1, // Mejora la transición
           },
         }).fromTo(
