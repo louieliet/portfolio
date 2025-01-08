@@ -11,7 +11,7 @@ export default function ScrollAnimation({ children }: { children: React.ReactNod
     const sections = gsap.utils.toArray<HTMLElement>(".section");
 
     sections.forEach((section, index) => {
-      const content = section.querySelector('.introduction-content'); 
+      const content = section.querySelector('.sec-to-disolve'); 
       if (index < sections.length - 1) {
         const nextSection = sections[index + 1];
 

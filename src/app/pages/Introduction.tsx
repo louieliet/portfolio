@@ -65,7 +65,7 @@ const Introduction = () => {
       id="intro"
       className="introduction-section intro-bg flex flex-col md:flex-row items-center justify-center min-h-screen w-full"
     >
-      <div className="introduction-content flex flex-col md:flex-row items-center justify-center gap-10">
+      <div className="sec-to-disolve flex flex-col md:flex-row items-center justify-center gap-10">
         <ProfileImage />
         <IntroductionText />
       </div>
