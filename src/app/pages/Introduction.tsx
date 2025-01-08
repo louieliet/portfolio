@@ -5,13 +5,13 @@ import Header from "@/app/components/Header";
 
 const Introduction = () => {
   return (
-    <div className="bg-blue-300">
+    <div className="bg-[#FAEBD7]">
       <div className="hidden md:block -mb-12">
-        <Header textcolor="white" />
+        <Header />
       </div>
       <div
         id="intro"
-        className="introduction-section intro-bg flex flex-col md:flex-row items-center justify-center gap-10 min-h-screen p-10"
+        className="introduction-section flex flex-col md:flex-row items-center justify-center gap-10 min-h-screen p-10"
         style={{ height: "100vh" }}
       >
         {/* Imagen circular y responsiva */}
