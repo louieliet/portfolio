@@ -11,11 +11,11 @@ export default function ScrollAnimation({ children }: { children: React.ReactNod
     const sections = gsap.utils.toArray<HTMLElement>(".section");
 
     sections.forEach((section, index) => {
-      const content = section.querySelector('.sec-to-disolve'); 
+      const content = section.querySelector(".sec-to-disolve");
       if (index < sections.length - 1) {
         const nextSection = sections[index + 1];
 
-        // Opcional: Asegurarse de que nextSection comience fuera de la vista si es necesario
+        // Ajustar la siguiente sección
         gsap.set(nextSection, { y: "100%" });
 
         const tl = gsap.timeline({
@@ -33,25 +33,25 @@ export default function ScrollAnimation({ children }: { children: React.ReactNod
           },
         });
 
-        tl
-          .fromTo(
-            nextSection,
-            { y: "100%" },
-            { y: "0%", ease: "power4.out" }
-          )
-          // Agregar desvanecimiento al contenido de la sección actual
+        tl.fromTo(
+          nextSection,
+          { y: "100%" },
+          { y: "0%", ease: "power4.out" }
+        )
           .to(
             content,
             { opacity: 0, ease: "power1.out" },
-            "<" // Sincroniza este paso con el anterior
-          );
+            "<"
+          )
+          // Asegurarte de que la sección actual quede completamente invisible
+          .set(content, { display: "none" }, ">"); // Oculta la sección actual después de que desaparezca
       }
     });
 
     ScrollTrigger.refresh();
 
     return () => {
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
   }, []);
 

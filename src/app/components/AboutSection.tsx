@@ -12,7 +12,7 @@ class AboutSection extends React.Component<AboutSectionProps> {
     const { title, children } = this.props;
     return (
       <div>
-        <div className="text-start">
+        <div className="sec-to-disolve text-start">
           <h2 className="text-2xl md:text-3xl font-bold py-5">{title}</h2>
           {children}
         </div>
