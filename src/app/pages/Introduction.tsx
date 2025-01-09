@@ -23,9 +23,9 @@ const Introduction = () => {
   }, []);
 
   return (
-    <div className="intro-bg w-full h-full flex justify-center items-center gap-24">
+    <div className="intro-bg w-full h-full flex justify-center items-center gap-5 md:gap-24 md:flex-row flex-col px-10 md:px-1">
       {/* Profile picture */}
-      <div className="intro-content relative w-[200px] h-[200px] md:w-[300px] md:h-[300px] lg:w-[400px] lg:h-[400px] rounded-full overflow-hidden shadow-2xl">
+      <div className="intro-content relative w-[300px] h-[300px] md:w-[300px] md:h-[300px] lg:w-[400px] lg:h-[400px] rounded-full overflow-hidden shadow-2xl md:-mt-0 -mt-20">
         <Image
           src="/pp.png"
           priority
@@ -41,13 +41,13 @@ const Introduction = () => {
         <h1 className="text-2xl md:text-4xl lg:text-6xl py-5 lg:py-10">
           <TypeAnimation
             sequence={[
-              "Hello, I am Emiliano.",
+              "Hello, I am Emiliano!",
               2000,
-              "I am a frontend developer.",
+              "I am a frontend dev.",
               2000,
-              "I am a Unity developer.",
+              "I am a Unity dev.",
               2000,
-              "I am an iOS developer.",
+              "I am an mobile dev.",
               2000,
             ]}
             wrapper="span"
