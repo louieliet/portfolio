@@ -10,12 +10,8 @@ const Home = () => {
     <main>
       <PinnedAndOverlap
         containerHeight="300vh"
-        contentOne={
-            <Introduction />
-        }
-        contentTwo={
-            <WhatIdo />
-        }
+        contentOne={<Introduction />}
+        contentTwo={<WhatIdo />}
       />
       <Experience />
       <Activities />
