@@ -7,7 +7,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 interface PinnedAndOverlapProps {
   contentOne: React.ReactNode; // El contenido que se queda fijo
   contentTwo: React.ReactNode; // El contenido que sube a cubrir al primero
-  containerHeight?: string;    // Opcional: por si quieres pasar la altura de la sección padre (ej: "300vh")
+  containerHeight?: string; // Opcional: por si quieres pasar la altura de la sección padre (ej: "300vh")
 }
 
 export default function PinnedAndOverlap({
@@ -46,7 +46,7 @@ export default function PinnedAndOverlap({
             end: "bottom bottom",
             scrub: 0.8, // Retardo en la animación para suavizar el scroll
           },
-        }
+        },
       );
     }
 

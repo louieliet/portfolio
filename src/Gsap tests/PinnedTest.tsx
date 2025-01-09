@@ -1,7 +1,7 @@
 import React from "react";
 import PinnedAndOverlap from "@/Gsap tests/PinnedAndOverlap";
 
-export default function Home() {
+export default function PinnedTest() {
   return (
     <main>
       {/* Aquí inyectamos "contenido 1" y "contenido 2" como props */}
