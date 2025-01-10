@@ -1,5 +1,6 @@
 import Image, { StaticImageData } from "next/image";
-import { ReactNode } from "react";
+import { useEffect, useRef, ReactNode } from "react"
+import gsap from "gsap";
 
 interface DevAreaProps {
     title: string;
@@ -11,8 +12,35 @@ interface DevAreaProps {
 }
 
 const DevArea = ({ title, description, tecIcon, tecIconAlt, tecIconWidth, children }: DevAreaProps) => {
+    const devContent = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        const content = devContent.current;
+        if (content) {
+            const observer = new IntersectionObserver(
+                ([entry]) => {
+                    if (entry.isIntersecting) {
+                      gsap.fromTo(
+                        entry.target,
+                        {
+                          opacity: 0,
+                        },
+                        {
+                          opacity: 1,
+                          duration: 2,
+                          ease: "power4.out",
+                          delay: 0.2
+                        }
+                      );
+                        observer.disconnect();
+                    }
+                },
+                { threshold: 0.1 }
+            );
+            observer.observe(content);
+        }
+      }, []);
     return (
-        <div className="text-white rounded-lg">
+        <div ref={devContent} className="text-white rounded-lg opacity-0">
             <h1 className="text-4xl font-bold mb-4">{title}</h1>
             <p className="text-base md:text-lg mb-10 w-full md:w-[90%]">{description}</p>
             <h1 className="text-4xl font-bold mb-8">Tecnologías que uso</h1>

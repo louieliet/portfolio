@@ -39,7 +39,6 @@ const WhatIdo = () => {
                       clipPath: "inset(0 0 0% 0)" 
                     }
                   );
-    
                     observer.disconnect();
                 }
             },
