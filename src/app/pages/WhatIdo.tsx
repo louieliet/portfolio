@@ -102,7 +102,7 @@ const WhatIdo = () => {
             tecIconWidth="w-4/5 md:w-1/6"
           >
             { /* Mobile Projects */}
-            <div className="flex flex-col gap-10 md:gap-20 items-center">
+            <div className="flex flex-col gap-10 md:gap-20 items-center mt-8 md:mt-0">
               <MobileProject 
                   title="Fashion Finder" 
                   description="Fashion Finder es una app de moda, realizada con SwiftUI y tecnologías como CoreML y Firebase que 
