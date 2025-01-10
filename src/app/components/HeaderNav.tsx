@@ -1,12 +1,19 @@
 'use client'
 import React from 'react'
 import gsap from 'gsap'
+import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
+
+gsap.registerPlugin(ScrollToPlugin)
 
 const HeaderNav = () => {
     const handleScroll = (sectionId: string) => {
         const section = document.getElementById(sectionId)
         if (section) {
-            section.scrollIntoView({ behavior: 'smooth' })
+            gsap.to(window, {
+                scrollTo: section,
+                duration: 2,
+                ease: 'power4.out',
+            })
         }
     }
 
@@ -36,9 +43,9 @@ const HeaderNav = () => {
         <nav
             className="
                 absolute top-0 left-0 w-full 
-                bg-transparent text-black 
+                bg-transparent text-custom-Brown 
                 flex justify-center gap-6 p-4 
-                z-40
+                z-40 font-bold
             "
         >
             <button
