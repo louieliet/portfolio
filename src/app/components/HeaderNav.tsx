@@ -41,6 +41,7 @@ const HeaderNav = () => {
 
     return (
         <nav
+            id="header-nav"
             className="
                 absolute top-0 left-0 w-full 
                 bg-transparent text-custom-Brown 

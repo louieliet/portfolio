@@ -48,6 +48,17 @@ export default function PinnedAndOverlap({
                     },
                 }
             )
+
+            // Animate HeaderNav when contentTwo appears
+            gsap.to('#header-nav', {
+                y: -300, // Move up by 50px
+                scrollTrigger: {
+                    trigger: contentTwoRef.current,
+                    start: 'top center',
+                    end: 'bottom center',
+                    scrub: true,
+                },
+            })
         }
 
         return () => {
