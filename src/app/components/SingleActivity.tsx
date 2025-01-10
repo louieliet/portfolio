@@ -48,20 +48,39 @@ function SingleActivity({
             const observer = new IntersectionObserver(
                 ([entry]) => {
                     if (entry.isIntersecting) {
-                        gsap.fromTo(
-                            txt,
-                            {
-                                opacity: 0,
-                                x: -200,
-                            },
-                            {
-                                opacity: 1,
-                                x: 0,
-                                duration: 2,
-                                ease: Power4.easeOut,
-                                delay: 0.5,
-                            }
-                        )
+                        if(imageOnLeft){
+                            gsap.fromTo(
+                                txt,
+                                {
+                                    opacity: 0,
+                                    x: 200,
+                                },
+                                {
+                                    opacity: 1,
+                                    x: 0,
+                                    duration: 2,
+                                    ease: Power4.easeOut,
+                                    delay: 0.5,
+                                }
+                            )
+                        }
+                        else{
+                            gsap.fromTo(
+                                txt,
+                                {
+                                    opacity: 0,
+                                    x: -200,
+                                },
+                                {
+                                    opacity: 1,
+                                    x: 0,
+                                    duration: 2,
+                                    ease: Power4.easeOut,
+                                    delay: 0.5,
+                                }
+                            )
+
+                        }
                         observer.disconnect()
                     }
                 },
@@ -69,7 +88,7 @@ function SingleActivity({
             )
             observer.observe(txt)
         }
-    }, [])
+    }, [imageOnLeft])
 
     return (
         <div
