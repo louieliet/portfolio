@@ -12,7 +12,7 @@ const Activities = () => {
                     [03] Actividades
                 </h1>
 
-                <div className="flex flex-col gap-40 mt-16">
+                <div className="flex flex-col gap-10 md:gap-40 mt-8 md:mt-16">
                     <SingleActivity
                         img={IOSIMG}
                         title="Co-fundador de Blank Canvas y desarrollador fullstack en el iOS Lab UP"
