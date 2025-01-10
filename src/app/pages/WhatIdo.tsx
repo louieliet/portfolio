@@ -2,6 +2,7 @@ import Divider from "@/app/components/Divider";
 import DevArea from "@/app/components/DevArea";
 import WebIcon from "@/app/assets/tecsweb.svg"
 import MobileIcon from "@/app/assets/tecsmobile.svg"
+import GameIcon from "@/app/assets/tecsgame.svg"
 
 const WhatIdo = () => {
   return (
@@ -41,9 +42,9 @@ const WhatIdo = () => {
               Utilizando motores y tecnologías de última generación, me especializo en crear juegos optimizados para múltiples plataformas, 
               asegurando un equilibrio perfecto entre rendimiento, jugabilidad y gráficos. Cada proyecto está diseñado con atención al detalle para 
               proporcionar entretenimiento memorable y de alta calidad."
-            tecIcon={MobileIcon}
+            tecIcon={GameIcon}
             tecIconAlt="GameDev"
-            tecIconWidth="w-4/5 md:w-1/6"
+            tecIconWidth="w-1/6 md:w-1/6"
           />
         </div>
       </div>
