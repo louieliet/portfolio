@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import Image, { StaticImageData } from 'next/image';
-import { gsap } from 'gsap';
+import { gsap, Power4 } from 'gsap';
 
 interface WebProjectProps {
     title: string;
@@ -25,18 +25,17 @@ const WebProject: React.FC<WebProjectProps> = ({ title, description, iframeSrc, 
             hoverEffect.style.left = '0';
             hoverEffect.style.width = '100%';
             hoverEffect.style.height = '100%';
-            hoverEffect.style.backgroundColor = '#121b30'; // Change this to your desired hover color
-            hoverEffect.style.transition = 'top 0.3s ease-in-out';
+            hoverEffect.style.backgroundColor = '#121b30';
             button.appendChild(hoverEffect);
 
             button.addEventListener('mouseenter', () => {
-                hoverEffect.style.top = '0';
-                gsap.to(text, { color: '#ffffff', duration: 0.3 });
+                gsap.to(hoverEffect, { top: '0', duration: 0.3, ease: Power4.easeOut });
+                gsap.to(text, { color: '#ffffff', duration: 0.3, ease: Power4.easeOut });
             });
 
             button.addEventListener('mouseleave', () => {
-                hoverEffect.style.top = '100%';
-                gsap.to(text, { color: '#121b30', duration: 0.3 });
+                gsap.to(hoverEffect, { top: '100%', duration: 0.3, ease: Power4.easeOut });
+                gsap.to(text, { color: '#121b30', duration: 0.3, ease: Power4.easeOut });
             });
         }
     }, []);

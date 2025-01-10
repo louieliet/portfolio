@@ -9,7 +9,7 @@ const Home = () => {
   return (
     <main>
       <PinnedAndOverlap
-        containerHeight="300vh"
+        containerHeight="600vh"
         contentOne={<Introduction />}
         contentTwo={<WhatIdo />}
       />
