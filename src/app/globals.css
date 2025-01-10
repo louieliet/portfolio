@@ -42,7 +42,9 @@
 
 .experience-bg {
     position: relative;
-    background: #121b30;
+    background: #090E1A;
+    border-top-left-radius: 50px;
+    border-top-right-radius: 50px;
 }
 
 .experience-bg::before {
