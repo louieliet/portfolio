@@ -44,7 +44,7 @@ export default function PinnedAndOverlap({
                         trigger: containerRef.current,
                         start: 'top top',
                         end: 'bottom bottom',
-                        scrub: 0.8, // Retardo en la animación para suavizar el scroll
+                        scrub: 0.6, 
                     },
                 }
             )

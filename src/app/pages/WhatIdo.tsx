@@ -91,7 +91,7 @@ const WhatIdo = () => {
                     <Divider />
                     {/* Mobile Development */}
                     <DevArea
-                        title="Desarrollo móvl"
+                        title="Desarrollo móvil"
                         description="Creo aplicaciones móviles modernas, funcionales y adaptadas a las necesidades de los usuarios, especializado en frontend. 
             Con un enfoque en la experiencia del usuario y la eficiencia, utilizo tecnologías avanzadas para desarrollar soluciones innovadoras que 
             funcionen tanto en plataformas iOS como Android. Cada proyecto móvil está diseñado para ofrecer un rendimiento óptimo y una interfaz intuitiva, 

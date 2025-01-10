@@ -1,5 +1,6 @@
 import Image, { StaticImageData } from 'next/image'
-
+import React, { useEffect, useRef } from 'react'
+import gsap, { Power4 } from 'gsap'
 interface MobileProjectProps {
     title: string
     description: string
@@ -15,9 +16,50 @@ const MobileProject: React.FC<MobileProjectProps> = ({
     videoOnLeft = false,
     icons = [],
 }) => {
+    const containerRef = useRef<HTMLDivElement>(null)
+    useEffect(() => {
+        const container = containerRef.current
+
+        if (container) {
+            const observer = new IntersectionObserver(
+                ([entry]) => {
+                    if (entry.isIntersecting) {
+                        if (videoOnLeft) {
+                            gsap.fromTo(
+                                container,
+                                { opacity: 0, x: -300 },
+                                {
+                                    opacity: 1,
+                                    x: 0,
+                                    duration: 4,
+                                    ease: Power4.easeOut,
+                                }
+                            )
+                        } else {
+                            gsap.fromTo(
+                                container,
+                                { opacity: 0, x: 300 },
+                                {
+                                    opacity: 1,
+                                    x: 0,
+                                    duration: 4,
+                                    ease: Power4.easeOut,
+                                }
+                            )
+                        }
+                        observer.disconnect()
+                    }
+                },
+                { threshold: 0.1 }
+            )
+            observer.observe(container)
+        }
+    }, [videoOnLeft])
+
     return (
         <div
-            className={`flex flex-col md:flex-row items-center w-full ${videoOnLeft ? 'md:flex-row-reverse ' : ''}`}
+            ref={containerRef}
+            className={`opacity-0 flex flex-col md:flex-row items-center w-full ${videoOnLeft ? 'md:flex-row-reverse ' : ''}`}
         >
             <div className="relative w-full md:w-[60%] pt-[100%] md:pt-[40%]">
                 <video
