@@ -44,7 +44,7 @@ export default function PinnedAndOverlap({
                         trigger: containerRef.current,
                         start: 'top top',
                         end: 'bottom bottom',
-                        scrub: 0.6, 
+                        scrub: 0.6,
                     },
                 }
             )
