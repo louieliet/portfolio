@@ -3,7 +3,7 @@ import Image from 'next/image'
 import { TypeAnimation } from 'react-type-animation'
 import { useEffect } from 'react'
 import gsap from 'gsap'
-import HeaderNav from "@/app/components/HeaderNav"
+import HeaderNav from '@/app/components/HeaderNav'
 
 const Introduction = () => {
     useEffect(() => {

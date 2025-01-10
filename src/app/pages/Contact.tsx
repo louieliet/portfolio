@@ -24,7 +24,7 @@ const Contact = () => {
                                 opacity: 1,
                                 duration: 2,
                                 ease: Power4.easeOut,
-                                stagger: 0.8, 
+                                stagger: 0.8,
                             }
                         )
 
@@ -39,7 +39,9 @@ const Contact = () => {
 
     return (
         <div
-            ref={containerRef} id="contact" className="contact-bg flex flex-col items-center justify-center w-full gap-10 px-5 bg-custom-LightBrown min-h-screen -mt-12"
+            ref={containerRef}
+            id="contact"
+            className="contact-bg flex flex-col items-center justify-center w-full gap-10 px-5 bg-custom-LightBrown min-h-screen -mt-12"
         >
             {/* Title */}
             <h1 className="opacity-0 contact-content z-20 text-4xl md:text-8xl py-5 font-extrabold text-custom-Brown text-center -mb-8">

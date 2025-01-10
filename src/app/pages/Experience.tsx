@@ -68,7 +68,10 @@ const Experience = () => {
     }, [])
 
     return (
-        <div id="experience" className="experience-bg -mt-12 md:-mt-64 overflow-hidden flex flex-col md:flex-row text-white justify-center items-center gap-10 md:px-0">
+        <div
+            id="experience"
+            className="experience-bg -mt-12 md:-mt-64 overflow-hidden flex flex-col md:flex-row text-white justify-center items-center gap-10 md:px-0"
+        >
             {/* Left side for the title */}
             <div className="relative w-full md:w-[45%] h-[300px] md:h-[800px] flex justify-center items-end md:items-center overflow-hidden -mt-12">
                 {/* Video Background */}
