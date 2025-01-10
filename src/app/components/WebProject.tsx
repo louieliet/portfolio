@@ -13,10 +13,13 @@ interface WebProjectProps {
 const WebProject: React.FC<WebProjectProps> = ({ title, description, iframeSrc, frameOnLeft = false, icons = [] }) => {
     const buttonRef = useRef<HTMLAnchorElement>(null);
     const textRef = useRef<HTMLSpanElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const button = buttonRef.current;
         const text = textRef.current;
+        const container = containerRef.current;
+
         if (button && text) {
             gsap.set(button, { position: 'relative', overflow: 'hidden' });
             const hoverEffect = document.createElement('div');
@@ -38,10 +41,28 @@ const WebProject: React.FC<WebProjectProps> = ({ title, description, iframeSrc, 
                 gsap.to(text, { color: '#121b30', duration: 0.3, ease: Power4.easeOut });
             });
         }
-    }, []);
+
+        if (container) {
+            const observer = new IntersectionObserver(
+                ([entry]) => {
+                    if (entry.isIntersecting) {
+                        if(frameOnLeft){
+                            gsap.fromTo(container, { opacity: 0, x: -300 }, { opacity: 1, x: 0, duration: 4, ease: Power4.easeOut });
+                        }
+                        else{
+                            gsap.fromTo(container, { opacity: 0, x: 300 }, { opacity: 1, x: 0, duration: 4, ease: Power4.easeOut });
+                        }
+                        observer.disconnect();
+                    }
+                },
+                { threshold: 0.1 }
+            );
+            observer.observe(container);
+        }
+    }, [frameOnLeft]);
 
     return (
-        <div className={`flex flex-col md:flex-row items-center justify-center w-full px-4 md:px-20 ${frameOnLeft ? 'md:flex-row-reverse' : ''}`}>
+        <div ref={containerRef} className={`opacity-0 flex flex-col md:flex-row items-center justify-center w-full px-4 md:px-20 ${frameOnLeft ? 'md:flex-row-reverse' : ''}`}>
             <div className="relative bg-white border-4 border-gray-300 rounded-lg w-full md:w-[60%] shadow-2xl" style={{ paddingTop: "40%" }}>
                 <iframe
                     src={iframeSrc}
