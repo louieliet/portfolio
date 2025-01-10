@@ -11,7 +11,7 @@ const TimeLine = () => {
                             key={data.id}
                             className="relative py-6 pl-8 sm:pl-32 group z-10"
                         >
-                            <h3 className="md:text-2xl text-lg font-bold md:mb-0 mb-4 text-white">
+                            <h3 className="text-2xl md:text-4xl font-bold md:mb-0 mb-4 text-white">
                                 {data.title}
                             </h3>
                             <div
