@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 import MailIcon from '@/app/assets/mailicon.svg'
 import LinkedInIcon from '@/app/assets/linkedinicon.svg'
 import { TypeAnimation } from 'react-type-animation'
@@ -69,7 +70,7 @@ const Contact = () => {
             {/* Contact Methods */}
             <div className="opacity-0 contact-content flex flex-col md:flex-row items-center justify-center gap-10 w-full">
                 {/* Email Section */}
-                <div className="flex flex-col items-center justify-center gap-3 text-center">
+                <div className="z-20 flex flex-col items-center justify-center gap-3 text-center">
                     <Image
                         src={MailIcon}
                         alt="Email Icon"
@@ -89,7 +90,7 @@ const Contact = () => {
                 </div>
 
                 {/* LinkedIn Section */}
-                <div className="flex flex-col items-center justify-center gap-3 text-center">
+                <div className="z-20 flex flex-col items-center justify-center gap-3 text-center">
                     <Image
                         src={LinkedInIcon}
                         alt="LinkedIn Icon"
@@ -102,14 +103,14 @@ const Contact = () => {
                     <p className="text-gray-600">
                         Conecta conmigo en LinkedIn:
                     </p>
-                    <a
+                    <Link
                         href="https://www.linkedin.com/in/emiliano-mg/"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-custom-Brown font-medium hover:underline"
                     >
                         Link a mi perfil
-                    </a>
+                    </Link>
                 </div>
             </div>
 
