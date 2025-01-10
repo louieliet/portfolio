@@ -48,7 +48,7 @@ function SingleActivity({
             const observer = new IntersectionObserver(
                 ([entry]) => {
                     if (entry.isIntersecting) {
-                        if(imageOnLeft){
+                        if (imageOnLeft) {
                             gsap.fromTo(
                                 txt,
                                 {
@@ -63,8 +63,7 @@ function SingleActivity({
                                     delay: 0.5,
                                 }
                             )
-                        }
-                        else{
+                        } else {
                             gsap.fromTo(
                                 txt,
                                 {
@@ -79,7 +78,6 @@ function SingleActivity({
                                     delay: 0.5,
                                 }
                             )
-
                         }
                         observer.disconnect()
                     }

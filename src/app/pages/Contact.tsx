@@ -6,8 +6,7 @@ import { TypeAnimation } from 'react-type-animation'
 const Contact = () => {
     return (
         <div
-            id="contact"
-            className="contact-section contact-bg flex flex-col items-center justify-center w-full gap-10 px-5 bg-custom-LightBrown min-h-screen"
+            className="contact-bg flex flex-col items-center justify-center w-full gap-10 px-5 bg-custom-LightBrown min-h-screen -mt-12"
         >
             {/* Title */}
             <h1 className="text-4xl md:text-8xl py-5 font-extrabold text-custom-Brown text-center -mb-8">
