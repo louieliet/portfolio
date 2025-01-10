@@ -1,11 +1,29 @@
 'use client'
-import React from 'react'
+import React, { useEffect } from 'react'
 import gsap from 'gsap'
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
 
 gsap.registerPlugin(ScrollToPlugin)
 
 const HeaderNav = () => {
+    useEffect(() => {
+        const elements = document.querySelectorAll('.header-btn')
+        elements.forEach((element, index) => {
+            gsap.fromTo(
+                element,
+                { y: 200, opacity: 0 },
+                {
+                    y: 0,
+                    opacity: 1,
+                    duration: 1,
+                    ease: 'power4.out',
+                    delay: index * 0.2,
+                }
+            )
+        })
+    }, [])
+
+
     const handleScroll = (sectionId: string) => {
         const section = document.getElementById(sectionId)
         if (section) {
@@ -54,6 +72,7 @@ const HeaderNav = () => {
                 onClick={() => handleScroll('whatido')}
                 onMouseEnter={() => handleMouseEnter('whatido')}
                 onMouseLeave={() => handleMouseLeave('whatido')}
+                className='header-btn'
             >
                 ¿Qué hago?
             </button>
@@ -62,6 +81,7 @@ const HeaderNav = () => {
                 onClick={() => handleScroll('experience')}
                 onMouseEnter={() => handleMouseEnter('experience')}
                 onMouseLeave={() => handleMouseLeave('experience')}
+                className='header-btn'
             >
                 Experiencia
             </button>
@@ -70,6 +90,7 @@ const HeaderNav = () => {
                 onClick={() => handleScroll('activities')}
                 onMouseEnter={() => handleMouseEnter('activities')}
                 onMouseLeave={() => handleMouseLeave('activities')}
+                className='header-btn'
             >
                 Actividades
             </button>
@@ -78,6 +99,7 @@ const HeaderNav = () => {
                 onClick={() => handleScroll('contact')}
                 onMouseEnter={() => handleMouseEnter('contact')}
                 onMouseLeave={() => handleMouseLeave('contact')}
+                className='header-btn'
             >
                 Contacto
             </button>
