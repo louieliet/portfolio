@@ -1,15 +1,54 @@
+"use client";
 import Divider from "@/app/components/Divider";
 import DevArea from "@/app/components/DevArea";
 import WebIcon from "@/app/assets/tecsweb.svg"
 import MobileIcon from "@/app/assets/tecsmobile.svg"
 import GameIcon from "@/app/assets/tecsgame.svg"
+import gsap from "gsap";
+import { useEffect } from "react"
 
 const WhatIdo = () => {
+  useEffect(() => {
+    const elements = document.querySelectorAll(".whatido-title");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            gsap.fromTo(
+              entry.target,
+              { y: 200, 
+                opacity: 0,
+                clipPath: "inset(0 0 100% 0)" 
+              },
+              {
+                y: 0,
+                opacity: 1,
+                duration: 1,
+                ease: "power4.out",
+                delay: Array.from(elements).indexOf(entry.target) * 0.3,
+                clipPath: "inset(0 0 0% 0)" 
+              }
+            );
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    elements.forEach((element) => {
+      observer.observe(element);
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
   return (
     <div className="whatido-bg w-full h-full flex justify-start items-start gap-5 md:gap-24 flex-col px-10 md:px-1">
       <div className="mt-10 md:ml-20 md:mt-20">
         {/* Title */}
-        <h1 className="text-6xl md:text-7xl font-bold text-white mb-10 md:mb-16">
+        <h1 className="whatido-title text-6xl md:text-7xl font-bold text-white mb-10 md:mb-16 py-2">
           [01] ¿Qué hago?
         </h1>
         <Divider />
