@@ -14,7 +14,7 @@ const DevArea = ({ title, description, tecIcon, tecIconAlt, tecIconWidth, childr
     return (
         <div className="text-white rounded-lg">
             <h1 className="text-4xl font-bold mb-4">{title}</h1>
-            <p className="text-base md:text-lg mb-10 w-full md:w-4/5">{description}</p>
+            <p className="text-base md:text-lg mb-10 w-full md:w-[90%]">{description}</p>
             <h1 className="text-4xl font-bold mb-8">Tecnologías que uso</h1>
             <div className="flex flex-wrap space-x-4 mb-8">
                 <Image src={tecIcon} alt={tecIconAlt} width={40} height={40} className={tecIconWidth} />
