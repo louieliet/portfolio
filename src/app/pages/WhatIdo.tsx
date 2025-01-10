@@ -48,7 +48,7 @@ const WhatIdo = () => {
         }
     }, [])
     return (
-        <div className="whatido-bg w-full h-full flex justify-start items-start gap-5 md:gap-24 flex-col px-10 md:px-1">
+        <section id="whatido" className="whatido-bg w-full h-full flex justify-start items-start gap-5 md:gap-24 flex-col px-10 md:px-1">
             <div className="mt-10 md:ml-20 md:mt-20">
                 {/* Title */}
                 <h1
@@ -124,7 +124,7 @@ const WhatIdo = () => {
                     </DevArea>
                 </div>
             </div>
-        </div>
+        </section>
     )
 }
 

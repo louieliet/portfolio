@@ -6,7 +6,7 @@ import SAUPIMG from '@/app/assets/images/saupimg.jpeg'
 
 const Activities = () => {
     return (
-        <div className="activities-bg z-20 flex flex-col px-5 md:px-20 pb-20">
+        <div id="activities" className="activities-bg z-20 flex flex-col px-5 md:px-20 pb-20">
             <div className="text-start w-full mt-6">
                 <h1 className="text-4xl md:text-6xl lg:text-8xl text-white font-extrabold">
                     [03] Actividades
