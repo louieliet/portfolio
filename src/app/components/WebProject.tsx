@@ -42,7 +42,7 @@ const WebProject: React.FC<WebProjectProps> = ({ title, description, iframeSrc, 
 
     return (
         <div className={`flex flex-col md:flex-row items-center justify-center w-full px-4 md:px-20 ${frameOnLeft ? 'md:flex-row-reverse' : ''}`}>
-            <div className="relative bg-white border-4 border-gray-300 rounded-lg w-full md:w-[60%]" style={{ paddingTop: "40%" }}>
+            <div className="relative bg-white border-4 border-gray-300 rounded-lg w-full md:w-[60%] shadow-2xl" style={{ paddingTop: "40%" }}>
                 <iframe
                     src={iframeSrc}
                     title={title}
