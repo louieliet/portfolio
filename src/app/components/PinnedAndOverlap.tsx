@@ -21,33 +21,62 @@ export default function PinnedAndOverlap({
 
     useEffect(() => {
         gsap.registerPlugin(ScrollTrigger)
-
+        const mediaQuery = window.matchMedia('(min-width: 768px)')
         // Solo en cliente
         if (typeof window !== 'undefined') {
-            // 1) Pin del contenido 1
-            ScrollTrigger.create({
-                trigger: containerRef.current,
-                start: 'top top',
-                end: 'bottom bottom',
-                pin: contentOneRef.current,
-                pinSpacing: false,
-            })
+            if(mediaQuery.matches){
+                // 1) Pin del contenido 1
+                ScrollTrigger.create({
+                    trigger: containerRef.current,
+                    start: 'top top',
+                    end: 'bottom bottom',
+                    pin: contentOneRef.current,
+                    pinSpacing: false,
+                })
+    
+                // 2) Animación de contenido 2 (sube desde 100vh hasta -window.innerHeight)
+                gsap.fromTo(
+                    contentTwoRef.current,
+                    { y: 0 },
+                    {
+                        y: -window.innerHeight,
+                        ease: 'power2.inOut', // Easing más fluido
+                        scrollTrigger: {
+                            trigger: containerRef.current,
+                            start: 'top top',
+                            end: 'bottom bottom',
+                            scrub: 0.8, // Retardo en la animación para suavizar el scroll
+                        },
+                    }
+                )
+            }
+            else{
+                // 1) Pin del contenido 1
+                ScrollTrigger.create({
+                    trigger: containerRef.current,
+                    start: 'top top',
+                    end: 'bottom bottom',
+                    pin: contentOneRef.current,
+                    pinSpacing: false,
+                })
+    
+                // 2) Animación de contenido 2 (sube desde 100vh hasta -window.innerHeight)
+                gsap.fromTo(
+                    contentTwoRef.current,
+                    { y: 0 },
+                    {
+                        y: -window.innerHeight,
+                        ease: 'power2.inOut', // Easing más fluido
+                        scrollTrigger: {
+                            trigger: containerRef.current,
+                            start: 'top top',
+                            end: 'bottom bottom',
+                            scrub: false
+                        },
+                    }
+                )
+            }
 
-            // 2) Animación de contenido 2 (sube desde 100vh hasta -window.innerHeight)
-            gsap.fromTo(
-                contentTwoRef.current,
-                { y: 0 },
-                {
-                    y: -window.innerHeight,
-                    ease: 'power2.inOut', // Easing más fluido
-                    scrollTrigger: {
-                        trigger: containerRef.current,
-                        start: 'top top',
-                        end: 'bottom bottom',
-                        scrub: 0.8, // Retardo en la animación para suavizar el scroll
-                    },
-                }
-            )
         }
 
         return () => {
