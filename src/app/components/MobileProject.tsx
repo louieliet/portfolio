@@ -1,20 +1,28 @@
-import Image, { StaticImageData } from 'next/image';
+import Image, { StaticImageData } from 'next/image'
 
 interface MobileProjectProps {
-    title: string;
-    description: string;
-    videoSrc: string;
-    videoOnLeft?: boolean;
-    icons?: StaticImageData[];
+    title: string
+    description: string
+    videoSrc: string
+    videoOnLeft?: boolean
+    icons?: StaticImageData[]
 }
 
-const MobileProject: React.FC<MobileProjectProps> = ({ title, description, videoSrc, videoOnLeft = false, icons = [] }) => {
+const MobileProject: React.FC<MobileProjectProps> = ({
+    title,
+    description,
+    videoSrc,
+    videoOnLeft = false,
+    icons = [],
+}) => {
     return (
-        <div className={`flex flex-col md:flex-row items-center w-full ${videoOnLeft ? 'md:flex-row-reverse ' : ''}`}>
+        <div
+            className={`flex flex-col md:flex-row items-center w-full ${videoOnLeft ? 'md:flex-row-reverse ' : ''}`}
+        >
             <div className="relative w-full md:w-[60%] pt-[100%] md:pt-[40%]">
                 <video
-                    autoPlay 
-                    loop 
+                    autoPlay
+                    loop
                     muted
                     src={videoSrc}
                     title={title}
@@ -24,10 +32,18 @@ const MobileProject: React.FC<MobileProjectProps> = ({ title, description, video
                     Your browser does not support the video tag.
                 </video>
             </div>
-            <div className={`space-y-3 w-full md:w-[40%] mt-6 md:mt-0 ${videoOnLeft ? 'md:-mr-44' : 'md:-ml-48'}`}>
+            <div
+                className={`space-y-3 w-full md:w-[40%] mt-6 md:mt-0 ${videoOnLeft ? 'md:-mr-44' : 'md:-ml-48'}`}
+            >
                 <div className="flex flex-wrap space-x-2 mt-6">
                     {icons.map((icon, index) => (
-                        <Image key={index} src={icon} alt={`icon-${index}`} width={40} height={40} />
+                        <Image
+                            key={index}
+                            src={icon}
+                            alt={`icon-${index}`}
+                            width={40}
+                            height={40}
+                        />
                     ))}
                 </div>
                 <h3 className="text-3xl font-bold">{title}</h3>
@@ -36,7 +52,7 @@ const MobileProject: React.FC<MobileProjectProps> = ({ title, description, video
                 </p>
             </div>
         </div>
-    );
-};
+    )
+}
 
-export default MobileProject;
+export default MobileProject
