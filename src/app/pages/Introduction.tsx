@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { TypeAnimation } from 'react-type-animation'
 import { useEffect } from 'react'
 import gsap from 'gsap'
+import HeaderNav from "@/app/components/HeaderNav"
 
 const Introduction = () => {
     useEffect(() => {
@@ -23,7 +24,8 @@ const Introduction = () => {
     }, [])
 
     return (
-        <div id="home" className="intro-bg w-full h-full flex justify-center items-center gap-5 md:gap-24 md:flex-row flex-col px-10 md:px-1">
+        <div className="intro-bg w-full h-full flex justify-center items-center gap-5 md:gap-24 md:flex-row flex-col px-10 md:px-1">
+            <HeaderNav />
             {/* Profile picture */}
             <div className="intro-content relative w-[300px] h-[300px] md:w-[300px] md:h-[300px] lg:w-[400px] lg:h-[400px] rounded-full overflow-hidden shadow-2xl md:-mt-0 -mt-20">
                 <Image

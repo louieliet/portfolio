@@ -14,13 +14,13 @@ const HeaderNav = () => {
     return (
         <nav
             className="
-                fixed top-0 w-full z-50 bg-white text-black shadow-md
-                flex justify-center gap-6 p-4
+                absolute top-0 left-0 w-full 
+                bg-transparent text-black 
+                flex justify-center gap-6 p-4 
+                z-40
             "
         >
-            {/* Puedes añadir o quitar botones dependiendo de cuántas secciones tengas */}
-            <button onClick={() => handleScroll('home')}>Home</button>
-            <button onClick={() => handleScroll('whatido')}>¿Qué hago?</button>
+            <button onClick={() => handleScroll('whatido')}>Home</button>
             <button onClick={() => handleScroll('experience')}>Experiencia</button>
             <button onClick={() => handleScroll('activities')}>Actividades</button>
             <button onClick={() => handleScroll('contact')}>Contacto</button>

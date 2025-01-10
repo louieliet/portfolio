@@ -28,7 +28,7 @@ const Experience = () => {
                                     opacity: 1,
                                     duration: 2,
                                     ease: 'power4.out',
-                                    delay: 0.8,
+                                    delay: 0.3,
                                 }
                             )
                             observer.disconnect()
@@ -54,7 +54,7 @@ const Experience = () => {
                                     opacity: 1,
                                     duration: 2,
                                     ease: 'power4.out',
-                                    delay: 0.8,
+                                    delay: 0.3,
                                 }
                             )
                             observer.disconnect()
