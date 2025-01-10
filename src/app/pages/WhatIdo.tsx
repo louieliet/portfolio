@@ -46,7 +46,7 @@ const WhatIdo = () => {
               proporcionar entretenimiento memorable y de alta calidad."
             tecIcon={GameIcon}
             tecIconAlt="GameDev"
-            tecIconWidth="w-1/6 md:w-1/6"
+            tecIconWidth="w-1/6 md:w-16"
           />
         </div>
       </div>
