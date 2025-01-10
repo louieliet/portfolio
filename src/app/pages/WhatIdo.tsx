@@ -18,23 +18,25 @@ const WhatIdo = () => {
           <DevArea
             title="Desarrollo web"
             description="Construyo experiencias digitales intuitivas y eficientes que combinan creatividad y funcionalidad. 
-              Como desarrollador web, me especializo principalmente en frontend para crear sitios modernos y aplicaciones 
-              robustas utilizando tecnologías de vanguardia. Cada línea de código está orientada a resolver problemas, 
-              mejorar la experiencia del usuario y lograr resultados óptimos."
+            Como desarrollador web, me especializo principalmente en frontend para crear sitios modernos y aplicaciones 
+            robustas utilizando tecnologías de vanguardia. Cada línea de código está orientada a resolver problemas, 
+            mejorar la experiencia del usuario y lograr resultados óptimos."
             tecIcon={WebIcon}
             tecIconAlt="WebDev"
             tecIconWidth="w-full md:w-1/3"
           />
+          <Divider />
           <DevArea
             title="Desarrollo móvl"
             description="Creo aplicaciones móviles modernas, funcionales y adaptadas a las necesidades de los usuarios, especializado en frontend. 
-              Con un enfoque en la experiencia del usuario y la eficiencia, utilizo tecnologías avanzadas para desarrollar soluciones innovadoras que 
-              funcionen tanto en plataformas iOS como Android. Cada proyecto móvil está diseñado para ofrecer un rendimiento óptimo y una interfaz intuitiva, 
-              asegurando que las aplicaciones no solo cumplan con su propósito, sino que también superen las expectativas."
+            Con un enfoque en la experiencia del usuario y la eficiencia, utilizo tecnologías avanzadas para desarrollar soluciones innovadoras que 
+            funcionen tanto en plataformas iOS como Android. Cada proyecto móvil está diseñado para ofrecer un rendimiento óptimo y una interfaz intuitiva, 
+            asegurando que las aplicaciones no solo cumplan con su propósito, sino que también superen las expectativas."
             tecIcon={MobileIcon}
             tecIconAlt="MobileDev"
             tecIconWidth="w-4/5 md:w-1/6"
           />
+          <Divider />
           <DevArea
             title="Desarrollo de videojuegos"
             description="Doy vida a ideas creativas mediante el desarrollo de videojuegos inmersivos y dinámicos. Mi enfoque combina narrativa, diseño visual y 
