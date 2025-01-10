@@ -3,15 +3,18 @@ import gsap from "gsap";
 import { useEffect } from "react"
 
 import WebProject from "@/app/components/WebProject";
+import MobileProject from "@/app/components/MobileProject";
 import Divider from "@/app/components/Divider";
 import DevArea from "@/app/components/DevArea";
 
 
 import WebIcon from "@/app/assets/tecsweb.svg"
 import MobileIcon from "@/app/assets/tecsmobile.svg"
-import GameIcon from "@/app/assets/tecsgame.svg"
 import TsIcon from "@/app/assets/typescripticon.svg"
 import ReactIcon from "@/app/assets/reacticon.svg"
+import SwiftIcon from "@/app/assets/swifticon.svg"
+import FbIcon from "@/app/assets/firebaseicon.svg"
+import JsIcon from "@/app/assets/jsicon.svg"
 
 const WhatIdo = () => {
   useEffect(() => {
@@ -60,6 +63,7 @@ const WhatIdo = () => {
         <Divider />
         {/* Content */}
         <div className="flex gap-10 flex-col md:gap-20 mt-6 md:mt-10">
+          { /* Web Development */}
           <DevArea
             title="Desarrollo web"
             description="Construyo experiencias digitales intuitivas y eficientes que combinan creatividad y funcionalidad. 
@@ -70,6 +74,7 @@ const WhatIdo = () => {
             tecIconAlt="WebDev"
             tecIconWidth="w-full md:w-1/3"
           >
+            {/* Web Projects */}
             <div className="flex flex-col gap-10 md:gap-20 items-center">
               <WebProject title="Página de Hus" 
                 description="Página de Hus, realizada con NextJS y Tailwind CSS" 
@@ -84,8 +89,8 @@ const WhatIdo = () => {
                 />
             </div>
           </DevArea>
-
           <Divider />
+          { /* Mobile Development */}
           <DevArea
             title="Desarrollo móvl"
             description="Creo aplicaciones móviles modernas, funcionales y adaptadas a las necesidades de los usuarios, especializado en frontend. 
@@ -95,19 +100,29 @@ const WhatIdo = () => {
             tecIcon={MobileIcon}
             tecIconAlt="MobileDev"
             tecIconWidth="w-4/5 md:w-1/6"
-          />
-          <Divider />
-          <DevArea
-            title="Desarrollo de videojuegos"
-            description="Doy vida a ideas creativas mediante el desarrollo de videojuegos inmersivos y dinámicos. Mi enfoque combina narrativa, diseño visual y 
-              mecánicas innovadoras para ofrecer experiencias interactivas y atractivas. 
-              Utilizando motores y tecnologías de última generación, me especializo en crear juegos optimizados para múltiples plataformas, 
-              asegurando un equilibrio perfecto entre rendimiento, jugabilidad y gráficos. Cada proyecto está diseñado con atención al detalle para 
-              proporcionar entretenimiento memorable y de alta calidad."
-            tecIcon={GameIcon}
-            tecIconAlt="GameDev"
-            tecIconWidth="w-1/6 md:w-16"
-          />
+          >
+            { /* Mobile Projects */}
+            <div className="flex flex-col gap-10 md:gap-20 items-center">
+              <MobileProject 
+                  title="Fashion Finder" 
+                  description="Fashion Finder es una app de moda, realizada con SwiftUI y tecnologías como CoreML y Firebase que 
+                  permite a los usuarios tener un closet virtual y recibir recomendaciones de moda en base a este closet,
+                  sus emociones detectadas y el clima de su ubicación actual. Además, permite compartir outfits con otros usuarios, ¡Incluso
+                  recibir descuentos en tiendas de moda!" 
+                  videoSrc="/videos/FFVideo.webm"
+                  icons={[SwiftIcon, FbIcon]}
+              />
+              <MobileProject 
+                  title="Habitus" 
+                  description="Habitus es una app hecha en React Native junto a tecnologías como Firebase que permite 
+                  a los usuarios llevar un registro de sus hábitos diarios y recibir notificaciones, así como
+                  visualizar estadísticas de su progreso." 
+                  videoSrc="/videos/HabitusVideo.webm"
+                  icons={[JsIcon, ReactIcon]}
+                  videoOnLeft={true}
+              />
+            </div>
+          </DevArea>
         </div>
       </div>
     </div>
