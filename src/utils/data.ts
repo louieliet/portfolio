@@ -12,14 +12,14 @@ export const dataAboutPage = [
     {
         id: 2,
         title: 'Frontend Developer Intern',
-        subtitle: 'Chain Solutions (now Luyoa)',
+        subtitle: 'Chain Solutions',
         descriptions: [
             'Desarrollo del frontend para páginas web en React + TypeScript y TailwindCSS',
             'Desarrollo full stack para páginas web con NextJS, utilizando TypeScript y TailwindCSS',
             'Desarrollo del frontend para apps móviles en React Native',
             'Implementación de soluciones de pases en Apple Wallet.',
         ],
-        date: 'Ago 2023 - Presente',
+        date: 'Ago 2023 - Dic 2024',
     },
     {
         id: 3,
