@@ -1,11 +1,17 @@
 "use client";
+import gsap from "gsap";
+import { useEffect } from "react"
+
+import WebProject from "@/app/components/WebProject";
 import Divider from "@/app/components/Divider";
 import DevArea from "@/app/components/DevArea";
+
+
 import WebIcon from "@/app/assets/tecsweb.svg"
 import MobileIcon from "@/app/assets/tecsmobile.svg"
 import GameIcon from "@/app/assets/tecsgame.svg"
-import gsap from "gsap";
-import { useEffect } from "react"
+import TsIcon from "@/app/assets/typescripticon.svg"
+import ReactIcon from "@/app/assets/reacticon.svg"
 
 const WhatIdo = () => {
   useEffect(() => {
@@ -23,7 +29,7 @@ const WhatIdo = () => {
               {
                 y: 0,
                 opacity: 1,
-                duration: 1,
+                duration: 1.5,
                 ease: "power4.out",
                 delay: Array.from(elements).indexOf(entry.target) * 0.3,
                 clipPath: "inset(0 0 0% 0)" 
@@ -63,7 +69,22 @@ const WhatIdo = () => {
             tecIcon={WebIcon}
             tecIconAlt="WebDev"
             tecIconWidth="w-full md:w-1/3"
-          />
+          >
+            <div className="flex flex-col gap-10 md:gap-20 items-center">
+              <WebProject title="Página de Hus" 
+                description="Página de Hus, realizada con NextJS y Tailwind CSS" 
+                iframeSrc="https://hus-demo.vercel.app/"
+                icons={[TsIcon, ReactIcon]}
+                />
+              <WebProject title="Página de Ragabe" 
+                description="Página de Ragabe, realizada con NextJS y Tailwind CSS" 
+                iframeSrc="https://dev.ragabe.git.chainsol.io/"
+                icons={[TsIcon, ReactIcon]}
+                frameOnLeft={true}
+                />
+            </div>
+          </DevArea>
+
           <Divider />
           <DevArea
             title="Desarrollo móvl"
