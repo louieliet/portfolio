@@ -10,64 +10,69 @@ const Experience = () => {
         const title = titleExpRef.current
         const timeline = timelineRef.current
 
-        if (title) {
-            const observer = new IntersectionObserver(
-                ([entry]) => {
-                    if (entry.isIntersecting) {
-                        gsap.fromTo(
-                            entry.target,
-                            {
-                                opacity: 0,
-                                x: -200,
-                            },
-                            {
-                                x: 300,
-                                opacity: 1,
-                                duration: 2,
-                                ease: 'power4.out',
-                                delay: 0.2,
-                            }
-                        )
-                        observer.disconnect()
-                    }
-                },
-                { threshold: 0.1 }
-            )
-            observer.observe(title)
+        const mediaQuery = window.matchMedia('(min-width: 768px)')
 
+        if(mediaQuery.matches) {
+            if (title) {
+                const observer = new IntersectionObserver(
+                    ([entry]) => {
+                        if (entry.isIntersecting) {
+                            gsap.fromTo(
+                                entry.target,
+                                {
+                                    opacity: 0,
+                                    x: -200,
+                                },
+                                {
+                                    x: 300,
+                                    opacity: 1,
+                                    duration: 2,
+                                    ease: 'power4.out',
+                                    delay: 0.2,
+                                }
+                            )
+                            observer.disconnect()
+                        }
+                    },
+                    { threshold: 0.1 }
+                )
+                observer.observe(title)
+    
+            }
+    
+            if (timeline) {
+                const observer = new IntersectionObserver(
+                    ([entry]) => {
+                        if (entry.isIntersecting) {
+                            gsap.fromTo(
+                                entry.target,
+                                {
+                                    opacity: 0,
+                                    x: 200,
+                                },
+                                {
+                                    x: -150,
+                                    opacity: 1,
+                                    duration: 2,
+                                    ease: 'power4.out',
+                                    delay: 0.2,
+                                }
+                            )
+                            observer.disconnect()
+                        }
+                    },
+                    { threshold: 0.1 }
+                )
+                observer.observe(timeline)
+    
+            }
         }
 
-        if (timeline) {
-            const observer = new IntersectionObserver(
-                ([entry]) => {
-                    if (entry.isIntersecting) {
-                        gsap.fromTo(
-                            entry.target,
-                            {
-                                opacity: 0,
-                                x: 200,
-                            },
-                            {
-                                x: -150,
-                                opacity: 1,
-                                duration: 2,
-                                ease: 'power4.out',
-                                delay: 0.2,
-                            }
-                        )
-                        observer.disconnect()
-                    }
-                },
-                { threshold: 0.1 }
-            )
-            observer.observe(timeline)
-
-        }
     }, [])
 
     return (
         <div
-            className="experience-bg -mt-64 overflow-hidden flex flex-col md:flex-row text-white justify-center items-center gap-10 md:px-0"
+            className="experience-bg -mt-12 md:-mt-64 overflow-hidden flex flex-col md:flex-row text-white justify-center items-center gap-10 md:px-0"
         >
             {/* Left side for the title */}
             <div className="relative w-full md:w-[45%] h-[300px] md:h-[800px] flex justify-center items-end md:items-center overflow-hidden -mt-12">
