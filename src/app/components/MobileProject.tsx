@@ -31,7 +31,7 @@ const MobileProject: React.FC<MobileProjectProps> = ({
                                 {
                                     opacity: 1,
                                     x: 0,
-                                    duration: 4,
+                                    duration: 1,
                                     ease: Power4.easeOut,
                                 }
                             )
@@ -42,7 +42,7 @@ const MobileProject: React.FC<MobileProjectProps> = ({
                                 {
                                     opacity: 1,
                                     x: 0,
-                                    duration: 4,
+                                    duration: 1,
                                     ease: Power4.easeOut,
                                 }
                             )

@@ -58,9 +58,9 @@ function SingleActivity({
                                 {
                                     opacity: 1,
                                     x: 0,
-                                    duration: 2,
+                                    duration: 1,
                                     ease: Power4.easeOut,
-                                    delay: 0.5,
+                                    delay: 0.2,
                                 }
                             )
                         } else {
@@ -73,9 +73,9 @@ function SingleActivity({
                                 {
                                     opacity: 1,
                                     x: 0,
-                                    duration: 2,
+                                    duration: 1,
                                     ease: Power4.easeOut,
-                                    delay: 0.5,
+                                    delay: 0.2,
                                 }
                             )
                         }
