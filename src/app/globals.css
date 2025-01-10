@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html{
+    overflow-x: hidden;
+}
+
 .intro-bg {
     position: relative; /* Necesario para posicionar correctamente el pseudo-elemento */
     background: #faebd7;
