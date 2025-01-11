@@ -69,7 +69,7 @@ export default function PinnedAndOverlap({
                     trigger: contentTwoRef.current,
                     start: 'top 10%',
                     end: 'top top',
-                    scrub: true, 
+                    scrub: true,
                     markers: false,
                 },
             })
