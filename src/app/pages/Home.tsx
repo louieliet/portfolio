@@ -4,10 +4,12 @@ import WhatIdo from './WhatIdo'
 import Experience from './Experience'
 import Activities from './Activities'
 import Contact from './Contact'
+import SideMenu from '../components/SideMenu'
 
 const Home = () => {
     return (
         <main>
+            <SideMenu />
             <PinnedAndOverlap
                 containerHeight="480vh"
                 contentOne={<Introduction />}

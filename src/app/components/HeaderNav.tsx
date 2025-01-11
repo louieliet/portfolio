@@ -23,7 +23,6 @@ const HeaderNav = () => {
         })
     }, [])
 
-
     const handleScroll = (sectionId: string) => {
         const section = document.getElementById(sectionId)
         if (section) {
@@ -73,7 +72,7 @@ const HeaderNav = () => {
                 onClick={() => handleScroll('whatido')}
                 onMouseEnter={() => handleMouseEnter('whatido')}
                 onMouseLeave={() => handleMouseLeave('whatido')}
-                className='header-btn'
+                className="header-btn"
             >
                 ¿Qué hago?
             </button>
@@ -82,7 +81,7 @@ const HeaderNav = () => {
                 onClick={() => handleScroll('experience')}
                 onMouseEnter={() => handleMouseEnter('experience')}
                 onMouseLeave={() => handleMouseLeave('experience')}
-                className='header-btn'
+                className="header-btn"
             >
                 Experiencia
             </button>
@@ -91,7 +90,7 @@ const HeaderNav = () => {
                 onClick={() => handleScroll('activities')}
                 onMouseEnter={() => handleMouseEnter('activities')}
                 onMouseLeave={() => handleMouseLeave('activities')}
-                className='header-btn'
+                className="header-btn"
             >
                 Actividades
             </button>
@@ -100,7 +99,7 @@ const HeaderNav = () => {
                 onClick={() => handleScroll('contact')}
                 onMouseEnter={() => handleMouseEnter('contact')}
                 onMouseLeave={() => handleMouseLeave('contact')}
-                className='header-btn'
+                className="header-btn"
             >
                 Contacto
             </button>
