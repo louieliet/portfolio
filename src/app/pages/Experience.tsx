@@ -79,6 +79,7 @@ const Experience = () => {
                     autoPlay
                     loop
                     muted
+                    controls={false}
                     className="absolute inset-0 w-full h-full object-cover pointer-events-none opacity-20 md:rounded-r-[40px]"
                 >
                     <source src="/videos/expvid.mp4" type="video/mp4" />
