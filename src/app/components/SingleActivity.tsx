@@ -90,12 +90,12 @@ function SingleActivity({
 
     return (
         <div
-            className={`flex flex-col md:flex-row w-full gap-3 md:gap-20 items-center ${imageOnLeft ? 'md:-ml-44' : 'md:flex-row-reverse md:ml-36'}`}
+            className={`flex flex-col md:flex-row w-full gap-3 md:gap-20 items-center ${imageOnLeft ? 'md:-ml-32' : 'md:flex-row-reverse md:ml-32'}`}
         >
             {/* Left side for the image */}
             <div
                 ref={activityImageRef}
-                className="opacity-0 relative w-96 md:w-[60%] h-[320px] md:h-[400px] lg:h-[650px] flex justify-center items-center overflow-hidden md:rounded-[40px]"
+                className="opacity-0 relative w-96 md:w-[1200px] h-[320px] md:h-[400px] lg:h-[650px] flex justify-center items-center overflow-hidden md:rounded-[40px]"
             >
                 <Image
                     src={img}
@@ -108,9 +108,9 @@ function SingleActivity({
             {/* Right side for the description */}
             <div
                 ref={activityTxtRef}
-                className="opacity-0 flex flex-col gap-5 w-full md:w-[40%] px-3 md:px-0"
+                className="opacity-0 flex flex-col gap-5 w-full md:w-[800px] px-3 md:px-0"
             >
-                <h1 className="text-2xl md:text-4xl lg:text-5xl text-white font-extrabold">
+                <h1 className="text-2xl md:text-4xl  text-white font-extrabold">
                     {title}
                 </h1>
                 <p className="text-white text-base md:text-lg lg:text-xl leading-relaxed">
