@@ -54,7 +54,7 @@ const SideMenu = () => {
                 id="sideMenuButton"
                 ref={buttonRef} // Referencia para animar el botón
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="fixed top-4 right-4 z-50 p-2 bg-gray-800 text-white rounded-full shadow-lg transform opacity-0 scale-0"
+                className="fixed top-4 right-4 z-50 p-2 bg-gray-800 text-white rounded-full shadow-lg transform opacity-0"
             >
                 {isMenuOpen ? (
                     <Image

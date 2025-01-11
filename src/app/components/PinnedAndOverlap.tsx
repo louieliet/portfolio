@@ -63,14 +63,14 @@ export default function PinnedAndOverlap({
             // Animate the sideMenuButton when contentTwo appears
             gsap.to('#sideMenuButton', {
                 opacity: 1,
-                scale: 1,
-                duration: 1,
+                duration: 0.5,
                 ease: 'power4.out',
                 scrollTrigger: {
                     trigger: contentTwoRef.current,
-                    start: 'top center',
-                    end: 'bottom center',
-                    scrub: true,
+                    start: 'top 10%',
+                    end: 'top top',
+                    scrub: true, 
+                    markers: false,
                 },
             })
         }
