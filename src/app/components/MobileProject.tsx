@@ -75,7 +75,7 @@ const MobileProject: React.FC<MobileProjectProps> = ({
                 </video>
             </div>
             <div
-                className={`space-y-3 w-full md:w-[40%] mt-6 md:mt-0 ${videoOnLeft ? 'md:-mr-44' : 'md:-ml-48'}`}
+                className={`space-y-3 w-full md:w-[40%] mt-6 md:mt-0 ${videoOnLeft ? 'md:-mr-32' : 'md:-ml-32'}`}
             >
                 <div className="flex flex-wrap space-x-2 mt-6">
                     {icons.map((icon, index) => (
