@@ -164,7 +164,7 @@ const SideMenu = () => {
             {/* Menú lateral */}
             <div
                 ref={menuRef} // Referencia para animar el menú lateral
-                className="bg-[#a5998b] fixed top-0 right-0 w-full md:w-1/2 h-full text-white z-40 transform translate-x-full md:rounded-l-[60px] scale-10"
+                className="bg-[#a5998b] fixed top-0 right-0 w-full md:w-1/2 h-full text-white z-40 transform translate-x-full scale-10"
             >
                 <div className="flex flex-col items-start justify-center p-6 h-full ml-2 md:ml-8 md:w-full">
                     <button
