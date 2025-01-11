@@ -13,10 +13,11 @@ const SideMenu = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const buttonRef = useRef<HTMLButtonElement>(null);
     const menuRef = useRef<HTMLDivElement>(null);
+    const overlayRef = useRef<HTMLDivElement>(null);
 
-    // Animación para mostrar/ocultar el menú lateral
+    // Animación para mostrar/ocultar el menú lateral y la superposición
     useEffect(() => {
-        if (menuRef.current) {
+        if (menuRef.current && overlayRef.current) {
             if (isMenuOpen) {
                 // Animar entrada del menú
                 gsap.to(menuRef.current, {
@@ -24,12 +25,30 @@ const SideMenu = () => {
                     duration: 1,
                     ease: 'power4.out',
                 });
+                // Animar aparición de la superposición
+                gsap.to(overlayRef.current, {
+                    opacity: 0.8,
+                    duration: 0.5,
+                    ease: 'power4.out',
+                    display: 'block',
+                });
             } else {
                 // Animar salida del menú
                 gsap.to(menuRef.current, {
                     x: '100%',
                     duration: 0.5,
                     ease: 'power4.in',
+                });
+                // Animar desaparición de la superposición
+                gsap.to(overlayRef.current, {
+                    opacity: 0,
+                    duration: 0.5,
+                    ease: 'power4.in',
+                    onComplete: () => {
+                        if (overlayRef.current) {
+                            overlayRef.current.style.display = 'none';
+                        }
+                    },
                 });
             }
         }
@@ -139,6 +158,14 @@ const SideMenu = () => {
                     </button>
                 </div>
             </div>
+
+            {/* Superposición oscura */}
+            <div
+                ref={overlayRef}
+                className="fixed inset-0 bg-black opacity-0 z-30"
+                onClick={() => setIsMenuOpen(false)}
+                style={{ display: 'none' }}
+            ></div>
         </>
     );
 };
