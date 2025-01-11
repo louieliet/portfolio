@@ -44,7 +44,7 @@ const Contact = () => {
             className="contact-bg flex flex-col items-center justify-center w-full gap-10 px-5 bg-custom-LightBrown min-h-screen -mt-12"
         >
             {/* Title */}
-            <h1 className="opacity-0 contact-content z-20 text-4xl md:text-8xl py-5 font-extrabold text-custom-Brown text-center -mb-8">
+            <h1 className="opacity-0 contact-content z-20 text-4xl md:text-8xl py-5 font-extrabold text-custom-Brown text-center -mb-8 mt-10">
                 ¡Contáctame!
             </h1>
 
