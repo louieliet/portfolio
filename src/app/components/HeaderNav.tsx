@@ -65,6 +65,7 @@ const HeaderNav = () => {
                 bg-transparent text-custom-Brown 
                 flex justify-center gap-6 p-4 
                 z-40 font-bold
+                hidden md:flex
             "
         >
             <button
