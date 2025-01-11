@@ -59,23 +59,10 @@ const MobileProject: React.FC<MobileProjectProps> = ({
     return (
         <div
             ref={containerRef}
-            className={`opacity-0 flex flex-col md:flex-row items-center w-full ${videoOnLeft ? 'md:flex-row-reverse ' : ''}`}
+            className={`opacity-0 flex flex-col md:flex-row items-center w-full ${videoOnLeft ? 'md:flex-row-reverse md:mr-64 ' : 'md:ml-40'}`}
         >
-            <div className="relative w-full md:w-[60%] pt-[100%] md:pt-[40%]">
-                <video
-                    autoPlay
-                    loop
-                    muted
-                    src={videoSrc}
-                    title={title}
-                    className="absolute top-0 left-0 w-full h-full"
-                    controls={false}
-                >
-                    Your browser does not support the video tag.
-                </video>
-            </div>
             <div
-                className={`space-y-3 w-full md:w-[40%] mt-6 md:mt-0 ${videoOnLeft ? 'md:-mr-32' : 'md:-ml-32'}`}
+                className={`space-y-3 w-full md:w-[40%]  ${videoOnLeft ? 'md:-ml-32' : 'md:-mr-32'}`}
             >
                 <div className="flex flex-wrap space-x-2 mt-6">
                     {icons.map((icon, index) => (
@@ -92,6 +79,19 @@ const MobileProject: React.FC<MobileProjectProps> = ({
                 <p className="text-gray-300 text-lg md:text-xl">
                     {description}
                 </p>
+            </div>
+            <div className="relative w-full md:w-[60%] pt-[100%] md:pt-[40%] mt-10 md:mt-0">
+                <video
+                    autoPlay
+                    loop
+                    muted
+                    src={videoSrc}
+                    title={title}
+                    className="absolute top-0 left-0 w-full h-full"
+                    controls={false}
+                >
+                    Your browser does not support the video tag.
+                </video>
             </div>
         </div>
     )

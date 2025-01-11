@@ -11,7 +11,7 @@ const Home = () => {
         <main>
             <SideMenu />
             <PinnedAndOverlap
-                containerHeight="480vh"
+                containerHeight="450vh"
                 contentOne={<Introduction />}
                 contentTwo={<WhatIdo />}
             />
