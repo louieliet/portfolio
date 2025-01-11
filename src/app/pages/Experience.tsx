@@ -24,7 +24,7 @@ const Experience = () => {
                                     x: -200,
                                 },
                                 {
-                                    x: 300,
+                                    x: 150,
                                     opacity: 1,
                                     duration: 2,
                                     ease: 'power4.out',
@@ -50,7 +50,7 @@ const Experience = () => {
                                     x: 200,
                                 },
                                 {
-                                    x: -150,
+                                    x: -50,
                                     opacity: 1,
                                     duration: 2,
                                     ease: 'power4.out',
