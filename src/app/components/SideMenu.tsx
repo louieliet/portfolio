@@ -114,7 +114,7 @@ const SideMenu = () => {
     }
 
     const handleMouseEnter = (id: string) => {
-        const button = document.getElementById(`btn-${id}`)
+        const button = document.getElementById(`btnMenu-${id}`)
         if (button) {
             gsap.to(button, {
                 scale: 1.2,
@@ -125,7 +125,7 @@ const SideMenu = () => {
     }
 
     const handleMouseLeave = (id: string) => {
-        const button = document.getElementById(`btn-${id}`)
+        const button = document.getElementById(`btnMenu-${id}`)
         if (button) {
             gsap.to(button, {
                 scale: 1,
@@ -142,7 +142,7 @@ const SideMenu = () => {
                 id="sideMenuButton"
                 ref={buttonRef} // Referencia para animar el botón
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className={`bg-[#a5998b] fixed top-8 right-4 z-50 py-3 px-4 text-white rounded-full ${isMenuOpen ? '' : 'shadow-lg'} transform opacity-0`}
+                className={`bg-[#a5998b] fixed top-8 right-4 z-50 py-3 px-4 text-white rounded-full ${isMenuOpen ? '' : 'shadow-md'} transform opacity-0 scale-0`}
             >
                 {isMenuOpen ? (
                     <Image
@@ -164,11 +164,11 @@ const SideMenu = () => {
             {/* Menú lateral */}
             <div
                 ref={menuRef} // Referencia para animar el menú lateral
-                className="bg-[#a5998b] fixed top-0 right-0 w-1/2 h-full text-white z-40 transform translate-x-full rounded-l-[60px]"
+                className="bg-[#a5998b] fixed top-0 right-0 w-full md:w-1/2 h-full text-white z-40 transform translate-x-full md:rounded-l-[60px] scale-10"
             >
-                <div className="flex flex-col items-start justify-center p-6 h-full ml-8">
+                <div className="flex flex-col items-start justify-center p-6 h-full ml-2 md:ml-8 md:w-full">
                     <button
-                        id="btn-whatido"
+                        id="btnMenu-whatido"
                         onClick={() => handleScroll('whatido')}
                         onMouseEnter={() => handleMouseEnter('whatido')}
                         onMouseLeave={() => handleMouseLeave('whatido')}
@@ -177,7 +177,7 @@ const SideMenu = () => {
                         ¿Qué hago?
                     </button>
                     <button
-                        id="btn-experience"
+                        id="btnMenu-experience"
                         onClick={() => handleScroll('experience')}
                         onMouseEnter={() => handleMouseEnter('experience')}
                         onMouseLeave={() => handleMouseLeave('experience')}
@@ -186,7 +186,7 @@ const SideMenu = () => {
                         Experiencia
                     </button>
                     <button
-                        id="btn-activities"
+                        id="btnMenu-activities"
                         onClick={() => handleScroll('activities')}
                         onMouseEnter={() => handleMouseEnter('activities')}
                         onMouseLeave={() => handleMouseLeave('activities')}
@@ -195,7 +195,7 @@ const SideMenu = () => {
                         Actividades
                     </button>
                     <button
-                        id="btn-contact"
+                        id="btnMenu-contact"
                         onClick={() => handleScroll('contact')}
                         onMouseEnter={() => handleMouseEnter('contact')}
                         onMouseLeave={() => handleMouseLeave('contact')}
