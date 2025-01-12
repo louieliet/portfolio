@@ -209,7 +209,40 @@ const SideMenu = () => {
                         </h2>
                         <a
                             href="mailto:emilianomg2003@hotmail.com"
-                            className="text-[#fffdfa] font-medium hover:underline"
+                            className="text-[#fffdfa] font-medium"
+                            onMouseEnter={() => {
+                                const emailLink = document.getElementById('emailLink');
+                                if (emailLink) {
+                                    const clone = emailLink.cloneNode(true) as HTMLElement;
+                                    clone.style.position = 'absolute';
+                                    clone.style.opacity = '0';
+                                    clone.style.top = '-100%';
+                                    clone.style.pointerEvents = 'none';
+                                    emailLink.parentElement?.appendChild(clone);
+                    
+                                    gsap.to(emailLink, {
+                                        y: '100%',
+                                        duration: 0.3,
+                                        ease: 'power4.out',
+                                        onComplete: () => {
+                                            gsap.to(emailLink, {
+                                                y: '0%',
+                                                duration: 0,
+                                            });
+                                        },
+                                    });
+                    
+                                    gsap.to(clone, {
+                                        y: '0%',
+                                        opacity: 1,
+                                        duration: 0.3,
+                                        ease: 'power4.out',
+                                        onComplete: () => {
+                                            clone.remove();
+                                        },
+                                    });
+                                }
+                            }}
                         >
                             emilianomg2003@hotmail.com
                         </a>
