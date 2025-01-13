@@ -78,13 +78,15 @@ const WhatIdo = () => {
                         <div className="flex flex-col gap-10 md:gap-20 items-center">
                             <WebProject
                                 title="Página de Hus"
-                                description="Página de Hus, realizada con NextJS y Tailwind CSS"
+                                description="Página de Hus, realizada con NextJS y Tailwind CSS en Chain Solutions para el proyecto de Hus.
+                                Me encargé principalmente de los componentes y el diseño de la página."
                                 iframeSrc="https://hus-demo.vercel.app/"
                                 icons={[TsIcon, ReactIcon]}
                             />
                             <WebProject
                                 title="Página de Ragabe"
-                                description="Página de Ragabe, realizada con NextJS y Tailwind CSS"
+                                description="Página de Ragabe, realizada con NextJS y Tailwind CSS en Chain Solutions para la empresa Ragabe.
+                                Me encargué de varios componentes, el layout y la responsividad de la página."
                                 iframeSrc="https://dev.ragabe.git.chainsol.io/"
                                 icons={[TsIcon, ReactIcon]}
                                 frameOnLeft={true}
@@ -109,8 +111,8 @@ const WhatIdo = () => {
                                 title="Fashion Finder"
                                 description="Fashion Finder es una app de moda, realizada con SwiftUI y tecnologías como CoreML y Firebase que 
                   permite a los usuarios tener un closet virtual y recibir recomendaciones de moda en base a este closet,
-                  sus emociones detectadas y el clima de su ubicación actual. Además, permite compartir outfits con otros usuarios, ¡Incluso
-                  recibir descuentos en tiendas de moda!"
+                  sus emociones detectadas y el clima de su ubicación actual. Realizada en el iOS Lab, donde estuve a cargo de 
+                  la idea de la app, parte del frontend y todo el backend."
                                 videoSrc="/videos/FFVideo.webm"
                                 icons={[SwiftIcon, FbIcon]}
                             />
@@ -118,7 +120,7 @@ const WhatIdo = () => {
                                 title="Habitus"
                                 description="Habitus es una app hecha en React Native junto a tecnologías como Firebase que permite 
                   a los usuarios llevar un registro de sus hábitos diarios y recibir notificaciones, así como
-                  visualizar estadísticas de su progreso."
+                  visualizar estadísticas de su progreso. Realizada como proyecto, estuve a cargo de la idea de la app, todo el frontend y todo el backend."
                                 videoSrc="/videos/HabitusVideo.webm"
                                 icons={[JsIcon, ReactIcon]}
                                 videoOnLeft={true}
