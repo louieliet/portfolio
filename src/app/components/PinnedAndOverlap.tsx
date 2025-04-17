@@ -88,6 +88,7 @@ export default function PinnedAndOverlap({
                 position: 'relative',
                 height: containerHeight, // por defecto "300vh"
                 width: '100%',
+                overflow: 'hidden',
             }}
         >
             {/* Contenido 1 (se pinnea) */}

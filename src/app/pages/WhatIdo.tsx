@@ -1,136 +1,96 @@
 'use client'
-import gsap from 'gsap'
 import { useEffect, useRef } from 'react'
-
-import WebProject from '@/app/components/WebProject'
-import MobileProject from '@/app/components/MobileProject'
-import Divider from '@/app/components/Divider'
-import DevArea from '@/app/components/DevArea'
-
-import WebIcon from '@/app/assets/tecsweb.svg'
-import MobileIcon from '@/app/assets/tecsmobile.svg'
-import TsIcon from '@/app/assets/typescripticon.svg'
-import ReactIcon from '@/app/assets/reacticon.svg'
-import SwiftIcon from '@/app/assets/swifticon.svg'
-import FbIcon from '@/app/assets/firebaseicon.svg'
-import JsIcon from '@/app/assets/jsicon.svg'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 const WhatIdo = () => {
-    const titleRef = useRef<HTMLHeadingElement>(null)
-    useEffect(() => {
-        const title = titleRef.current
+  const titleRef = useRef<HTMLHeadingElement>(null)
+  const sectionRefs = useRef<Array<HTMLDivElement | null>>([])
 
-        if (title) {
-            const observer = new IntersectionObserver(
-                ([entry]) => {
-                    if (entry.isIntersecting) {
-                        gsap.fromTo(
-                            entry.target,
-                            {
-                                y: 200,
-                                opacity: 0,
-                                clipPath: 'inset(0 0 100% 0)',
-                            },
-                            {
-                                y: 0,
-                                opacity: 1,
-                                duration: 1.5,
-                                ease: 'power4.out',
-                                clipPath: 'inset(0 0 0% 0)',
-                            }
-                        )
-                        observer.disconnect()
-                    }
-                },
-                { threshold: 0.1 }
-            )
-            observer.observe(title)
+
+  useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger)
+    
+    // Title animation
+    const title = titleRef.current
+    if (title) {
+      gsap.fromTo(
+        title,
+        {
+          y: 100,
+          opacity: 0,
+          clipPath: 'inset(0 0 100% 0)',
+        },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 1.8,
+          ease: 'power4.out',
+          clipPath: 'inset(0 0 0% 0)',
+          scrollTrigger: {
+            trigger: title,
+            start: 'top 80%',
+          }
         }
-    }, [])
-    return (
-        <section
-            id="whatido"
-            className="whatido-bg w-full h-full flex justify-start items-start gap-5 md:gap-24 flex-col px-10 md:px-1"
-        >
-            <div className="mt-10 md:ml-20 md:mt-20">
-                {/* Title */}
-                <h1
-                    ref={titleRef}
-                    className="text-6xl md:text-7xl font-bold text-white mb-10 md:mb-16 py-2"
-                >
-                    [01] ¿Qué hago?
-                </h1>
-                <Divider />
-                {/* Content */}
-                <div className="flex gap-10 flex-col md:gap-20 mt-6 md:mt-10">
-                    {/* Web Development */}
-                    <DevArea
-                        title="Desarrollo web"
-                        description="Construyo experiencias digitales intuitivas y eficientes que combinan creatividad y funcionalidad. 
-            Como desarrollador web, me especializo principalmente en frontend para crear sitios modernos y aplicaciones 
-            robustas utilizando tecnologías de vanguardia. Cada línea de código está orientada a resolver problemas, 
-            mejorar la experiencia del usuario y lograr resultados óptimos."
-                        tecIcon={WebIcon}
-                        tecIconAlt="WebDev"
-                        tecIconWidth="w-full md:w-1/3"
-                    >
-                        {/* Web Projects */}
-                        <div className="flex flex-col gap-10 md:gap-20 items-center">
-                            <WebProject
-                                title="Página de Hus"
-                                description="Página de Hus, realizada con NextJS y Tailwind CSS en Chain Solutions para el proyecto de Hus.
-                                Me encargé principalmente de los componentes y el diseño de la página."
-                                iframeSrc="https://hus-demo.vercel.app/"
-                                icons={[TsIcon, ReactIcon]}
-                            />
-                            <WebProject
-                                title="Página de Ragabe"
-                                description="Página de Ragabe, realizada con NextJS y Tailwind CSS en Chain Solutions para la empresa Ragabe.
-                                Me encargué de varios componentes, el layout y la responsividad de la página."
-                                iframeSrc="https://dev.ragabe.git.chainsol.io/"
-                                icons={[TsIcon, ReactIcon]}
-                                frameOnLeft={true}
-                            />
-                        </div>
-                    </DevArea>
-                    <Divider />
-                    {/* Mobile Development */}
-                    <DevArea
-                        title="Desarrollo móvil"
-                        description="Creo aplicaciones móviles modernas, funcionales y adaptadas a las necesidades de los usuarios, especializado en frontend. 
-            Con un enfoque en la experiencia del usuario y la eficiencia, utilizo tecnologías avanzadas para desarrollar soluciones innovadoras que 
-            funcionen tanto en plataformas iOS como Android. Cada proyecto móvil está diseñado para ofrecer un rendimiento óptimo y una interfaz intuitiva, 
-            asegurando que las aplicaciones no solo cumplan con su propósito, sino que también superen las expectativas."
-                        tecIcon={MobileIcon}
-                        tecIconAlt="MobileDev"
-                        tecIconWidth="w-4/5 md:w-1/6"
-                    >
-                        {/* Mobile Projects */}
-                        <div className="flex flex-col gap-10 md:gap-20 items-center mt-8 md:mt-0">
-                            <MobileProject
-                                title="Fashion Finder"
-                                description="Fashion Finder es una app de moda, realizada con SwiftUI y tecnologías como CoreML y Firebase que 
-                  permite a los usuarios tener un closet virtual y recibir recomendaciones de moda en base a este closet,
-                  sus emociones detectadas y el clima de su ubicación actual. Realizada en el iOS Lab, donde estuve a cargo de 
-                  la idea de la app, parte del frontend y todo el backend."
-                                videoSrc="/videos/FFVideo.webm"
-                                icons={[SwiftIcon, FbIcon]}
-                            />
-                            <MobileProject
-                                title="Habitus"
-                                description="Habitus es una app hecha en React Native junto a tecnologías como Firebase que permite 
-                  a los usuarios llevar un registro de sus hábitos diarios y recibir notificaciones, así como
-                  visualizar estadísticas de su progreso. Realizada como proyecto, estuve a cargo de la idea de la app, todo el frontend y todo el backend."
-                                videoSrc="/videos/HabitusVideo.webm"
-                                icons={[JsIcon, ReactIcon]}
-                                videoOnLeft={true}
-                            />
-                        </div>
-                    </DevArea>
-                </div>
-            </div>
-        </section>
-    )
+      )
+    }
+
+    // Section animations
+    sectionRefs.current.forEach((section, index) => {
+      if (section) {
+        gsap.fromTo(
+          section,
+          { 
+            y: 100, 
+            opacity: 0 
+          },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 1.5,
+            ease: 'power3.out',
+            delay: index * 0.2,
+            scrollTrigger: {
+              trigger: section,
+              start: 'top 85%',
+            }
+          }
+        )
+      }
+    })
+  }, [])
+
+  return (
+    <section id="whatido" className="whatido-bg w-full min-h-screen relative overflow-x-hidden pt-28 pb-40 px-6 md:px-20 lg:px-28">
+      <div className="absolute top-0 left-0 w-full flex justify-between items-center z-30">
+        <div className="text-white/40 text-xs tracking-widest uppercase pl-6 md:pl-12 pt-4 pb-2">
+          Section 01
+        </div>
+        <div className="text-white/40 text-xs tracking-widest uppercase pr-6 md:pr-12 pt-4 pb-2">
+          Skills & Process
+        </div>
+      </div>
+      
+      <div className="relative max-w-7xl mx-auto z-10 md:pl-12">
+        {/* Header */}
+        <div className="mb-32 md:mb-40">
+          <div className="text-white/60 text-sm uppercase tracking-widest mb-3 font-light ml-1">
+            what I do
+          </div>
+          <h2 ref={titleRef} className="text-6xl md:text-7xl lg:text-8xl font-semibold text-white leading-[1.05] tracking-tight">
+            My <br />
+            <span className="text-gray-300 font-light">work</span>
+          </h2>
+          <p className="mt-8 text-white/80 text-base md:text-lg max-w-md leading-relaxed font-light md:ml-16">
+            Web and mobile development, and Unity experiences, focused on visual design and clear functionality, with an editorial and minimalist aesthetic.
+          </p>
+        </div>
+
+      </div>
+
+      <div className="absolute bottom-10 right-28 h-[1px] w-24 bg-white/30"></div>
+    </section>
+  )
 }
 
 export default WhatIdo

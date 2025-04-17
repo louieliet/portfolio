@@ -1,9 +1,10 @@
 'use client'
+
 import Image from 'next/image'
-import { TypeAnimation } from 'react-type-animation'
 import { useEffect } from 'react'
 import gsap from 'gsap'
 import HeaderNav from '@/app/components/HeaderNav'
+import TorusKnot from '@/app/components/TorusKnot'
 
 const Introduction = () => {
     useEffect(() => {
@@ -24,55 +25,56 @@ const Introduction = () => {
     }, [])
 
     return (
-        <div className="intro-bg w-full h-full flex justify-center items-center gap-5 md:gap-24 md:flex-row flex-col px-10 md:px-1">
+        <div className="intro-bg min-h-screen w-full pb-16 flex flex-col md:flex-row justify-between items-start relative overflow-hidden">
             <HeaderNav />
-            {/* Profile picture */}
-            <div className="intro-content relative w-[300px] h-[300px] md:w-[300px] md:h-[300px] lg:w-[400px] lg:h-[400px] rounded-full overflow-hidden shadow-2xl md:-mt-0 -mt-20">
-                <Image
-                    src="/pp.png"
-                    priority
-                    alt="Profile picture"
-                    className="object-cover object-center w-full h-full"
-                    width={500}
-                    height={500}
-                />
+
+            <div className="absolute top-0 left-0 w-full flex justify-between items-center z-30 ">
+                <div className="text-white/40 text-xs tracking-widest uppercase pl-6 md:pl-12 pt-3 pb-2">
+                    Portfolio / 2025
+                </div>
             </div>
 
-            {/* Text */}
-            <div className="intro-content text-center md:text-left md:w-[600px] w-full">
-                <h1 className="text-2xl md:text-4xl lg:text-6xl py-5 lg:py-10">
-                    <TypeAnimation
-                        sequence={[
-                            'Hello, I am Emiliano!',
-                            2000,
-                            'I am a frontend dev.',
-                            2000,
-                            'I am a Unity dev.',
-                            2000,
-                            'I am an mobile dev.',
-                            2000,
-                        ]}
-                        wrapper="span"
-                        speed={50}
-                        repeat={Infinity}
-                        className="font-extrabold text-custom-Brown"
-                    />
-                </h1>
-
-                <p className="text-sm md:text-base lg:text-xl text-custom-Brown font-semibold">
-                    ¡Hola! Soy estudiante de Ingeniería en Animación y
-                    Videojuegos en la Universidad Panamericana. Me gusta mucho
-                    la programación y el diseño. Me caracterizo por ser una
-                    persona con ganas de aprender, organizada, con capacidad de
-                    trabajar en equipo y bajo presión. Mi objetivo es formar
-                    parte de una empresa competitiva, en la cual pueda
-                    desarrollarme como programador y/o diseñador con experiencia
-                    sólida.
-                </p>
-                <p className="text-sm md:text-base lg:text-xl text-custom-Brown font-semibold mt-5 md:mt-10">
-                    ¿Quieres saber más de mí? ¡Sigue bajando! 👇
-                </p>
+            {/* Torus Knot Background */}
+            <div className="absolute inset-0 flex items-center justify-center z-0 opacity-80">
+                <div className="w-full h-full max-w-[2000px] max-h-[2000px]">
+                    <TorusKnot />
+                </div>
             </div>
+
+            {/* Content container with asymmetric layout */}
+            <div className="w-full pt-28 md:pt-36 md:pl-20 px-6 md:px-0 flex flex-col md:flex-row justify-between items-start relative z-10">
+                {/* Left text container with offset positioning */}
+                <div className="relative w-full md:w-6/12 mb-12 md:mb-0 intro-content md:pl-12 lg:pl-16">
+                    <div className="text-white/60 text-sm uppercase tracking-widest mb-3 font-light ml-1">
+                        Frontend & Unity Developer
+                    </div>
+                    <h1 className="text-6xl md:text-7xl lg:text-9xl font-semibold text-white leading-[1.05] tracking-tight">
+                        Emiliano <br />
+                        <span className="text-gray-300 font-light md:-ml-10">Montes</span>
+                    </h1>
+                    
+                    <p className="mt-8 text-white/80 text-base md:text-lg max-w-md leading-relaxed font-light md:ml-16">
+                        I build web, mobile, and Unity experiences that combine clean interaction, visual clarity, and an editorial-grade aesthetic. My goal is to create work that is both functional and deeply expressive.
+                    </p>
+                    
+                </div>
+
+                {/* Right image with offset positioning */}
+                <div className="intro-content w-full md:w-5/12 flex justify-center md:justify-end md:-mt-2 md:mr-4 lg:mr-20">
+                    <div className="relative w-[320px] h-[420px] md:w-[380px] md:h-[600px] lg:w-[420px] lg:h-[700px] overflow-hidden shadow-2xl grayscale contrast-110 rotate-1">
+                        <Image
+                            src="/pp.png"
+                            alt="Emiliano portrait"
+                            fill
+                            className="object-cover object-top"
+                            priority
+                        />
+                    </div>
+                </div>
+            </div>
+            
+            {/* Offset decorative element */}
+            <div className="absolute bottom-10 right-28 h-[1px] w-24 bg-white/30"></div>
         </div>
     )
 }
