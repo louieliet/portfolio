@@ -1,4 +1,3 @@
-import PinnedAndOverlap from '../components/PinnedAndOverlap'
 import Introduction from './Introduction'
 import WhatIdo from './WhatIdo'
 import Experience from './Experience'
@@ -10,10 +9,13 @@ const Home = () => {
     return (
         <main>
             <SideMenu />
-            <PinnedAndOverlap
+
+            {/*            <PinnedAndOverlap
                 contentOne={<Introduction />}
                 contentTwo={<WhatIdo />}
-            />
+            />*/}
+            <Introduction />
+            <WhatIdo />
             <Experience />
             <Activities />
             <Contact />

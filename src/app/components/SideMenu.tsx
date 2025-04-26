@@ -14,26 +14,56 @@ const SideMenu = () => {
     const buttonRef = useRef<HTMLButtonElement>(null)
     const menuRef = useRef<HTMLDivElement>(null)
     const overlayRef = useRef<HTMLDivElement>(null)
+    const menuItemsRef = useRef<(HTMLButtonElement | null)[]>([])
 
     const menuBtnRef = useRef<HTMLAnchorElement>(null)
     const menuBtnTxtRef = useRef<HTMLSpanElement>(null)
     
+    // Initialize button animation on component mount
+    useEffect(() => {
+        if (buttonRef.current) {
+            gsap.to(buttonRef.current, {
+                opacity: 1,
+                scale: 1,
+                duration: 0.8,
+                ease: 'power3.out',
+                delay: 1
+            });
+        }
+    }, []);
 
-    // Animación para mostrar/ocultar el menú lateral y la superposición
+    // Animation for showing/hiding the side menu and overlay
     useEffect(() => {
         const buttonMenu = menuBtnRef.current
         const textMenu = menuBtnTxtRef.current
 
-
         if (menuRef.current && overlayRef.current) {
             if (isMenuOpen) {
-                // Animar entrada del menú
+                // Menu entrance animation
                 gsap.to(menuRef.current, {
                     x: 0,
                     duration: 1,
                     ease: 'power4.out',
                 })
-                // Animar aparición de la superposición
+                
+                // Menu items staggered entrance
+                gsap.fromTo(
+                    menuItemsRef.current,
+                    { 
+                        x: 100, 
+                        opacity: 0 
+                    },
+                    {
+                        x: 0,
+                        opacity: 1,
+                        stagger: 0.1,
+                        duration: 0.8,
+                        ease: 'power3.out',
+                        delay: 0.3
+                    }
+                )
+                
+                // Overlay appearance animation
                 gsap.to(overlayRef.current, {
                     opacity: 0.8,
                     duration: 0.5,
@@ -41,13 +71,14 @@ const SideMenu = () => {
                     display: 'block',
                 })
             } else {
-                // Animar salida del menú
+                // Menu exit animation
                 gsap.to(menuRef.current, {
                     x: '100%',
                     duration: 0.5,
                     ease: 'power4.in',
                 })
-                // Animar desaparición de la superposición
+                
+                // Overlay disappearance animation
                 gsap.to(overlayRef.current, {
                     opacity: 0,
                     duration: 0.5,
@@ -61,6 +92,7 @@ const SideMenu = () => {
             }
         }
 
+        // LinkedIn button hover effect
         if (buttonMenu && textMenu) {
             gsap.set(buttonMenu, { position: 'relative', overflow: 'hidden' })
             const hoverEffect = document.createElement('div')
@@ -109,7 +141,7 @@ const SideMenu = () => {
                 duration: 1,
                 ease: 'power4.out',
             })
-            setIsMenuOpen(false) // Cierra el menú después de hacer scroll
+            setIsMenuOpen(false) // Close menu after scrolling
         }
     }
 
@@ -117,8 +149,8 @@ const SideMenu = () => {
         const button = document.getElementById(`btnMenu-${id}`)
         if (button) {
             gsap.to(button, {
-                scale: 1.2,
-                duration: 0.2,
+                x: 20,
+                duration: 0.3,
                 ease: 'power3.out',
             })
         }
@@ -128,142 +160,201 @@ const SideMenu = () => {
         const button = document.getElementById(`btnMenu-${id}`)
         if (button) {
             gsap.to(button, {
-                scale: 1,
-                duration: 0.2,
+                x: 0,
+                duration: 0.3,
                 ease: 'power3.out',
             })
         }
     }
 
+    // Add a menu item to the refs array
+    const addToMenuRefs = (el: HTMLButtonElement | null, index: number) => {
+        if (el) {
+            menuItemsRef.current[index] = el;
+        }
+    };
+
     return (
         <>
-            {/* Botón Hamburguesa */}
+            {/* Menu button */}
             <button
                 id="sideMenuButton"
-                ref={buttonRef} // Referencia para animar el botón
+                ref={buttonRef}
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className={`bg-[#a5998b] fixed top-8 right-4 z-50 py-3 px-4 text-white rounded-full ${isMenuOpen ? '' : 'shadow-md'} transform opacity-0 scale-0`}
+                className={`fixed top-8 right-8 z-50 p-3 transform opacity-0 scale-0 transition-shadow duration-300 hover:scale-105`}
+                aria-label={isMenuOpen ? "Close menu" : "Open menu"}
             >
-                {isMenuOpen ? (
-                    <Image
-                        src={CloseMenu}
-                        alt="Cerrar menú"
-                        width={24}
-                        height={24}
-                    />
-                ) : (
-                    <Image
-                        src={MenuIcon}
-                        alt="Abrir menú"
-                        width={24}
-                        height={24}
-                    />
-                )}
+                <div className={`relative w-12 h-12 flex items-center justify-center rounded-full ${isMenuOpen ? 'bg-white' : 'bg-black/20 backdrop-blur-md border border-white/10'}`}>
+                    {isMenuOpen ? (
+                        <Image
+                            src={CloseMenu}
+                            alt="Close menu"
+                            width={20}
+                            height={20}
+                            className="opacity-70"
+                        />
+                    ) : (
+                        <Image
+                            src={MenuIcon}
+                            alt="Open menu"
+                            width={20}
+                            height={20}
+                            className="opacity-70"
+                        />
+                    )}
+                </div>
             </button>
 
-            {/* Menú lateral */}
+            {/* Side menu */}
             <div
-                ref={menuRef} // Referencia para animar el menú lateral
-                className="bg-[#a5998b] fixed top-0 right-0 w-full md:w-1/2 h-full text-white z-40 transform translate-x-full scale-10"
+                ref={menuRef}
+                className="fixed top-0 right-0 w-full md:w-[580px] h-full z-40 transform translate-x-full"
             >
-                <div className="flex flex-col items-start justify-center p-6 h-full ml-2 md:ml-8 md:w-full">
-                    <button
-                        id="btnMenu-whatido"
-                        onClick={() => handleScroll('whatido')}
-                        onMouseEnter={() => handleMouseEnter('whatido')}
-                        onMouseLeave={() => handleMouseLeave('whatido')}
-                        className="mb-4 font-bold text-6xl text-[#fffdfa]"
-                    >
-                        ¿Qué hago?
-                    </button>
-                    <button
-                        id="btnMenu-experience"
-                        onClick={() => handleScroll('experience')}
-                        onMouseEnter={() => handleMouseEnter('experience')}
-                        onMouseLeave={() => handleMouseLeave('experience')}
-                        className="mb-4 font-bold text-6xl text-[#fffdfa]"
-                    >
-                        Experiencia
-                    </button>
-                    <button
-                        id="btnMenu-activities"
-                        onClick={() => handleScroll('activities')}
-                        onMouseEnter={() => handleMouseEnter('activities')}
-                        onMouseLeave={() => handleMouseLeave('activities')}
-                        className="mb-4 font-bold text-6xl text-[#fffdfa]"
-                    >
-                        Actividades
-                    </button>
-                    <button
-                        id="btnMenu-contact"
-                        onClick={() => handleScroll('contact')}
-                        onMouseEnter={() => handleMouseEnter('contact')}
-                        onMouseLeave={() => handleMouseLeave('contact')}
-                        className="mb-4 font-bold text-6xl text-[#fffdfa]"
-                    >
-                        Contacto
-                    </button>
-                    <div className="flex flex-col mt-10">
-                        <h2 className="text-xl font-bold text-custom-Brown">
-                            Correo Electrónico
-                        </h2>
-                        <a
-                            href="mailto:emilianomg2003@hotmail.com"
-                            className="text-[#fffdfa] font-medium"
-                            onMouseEnter={() => {
-                                const emailLink = document.getElementById('emailLink');
-                                if (emailLink) {
-                                    const clone = emailLink.cloneNode(true) as HTMLElement;
-                                    clone.style.position = 'absolute';
-                                    clone.style.opacity = '0';
-                                    clone.style.top = '-100%';
-                                    clone.style.pointerEvents = 'none';
-                                    emailLink.parentElement?.appendChild(clone);
+                <div className="relative h-full w-full overflow-hidden">
+                    {/* Background panel */}
+                    <div className="absolute inset-0 bg-black/95 backdrop-blur-xl border-l border-white/10"></div>
                     
-                                    gsap.to(emailLink, {
-                                        y: '100%',
-                                        duration: 0.3,
-                                        ease: 'power4.out',
-                                        onComplete: () => {
-                                            gsap.to(emailLink, {
-                                                y: '0%',
-                                                duration: 0,
-                                            });
-                                        },
-                                    });
-                    
-                                    gsap.to(clone, {
-                                        y: '0%',
-                                        opacity: 1,
-                                        duration: 0.3,
-                                        ease: 'power4.out',
-                                        onComplete: () => {
-                                            clone.remove();
-                                        },
-                                    });
-                                }
-                            }}
-                        >
-                            emilianomg2003@hotmail.com
-                        </a>
+                    {/* Decorative elements */}
+                    <div className="absolute top-0 left-0 w-20 h-[1px] bg-white/20"></div>
+                    <div className="absolute top-0 right-0 w-20 h-[1px] bg-white/20"></div>
+                    <div className="absolute top-24 left-12 text-white/20 text-xs tracking-widest uppercase">
+                        Navigation
                     </div>
-                    <div className="flex flex-row gap-5 mt-10">
-                        <a
-                            href="https://www.linkedin.com/in/emiliano-mg/"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            ref={menuBtnRef}
-                            className="relative inline-block px-6 py-2 text-custom-Brown bg-[#fffdfa] rounded-full overflow-hidden"
-                        >
-                            <span ref={menuBtnTxtRef} className="relative z-10">
-                                LinkedIn
-                            </span>
-                        </a>
+                    <div className="absolute bottom-10 right-10 h-[1px] w-24 bg-white/20"></div>
+                
+                    {/* Menu content */}
+                    <div className="flex flex-col items-start justify-center p-6 h-full ml-2 md:ml-16 md:w-full relative z-10">
+                        <div className="absolute -left-4 top-[30%] bottom-[40%] w-[1px] bg-white/10"></div>
+                        
+                        <div className="mb-20">
+                            <div className="text-white/40 text-xs tracking-widest uppercase mb-8">Menu</div>
+                            
+                            <button
+                                id="btnMenu-whatido"
+                                ref={(el) => addToMenuRefs(el, 0)}
+                                onClick={() => handleScroll('whatido')}
+                                onMouseEnter={() => handleMouseEnter('whatido')}
+                                onMouseLeave={() => handleMouseLeave('whatido')}
+                                className="mb-8 text-5xl md:text-6xl text-white/90 font-light flex items-center hover:text-white transition-colors duration-300 relative group"
+                            >
+                                <span className="absolute -left-8 w-4 h-[1px] bg-white/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                                What I Do
+                            </button>
+                            
+                            <button
+                                id="btnMenu-experience"
+                                ref={(el) => addToMenuRefs(el, 1)}
+                                onClick={() => handleScroll('experience')}
+                                onMouseEnter={() => handleMouseEnter('experience')}
+                                onMouseLeave={() => handleMouseLeave('experience')}
+                                className="mb-8 text-5xl md:text-6xl text-white/90 font-light flex items-center hover:text-white transition-colors duration-300 relative group"
+                            >
+                                <span className="absolute -left-8 w-4 h-[1px] bg-white/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                                Experience
+                            </button>
+                            
+                            <button
+                                id="btnMenu-activities"
+                                ref={(el) => addToMenuRefs(el, 2)}
+                                onClick={() => handleScroll('activities')}
+                                onMouseEnter={() => handleMouseEnter('activities')}
+                                onMouseLeave={() => handleMouseLeave('activities')}
+                                className="mb-8 text-5xl md:text-6xl text-white/90 font-light flex items-center hover:text-white transition-colors duration-300 relative group"
+                            >
+                                <span className="absolute -left-8 w-4 h-[1px] bg-white/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                                Activities
+                            </button>
+                            
+                            <button
+                                id="btnMenu-contact"
+                                ref={(el) => addToMenuRefs(el, 3)}
+                                onClick={() => handleScroll('contact')}
+                                onMouseEnter={() => handleMouseEnter('contact')}
+                                onMouseLeave={() => handleMouseLeave('contact')}
+                                className="mb-8 text-5xl md:text-6xl text-white/90 font-light flex items-center hover:text-white transition-colors duration-300 relative group"
+                            >
+                                <span className="absolute -left-8 w-4 h-[1px] bg-white/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                                Contact
+                            </button>
+                        </div>
+                        
+                        <div className="mt-auto">
+                            <div className="flex flex-col mb-8">
+                                <h2 className="text-white/40 text-xs tracking-widest uppercase mb-2">
+                                    Email
+                                </h2>
+                                <a
+                                    href="mailto:emilianomg2003@hotmail.com"
+                                    className="text-white font-light text-lg relative overflow-hidden inline-block"
+                                    id="emailLink"
+                                    onMouseEnter={() => {
+                                        const emailLink = document.getElementById('emailLink');
+                                        if (emailLink) {
+                                            const clone = emailLink.cloneNode(true) as HTMLElement;
+                                            clone.style.position = 'absolute';
+                                            clone.style.opacity = '0';
+                                            clone.style.top = '-100%';
+                                            clone.style.pointerEvents = 'none';
+                                            emailLink.parentElement?.appendChild(clone);
+                            
+                                            gsap.to(emailLink, {
+                                                y: '100%',
+                                                duration: 0.3,
+                                                ease: 'power4.out',
+                                                onComplete: () => {
+                                                    gsap.to(emailLink, {
+                                                        y: '0%',
+                                                        duration: 0,
+                                                    });
+                                                },
+                                            });
+                            
+                                            gsap.to(clone, {
+                                                y: '0%',
+                                                opacity: 1,
+                                                duration: 0.3,
+                                                ease: 'power4.out',
+                                                onComplete: () => {
+                                                    clone.remove();
+                                                },
+                                            });
+                                        }
+                                    }}
+                                >
+                                    emilianomg2003@hotmail.com
+                                </a>
+                            </div>
+                            
+                            <div className="flex flex-row gap-4 mt-4">
+                                <a
+                                    href="https://www.linkedin.com/in/emiliano-mg/"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    ref={menuBtnRef}
+                                    className="relative inline-block px-8 py-3 text-white/70 border border-white/20 rounded-sm overflow-hidden hover:border-white/40 transition-colors duration-300"
+                                >
+                                    <span ref={menuBtnTxtRef} className="relative z-10 text-sm tracking-widest uppercase">
+                                        LinkedIn
+                                    </span>
+                                </a>
+                                
+                                <a
+                                    href="https://github.com/Humberto-Zayas"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="relative inline-block px-8 py-3 text-white/70 border border-white/20 rounded-sm overflow-hidden hover:border-white/40 transition-colors duration-300"
+                                >
+                                    <span className="relative z-10 text-sm tracking-widest uppercase">
+                                        GitHub
+                                    </span>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* Superposición oscura */}
+            {/* Overlay */}
             <div
                 ref={overlayRef}
                 className="fixed inset-0 bg-black opacity-0 z-30"

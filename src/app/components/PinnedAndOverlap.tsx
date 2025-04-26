@@ -1,5 +1,5 @@
 'use client'
-import React, { useRef, useEffect } from 'react'
+import React, { useRef, useEffect, useState } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
@@ -13,73 +13,125 @@ interface PinnedAndOverlapProps {
 export default function PinnedAndOverlap({
     contentOne,
     contentTwo,
-    containerHeight = '300vh', // Valor por defecto
+    containerHeight = '225vh', // Valor por defecto
 }: PinnedAndOverlapProps) {
     const containerRef = useRef<HTMLDivElement>(null)
     const contentOneRef = useRef<HTMLDivElement>(null)
     const contentTwoRef = useRef<HTMLDivElement>(null)
+    const [isScrolling, setIsScrolling] = useState(false)
+    const scrollTimeout = useRef<NodeJS.Timeout | null>(null)
 
     useEffect(() => {
         gsap.registerPlugin(ScrollTrigger)
+        const scrollTriggers: ScrollTrigger[] = []
+
+        // Debounce scroll function to improve performance
+        const handleScroll = () => {
+            if (!isScrolling) {
+                setIsScrolling(true)
+            }
+            
+            // Clear previous timeout
+            if (scrollTimeout.current) {
+                clearTimeout(scrollTimeout.current)
+            }
+            
+            // Set new timeout
+            scrollTimeout.current = setTimeout(() => {
+                setIsScrolling(false)
+            }, 150)
+        }
 
         // Solo en cliente
         if (typeof window !== 'undefined') {
+            // Add scroll listener
+            window.addEventListener('scroll', handleScroll, { passive: true })
+            
             // 1) Pin del contenido 1
-            ScrollTrigger.create({
+            const pinTrigger = ScrollTrigger.create({
                 trigger: containerRef.current,
                 start: 'top top',
                 end: 'bottom bottom',
                 pin: contentOneRef.current,
                 pinSpacing: false,
+                onUpdate: (self) => {
+                    // Reduce animation complexity during fast scrolling
+                    if (isScrolling) {
+                        self.disable(false)
+                    } else {
+                        self.enable()
+                    }
+                }
             })
+            scrollTriggers.push(pinTrigger)
 
             // 2) Animación de contenido 2 (sube desde 100vh hasta -window.innerHeight)
-            gsap.fromTo(
-                contentTwoRef.current,
-                { y: 0 },
-                {
-                    y: -window.innerHeight,
-                    ease: 'power2.inOut', // Easing más fluido
-                    scrollTrigger: {
-                        trigger: containerRef.current,
-                        start: 'top top',
-                        end: 'bottom bottom',
-                        scrub: 0.6,
-                    },
+            const contentTwoTrigger = ScrollTrigger.create({
+                trigger: containerRef.current,
+                start: 'top top',
+                end: 'bottom bottom',
+                scrub: 0.8, // Increased scrub value for smoother scrolling
+                onUpdate: (self) => {
+                    // Only update animation when not scrolling fast
+                    if (!isScrolling) {
+                        gsap.to(contentTwoRef.current, {
+                            y: -window.innerHeight * self.progress,
+                            ease: 'power2.inOut',
+                            duration: 0.3,
+                            overwrite: true
+                        })
+                    }
                 }
-            )
+            })
+            scrollTriggers.push(contentTwoTrigger)
 
             // Animate HeaderNav when contentTwo appears
-            gsap.to('#header-nav', {
-                y: -300, // Move up by 50px
-                scrollTrigger: {
-                    trigger: contentTwoRef.current,
-                    start: 'top center',
-                    end: 'bottom center',
-                    scrub: true,
-                },
+            const headerNavTrigger = ScrollTrigger.create({
+                trigger: contentTwoRef.current,
+                start: 'top center',
+                end: 'bottom center',
+                scrub: true,
+                onUpdate: (self) => {
+                    if (!isScrolling) {
+                        gsap.to('#header-nav', {
+                            y: -300 * self.progress,
+                            duration: 0.3,
+                            overwrite: true
+                        })
+                    }
+                }
             })
+            scrollTriggers.push(headerNavTrigger)
 
             // Animate the sideMenuButton when contentTwo appears
-            gsap.to('#sideMenuButton', {
-                opacity: 1,
-                scale: 1,
-                duration: 2,
-                ease: 'power4.out',
-                scrollTrigger: {
-                    trigger: contentTwoRef.current,
-                    start: 'top 10%',
-                    end: 'top top',
-                    scrub: true,
-                    markers: false,
-                },
+            const menuButtonTrigger = ScrollTrigger.create({
+                trigger: contentTwoRef.current,
+                start: 'top 10%',
+                end: 'top top',
+                scrub: true,
+                onUpdate: (self) => {
+                    if (!isScrolling) {
+                        gsap.to('#sideMenuButton', {
+                            opacity: self.progress,
+                            scale: 0.5 + 0.5 * self.progress,
+                            duration: 0.3,
+                            overwrite: true
+                        })
+                    }
+                }
             })
+            scrollTriggers.push(menuButtonTrigger)
         }
 
+        // Clean up all scroll triggers and event listeners
         return () => {
-            ScrollTrigger.getAll().forEach((st) => st.kill())
+            if (scrollTimeout.current) {
+                clearTimeout(scrollTimeout.current)
+            }
+            window.removeEventListener('scroll', handleScroll)
+            scrollTriggers.forEach(trigger => trigger.kill())
         }
-    }, [])
+    }, [isScrolling])
 
     return (
         <div
@@ -88,7 +140,6 @@ export default function PinnedAndOverlap({
                 position: 'relative',
                 height: containerHeight, // por defecto "300vh"
                 width: '100%',
-                overflow: 'hidden',
             }}
         >
             {/* Contenido 1 (se pinnea) */}
@@ -100,7 +151,9 @@ export default function PinnedAndOverlap({
                     left: 0,
                     width: '100%',
                     height: '100vh',
-                    willChange: 'transform', // Optimización para animaciones smooth
+                    willChange: 'transform',
+                    transform: 'translateZ(0)',
+                    backfaceVisibility: 'hidden',
                 }}
             >
                 {/* Aquí pintamos el contenido que viene por prop */}
@@ -116,7 +169,9 @@ export default function PinnedAndOverlap({
                     left: 0,
                     width: '100%',
                     height: containerHeight,
-                    willChange: 'transform', // Optimización para animaciones smooth
+                    willChange: 'transform',
+                    transform: 'translateZ(0)',
+                    backfaceVisibility: 'hidden',
                 }}
             >
                 {contentTwo}

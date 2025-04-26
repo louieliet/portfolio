@@ -76,7 +76,7 @@ const HeaderNav = () => {
                 onMouseEnter={() => handleMouseEnter('whatido')}
                 onMouseLeave={() => handleMouseLeave('whatido')}
                 className={`header-btn text-sm uppercase hover:text-white transition-colors duration-300 px-1 py-1 ${
-                    activeSection === 'whatido' ? 'text-white border-b border-white' : 'text-white/70'
+                    activeSection === 'whatido' ? 'text-white' : 'text-white/70'
                 }`}
             >
                 My work
@@ -87,7 +87,7 @@ const HeaderNav = () => {
                 onMouseEnter={() => handleMouseEnter('experience')}
                 onMouseLeave={() => handleMouseLeave('experience')}
                 className={`header-btn text-sm uppercase hover:text-white transition-colors duration-300 px-1 py-1 ${
-                    activeSection === 'experience' ? 'text-white border-b border-white' : 'text-white/70'
+                    activeSection === 'experience' ? 'text-white' : 'text-white/70'
                 }`}
             >
                 Experience
@@ -98,7 +98,7 @@ const HeaderNav = () => {
                 onMouseEnter={() => handleMouseEnter('activities')}
                 onMouseLeave={() => handleMouseLeave('activities')}
                 className={`header-btn text-sm uppercase hover:text-white transition-colors duration-300 px-1 py-1 ${
-                    activeSection === 'activities' ? 'text-white border-b border-white' : 'text-white/70'
+                    activeSection === 'activities' ? 'text-white' : 'text-white/70'
                 }`}
             >
                 Activities
@@ -109,7 +109,7 @@ const HeaderNav = () => {
                 onMouseEnter={() => handleMouseEnter('contact')}
                 onMouseLeave={() => handleMouseLeave('contact')}
                 className={`header-btn text-sm uppercase hover:text-white transition-colors duration-300 px-1 py-1 ${
-                    activeSection === 'contact' ? 'text-white border-b border-white' : 'text-white/70'
+                    activeSection === 'contact' ? 'text-white' : 'text-white/70'
                 }`}
             >
                 Contact

@@ -1,121 +1,39 @@
+'use client'
+
 import Image, { StaticImageData } from 'next/image'
-import React, { useEffect, useRef } from 'react'
-import gsap, { Power4 } from 'gsap'
 
 interface SingleActivityProps {
-    img: StaticImageData
+    img: StaticImageData | string
     title: string
     description: string
     imageOnLeft: boolean
 }
 
-function SingleActivity({
-    img,
-    title,
-    description,
-    imageOnLeft,
-}: SingleActivityProps) {
-    const activityImageRef = useRef<HTMLDivElement>(null)
-    const activityTxtRef = useRef<HTMLDivElement>(null)
-
-    useEffect(() => {
-        const image = activityImageRef.current
-        const txt = activityTxtRef.current
-
-        if (image) {
-            const observer = new IntersectionObserver(
-                ([entry]) => {
-                    if (entry.isIntersecting) {
-                        gsap.fromTo(
-                            image,
-                            { opacity: 0 },
-                            {
-                                opacity: 1,
-                                x: 0,
-                                duration: 4,
-                                ease: Power4.easeOut,
-                                delay: 0.5,
-                            }
-                        )
-                        observer.disconnect()
-                    }
-                },
-                { threshold: 0.1 }
-            )
-            observer.observe(image)
-        }
-        if (txt) {
-            const observer = new IntersectionObserver(
-                ([entry]) => {
-                    if (entry.isIntersecting) {
-                        if (imageOnLeft) {
-                            gsap.fromTo(
-                                txt,
-                                {
-                                    opacity: 0,
-                                    x: 200,
-                                },
-                                {
-                                    opacity: 1,
-                                    x: 0,
-                                    duration: 1,
-                                    ease: Power4.easeOut,
-                                    delay: 0.2,
-                                }
-                            )
-                        } else {
-                            gsap.fromTo(
-                                txt,
-                                {
-                                    opacity: 0,
-                                    x: -200,
-                                },
-                                {
-                                    opacity: 1,
-                                    x: 0,
-                                    duration: 1,
-                                    ease: Power4.easeOut,
-                                    delay: 0.2,
-                                }
-                            )
-                        }
-                        observer.disconnect()
-                    }
-                },
-                { threshold: 0.1 }
-            )
-            observer.observe(txt)
-        }
-    }, [imageOnLeft])
-
+const SingleActivity = ({ img, title, description, imageOnLeft }: SingleActivityProps) => {
     return (
-        <div
-            className={`flex flex-col md:flex-row w-full gap-3 md:gap-20 items-center ${imageOnLeft ? 'md:-ml-32' : 'md:flex-row-reverse md:ml-32'}`}
-        >
-            {/* Left side for the image */}
-            <div
-                ref={activityImageRef}
-                className="opacity-0 relative w-96 md:w-[1200px] h-[320px] md:h-[400px] lg:h-[650px] flex justify-center items-center overflow-hidden md:rounded-[40px]"
-            >
-                <Image
-                    src={img}
-                    alt="Activity Image"
-                    width={1200}
-                    height={1200}
-                    className={`drop-shadow-xl pointer-events-none md:rounded-[40px]`}
-                />
+        <div className={`flex flex-col ${imageOnLeft ? 'md:flex-row' : 'md:flex-row-reverse'} gap-8 md:gap-12 items-center`}>
+            {/* Image Container */}
+            <div className={`w-full md:w-5/12 relative overflow-hidden ${imageOnLeft ? 'md:rotate-1' : 'md:-rotate-1'} shadow-2xl`}>
+                <div className="relative w-full aspect-[4/5] hover:scale-105 transition-transform duration-700 ease-in-out">
+                    <Image
+                        src={img}
+                        alt={title}
+                        fill
+                        className="object-cover hover:grayscale-0 transition-all duration-700"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#090e1a]/80 to-transparent opacity-70"></div>
+                </div>
             </div>
-            {/* Right side for the description */}
-            <div
-                ref={activityTxtRef}
-                className="opacity-0 flex flex-col gap-5 w-full md:w-[800px] px-3 md:px-0"
-            >
-                <h1 className="text-2xl md:text-4xl  text-white font-extrabold">
-                    {title}
-                </h1>
-                <p className="text-white text-base md:text-lg lg:text-xl leading-relaxed">
-                    {description}
-                </p>
+
+            {/* Content Container */}
+            <div className={`w-full md:w-7/12 text-white ${imageOnLeft ? 'md:pl-4' : 'md:pr-4'}`}>
+                <div className={`${imageOnLeft ? 'md:ml-6' : 'md:-ml-6'}`}>
+                    <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-5 leading-tight">
+                        {title}
+                    </h3>
+                    <div className="h-px w-24 bg-white/30 mb-5"></div>
+                    <p className="text-white/70 text-base md:text-lg leading-relaxed max-w-xl">{description}</p>
+                </div>
             </div>
         </div>
     )

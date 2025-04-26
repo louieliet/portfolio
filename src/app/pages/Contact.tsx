@@ -4,44 +4,50 @@ import MailIcon from '@/app/assets/mailicon.svg'
 import LinkedInIcon from '@/app/assets/linkedinicon.svg'
 import { TypeAnimation } from 'react-type-animation'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { gsap, Power4 } from 'gsap'
 
 const Contact = () => {
     const containerRef = useRef<HTMLDivElement>(null)
+    // Removed scroll debounce and isScrolling state for smooth animations
+    const [hasAnimated, setHasAnimated] = useState(false)
+
     useEffect(() => {
         const container = containerRef.current
         const contactContents = document.querySelectorAll('.contact-content')
-
-        if (container && contactContents.length > 0) {
-            const observer = new IntersectionObserver(
-                ([entry]) => {
-                    if (entry.isIntersecting) {
-                        gsap.fromTo(
-                            contactContents,
-                            { opacity: 0 },
-                            {
-                                opacity: 1,
-                                duration: 2,
-                                ease: Power4.easeOut,
-                                stagger: 0.8,
-                            }
-                        )
-
-                        observer.disconnect()
-                    }
-                },
-                { threshold: 0.1 }
-            )
+        if (container && contactContents.length > 0 && !hasAnimated) {
+            const observer = new IntersectionObserver(([entry]) => {
+                if (entry.isIntersecting) {
+                    gsap.fromTo(
+                        contactContents,
+                        { opacity: 0 },
+                        {
+                            opacity: 1,
+                            duration: 2,
+                            ease: Power4.easeOut,
+                            stagger: 0.8,
+                            overwrite: 'auto',
+                            onComplete: () => setHasAnimated(true)
+                        }
+                    )
+                    observer.disconnect()
+                }
+            }, { threshold: 0.1, rootMargin: '0px 0px -10% 0px' })
             observer.observe(container)
+            return () => observer.disconnect()
         }
-    }, [])
+    }, [hasAnimated])
 
     return (
         <div
             ref={containerRef}
             id="contact"
             className="contact-bg flex flex-col items-center justify-center w-full gap-10 px-5 bg-custom-LightBrown min-h-screen -mt-12"
+            style={{
+                willChange: 'transform',
+                transform: 'translateZ(0)',
+                backfaceVisibility: 'hidden',
+            }}
         >
             {/* Title */}
             <h1 className="opacity-0 contact-content z-20 text-4xl md:text-8xl py-5 font-extrabold text-custom-Brown text-center -mb-8 mt-10">
