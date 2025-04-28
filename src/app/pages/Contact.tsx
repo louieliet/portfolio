@@ -1,135 +1,37 @@
-import Image from 'next/image'
 import Link from 'next/link'
-import MailIcon from '@/app/assets/mailicon.svg'
-import LinkedInIcon from '@/app/assets/linkedinicon.svg'
-import { TypeAnimation } from 'react-type-animation'
 
-import { useEffect, useRef, useState } from 'react'
-import { gsap, Power4 } from 'gsap'
-
-const Contact = () => {
-    const containerRef = useRef<HTMLDivElement>(null)
-    // Removed scroll debounce and isScrolling state for smooth animations
-    const [hasAnimated, setHasAnimated] = useState(false)
-
-    useEffect(() => {
-        const container = containerRef.current
-        const contactContents = document.querySelectorAll('.contact-content')
-        if (container && contactContents.length > 0 && !hasAnimated) {
-            const observer = new IntersectionObserver(([entry]) => {
-                if (entry.isIntersecting) {
-                    gsap.fromTo(
-                        contactContents,
-                        { opacity: 0 },
-                        {
-                            opacity: 1,
-                            duration: 2,
-                            ease: Power4.easeOut,
-                            stagger: 0.8,
-                            overwrite: 'auto',
-                            onComplete: () => setHasAnimated(true)
-                        }
-                    )
-                    observer.disconnect()
-                }
-            }, { threshold: 0.1, rootMargin: '0px 0px -10% 0px' })
-            observer.observe(container)
-            return () => observer.disconnect()
-        }
-    }, [hasAnimated])
-
-    return (
-        <div
-            ref={containerRef}
-            id="contact"
-            className="contact-bg flex flex-col items-center justify-center w-full gap-10 px-5 bg-custom-LightBrown min-h-screen -mt-12"
-            style={{
-                willChange: 'transform',
-                transform: 'translateZ(0)',
-                backfaceVisibility: 'hidden',
-            }}
-        >
-            {/* Title */}
-            <h1 className="opacity-0 contact-content z-20 text-4xl md:text-8xl py-5 font-extrabold text-custom-Brown text-center -mb-8 mt-10">
-                ¡Contáctame!
-            </h1>
-
-            <p className="opacity-0 contact-content z-10 text-lg md:text-2xl text-custom-Brown text-center max-w-2xl">
-                Estoy disponible para colaborar en proyectos, resolver dudas y/o
-                asesoramiento de{' '}
-                <TypeAnimation
-                    sequence={[
-                        'desarrollo de videojuegos.',
-                        2000,
-                        'desarrollo web.',
-                        2000,
-                        'deasarollo móvil.',
-                        2000,
-                        'diseño UX/UI.',
-                        2000,
-                    ]}
-                    wrapper="span"
-                    speed={80}
-                    repeat={Infinity}
-                    className="text-lg md:text-2xl text-custom-Brown"
-                />
-            </p>
-
-            {/* Contact Methods */}
-            <div className="opacity-0 contact-content flex flex-col md:flex-row items-center justify-center gap-10 w-full">
-                {/* Email Section */}
-                <div className="z-20 flex flex-col items-center justify-center gap-3 text-center">
-                    <Image
-                        src={MailIcon}
-                        alt="Email Icon"
-                        width={80}
-                        height={80}
-                    />
-                    <h2 className="text-xl font-bold text-custom-Brown">
-                        Correo Electrónico
-                    </h2>
-                    <p className="text-gray-600">Puedes escribirme a:</p>
-                    <a
-                        href="mailto:emilianomg2003@hotmail.com"
-                        className="text-custom-Brown font-medium hover:underline"
-                    >
-                        emilianomg2003@hotmail.com
-                    </a>
-                </div>
-
-                {/* LinkedIn Section */}
-                <div className="z-20 flex flex-col items-center justify-center gap-3 text-center">
-                    <Image
-                        src={LinkedInIcon}
-                        alt="LinkedIn Icon"
-                        width={80}
-                        height={80}
-                    />
-                    <h2 className="text-xl font-bold text-custom-Brown">
-                        LinkedIn
-                    </h2>
-                    <p className="text-gray-600">
-                        Conecta conmigo en LinkedIn:
-                    </p>
-                    <Link
-                        href="https://www.linkedin.com/in/emiliano-mg/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-custom-Brown font-medium hover:underline"
-                    >
-                        Link a mi perfil
-                    </Link>
-                </div>
-            </div>
-
-            {/* Call-to-action */}
-            <div className="opacity-0 contact-content text-center md:mt-48">
-                <p className="text-sm text-gray-700 italic">
-                    Made by Emiliano Montes with ❤️, Next.js and Tailwind CSS
-                </p>
-            </div>
+const Contact = () => (
+    <section id="contact" className="contact-bg py-20 px-6 md:px-20 relative overflow-hidden">
+      <div className="max-w-5xl mx-auto">
+        {/* Section header with decorative lines */}
+        <div className="flex items-center space-x-4 mb-12">
+          <div className="h-px flex-1 bg-custom-Brown opacity-50"></div>
+          <h2 className="text-3xl md:text-5xl font-light uppercase text-custom-Brown">Contact</h2>
+          <div className="h-px flex-1 bg-custom-Brown opacity-50"></div>
         </div>
-    )
-}
+        {/* Two-column layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
+          {/* Contact methods */}
+          <div className="space-y-8">
+            <div>
+              <h3 className="text-xl font-semibold uppercase text-custom-Brown mb-2">Email</h3>
+              <a href="mailto:emilianomg2003@hotmail.com" className="text-lg text-custom-Brown hover:underline">emilianomg2003@hotmail.com</a>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold uppercase text-custom-Brown mb-2">LinkedIn</h3>
+              <Link href="https://www.linkedin.com/in/emiliano-mg/" target="_blank" rel="noopener noreferrer" className="text-lg text-custom-Brown hover:underline">linkedin.com/in/emiliano-mg</Link>
+            </div>
+          </div>
+          {/* Introductory text */}
+          <div className="space-y-6">
+            <h3 className="text-xl font-semibold uppercase text-custom-Brown">Let’s Connect</h3>
+            <p className="text-base text-custom-Brown leading-relaxed">I’m available for project collaborations, consultations, or just to say hello. Feel free to reach out via email or connect with me on LinkedIn.</p>
+          </div>
+        </div>
+        {/* Footer note */}
+        <div className="mt-24 text-center text-sm text-gray-600">Made by Emiliano Montes with ❤️, Next.js & Tailwind CSS</div>
+      </div>
+    </section>
+)
 
 export default Contact
