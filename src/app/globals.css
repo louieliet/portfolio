@@ -41,10 +41,8 @@ body {
     background: #0c0e13;
     background-image: linear-gradient(to bottom, #0c0e13, #151923);
     overflow: hidden;
-    border-bottom-left-radius: 50px;
-    border-bottom-right-radius: 50px;
     z-index: 1;
-    padding-bottom: 50px;
+    padding-bottom: 80px; /* Increased padding to prepare for more overlap */
 }
 
 .intro-bg::before {
@@ -94,12 +92,9 @@ body {
     background: #0c0e13;
     border-top-left-radius: 50px;
     border-top-right-radius: 50px;
-    border-bottom-left-radius: 50px;
-    border-bottom-right-radius: 50px;
-    margin-top: -50px;
     z-index: 2;
-    box-shadow: 0 -15px 30px rgba(0, 0, 0, 0.4);
-    padding-top: 50px;
+    box-shadow: 0 -20px 40px rgba(0, 0, 0, 0.5); /* Enhanced shadow for more depth */
+    padding-top: 80px; /* Increased padding to compensate for the margin-top */
     background-image: linear-gradient(to bottom, #0f1015, #0c0e13);
     border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
@@ -135,16 +130,15 @@ body {
     background: #0c0d11;
     border-top-left-radius: 50px;
     border-top-right-radius: 50px;
-    border-bottom-left-radius: 50px;
-    border-bottom-right-radius: 50px;
-    margin-top: -50px;  /* Create overlap effect with section above */
+    margin-top: -100px;  /* Increased overlap with section above */
     z-index: 3;
-    box-shadow: 0 -15px 30px rgba(0, 0, 0, 0.4);
-    padding-top: 50px; /* Add padding to compensate for the margin-top */
+    box-shadow: 0 -20px 40px rgba(0, 0, 0, 0.5); /* Enhanced shadow for more depth */
+    padding-top: 10px; /* Increased padding to compensate for the margin-top */
     /* Add subtle gradient to enhance depth perception */
     background-image: linear-gradient(to bottom, #0f1015, #0c0d11);
     /* Add subtle border for layering effect */
     border-top: 1px solid rgba(255, 255, 255, 0.05);
+    overflow: hidden;
 }
 
 .experience-bg::before {
@@ -165,16 +159,15 @@ body {
     background: #0c0d11; /* Updated to match experience-bg color */
     border-top-left-radius: 50px;
     border-top-right-radius: 50px;
-    border-bottom-left-radius: 50px;
-    border-bottom-right-radius: 50px;
     z-index: 4; /* Higher than the experience section */
-    margin-top: -50px; /* Create proper overlap with Experience section */
-    box-shadow: 0 -15px 25px rgba(0, 0, 0, 0.3);
-    padding-top: 70px; /* Increased padding to compensate for the margin-top */
+    margin-top: -80px; /* Increased overlap with Experience section */
+    box-shadow: 0 -20px 40px rgba(0, 0, 0, 0.5); /* Enhanced shadow for more depth */
+    padding-top: 100px; /* Further increased padding to compensate for the margin-top */
     /* Add subtle gradient to enhance depth perception */
     background-image: linear-gradient(to bottom, #0f1015, #0c0d11);
     /* Add subtle border for layering effect */
     border-top: 1px solid rgba(255, 255, 255, 0.05);
+    overflow: hidden;
 }
 
 .activities-bg::before {
@@ -206,14 +199,15 @@ body {
     position: relative;
     background: #0c0d11;
     border-radius: 50px 50px 0 0;
-    margin-top: -50px; /* Consistent overlap with previous section */
+    margin-top: -45px; /* Increased overlap with previous section */
     z-index: 5; /* Higher than other sections */
-    box-shadow: 0 -15px 30px rgba(0, 0, 0, 0.4);
-    padding-top: 70px; /* Add padding to compensate for the margin-top */
+    box-shadow: 0 -20px 40px rgba(0, 0, 0, 0.5); /* Enhanced shadow for more depth */
+    padding-top: 100px; /* Increased padding to compensate for the margin-top */
     /* Add subtle gradient to enhance depth perception */
     background-image: linear-gradient(to bottom, #0f1015, #0c0d11);
     /* Add subtle border for layering effect */
     border-top: 1px solid rgba(255, 255, 255, 0.05);
+    overflow: hidden;
 }
 
 .contact-bg::before {

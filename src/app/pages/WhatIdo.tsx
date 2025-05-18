@@ -51,7 +51,7 @@ const WhatIdo = () => {
         willChange: 'transform',
         transform: 'translateZ(0)',
         backfaceVisibility: 'hidden',
-        marginBottom: '-50px',
+        marginBottom: '-80px',
       }}
     >
       <div className="absolute top-0 left-0 w-full flex justify-between items-center z-30">
