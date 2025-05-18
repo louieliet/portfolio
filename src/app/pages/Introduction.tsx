@@ -1,18 +1,26 @@
 'use client'
 
 import Image from 'next/image'
-import { useRef } from 'react'
+import { useRef, useEffect, useState } from 'react'
 // gsap import removed to disable animations
 import HeaderNav from '@/app/components/HeaderNav'
 import TorusKnot from '@/app/components/TorusKnot'
+import { useInView } from 'react-intersection-observer'
 
 const Introduction = () => {
+    const { ref: inViewRef, inView } = useInView({
+        threshold: 0.1,
+        triggerOnce: false
+    })
     const torusKnotRef = useRef<HTMLDivElement>(null)
-
-    // animations disabled; useEffect removed
+    const [isLoaded, setIsLoaded] = useState(false)
+    
+    useEffect(() => {
+        setIsLoaded(true)
+    }, [])
 
     return (
-        <div className="intro-bg min-h-screen w-full pb-16 flex flex-col md:flex-row justify-between items-start relative overflow-hidden">
+        <div id="introduction" ref={inViewRef} className="intro-bg min-h-screen w-full pb-16 flex flex-col md:flex-row justify-between items-start relative overflow-hidden">
             <HeaderNav />
 
             <div className="absolute top-0 left-0 w-full flex justify-between items-center z-30 ">
@@ -23,9 +31,11 @@ const Introduction = () => {
 
             {/* Torus Knot Background */}
             <div ref={torusKnotRef} className="absolute inset-0 flex items-center justify-center z-0 opacity-80">
-                <div className="w-full h-full max-w-[2000px] max-h-[2000px]">
-                    <TorusKnot />
-                </div>
+                {isLoaded && inView && (
+                    <div className="w-full h-full max-w-[2000px] max-h-[2000px]">
+                        <TorusKnot containerId="introduction" />
+                    </div>
+                )}
             </div>
 
             {/* Content container with asymmetric layout */}

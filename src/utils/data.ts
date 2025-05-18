@@ -34,4 +34,13 @@ export const dataAboutPage = [
         ],
         date: 'Dec 2024 - Present',
     },
+    {
+        id: 4,
+        title: 'Frontend Developer',
+        subtitle: 'Pulse Studio',
+        descriptions: [
+            'Frontend development with Wordpress and Elementor',
+        ],
+        date: 'Apr 2025 - Present',
+    },
 ]

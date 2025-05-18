@@ -1,5 +1,7 @@
 'use client'
 // GSAP import and animation hook removed; animations disabled
+import { useState, useEffect } from 'react'
+import { useInView } from 'react-intersection-observer'
 import SingleActivity from '@/app/components/SingleActivity'
 import IOSIMG from '@/app/assets/images/iosimg.jpeg'
 import VORTEXIMG from '@/app/assets/images/vorteximg.jpg'
@@ -8,16 +10,29 @@ import SAUPIMG from '@/app/assets/images/saupimg.jpeg'
 import RotatingCube from '@/app/components/RotatingCube'
 
 const Activities = () => {
+    const { ref: inViewRef, inView } = useInView({
+        threshold: 0.1,
+        triggerOnce: false
+    })
+    const [isLoaded, setIsLoaded] = useState(false)
+    
+    useEffect(() => {
+        setIsLoaded(true)
+    }, [])
+    
     return (
         <div
             id="activities"
+            ref={inViewRef}
             className="activities-bg z-20 flex flex-col px-5 md:px-20 pb-20 relative overflow-hidden"
         >
             {/* 3D Element in background */}
             <div className="absolute inset-0 flex items-center justify-center z-0 opacity-40">
-                <div className="w-full h-full">
-                    <RotatingCube />
-                </div>
+                {isLoaded && inView && (
+                    <div className="w-full h-full">
+                        <RotatingCube containerId="activities" />
+                    </div>
+                )}
             </div>
             
             <div className="text-start w-full mt-6 relative z-10">

@@ -1,22 +1,47 @@
 'use client'
 
 import { Canvas, useFrame } from '@react-three/fiber'
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
 
-const RotatingTorusKnot = () => {
+const RotatingTorusKnot = ({ containerId }: { containerId: string }) => {
   const meshRef = useRef<THREE.Mesh>(null!)
+  const [isVisible, setIsVisible] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+  
+  useEffect(() => {
+    const container = document.getElementById(containerId)
+    if (!container) return
+    
+    // Check for mobile viewport only once on mount
+    setIsMobile(window.innerWidth < 768)
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Update visibility state based on intersection
+        setIsVisible(entries[0].isIntersecting)
+      },
+      { threshold: 0.1 }
+    )
+    
+    // Start observing the container
+    observer.observe(container)
+    
+    return () => {
+      observer.disconnect()
+    }
+  }, [containerId])
 
   useFrame(() => {
-    if (meshRef.current) {
-      meshRef.current.rotation.y += 0.002
-      meshRef.current.rotation.x += 0.001
+    if (meshRef.current && isVisible) {
+      meshRef.current.rotation.y += 0.005
+      meshRef.current.rotation.x += 0.0025
     }
   })
 
   return (
     <mesh ref={meshRef} position={[0, 0, 0]}>
-      <torusKnotGeometry args={[2.8, 0.7, 200, 24]} />
+      <torusKnotGeometry args={isMobile ? [2.5, 0.6, 150, 20] : [2.8, 0.7, 200, 24]} />
       <meshStandardMaterial
         wireframe
         color="#CCCCCC"
@@ -28,7 +53,7 @@ const RotatingTorusKnot = () => {
   )
 }
 
-const TorusKnot = () => {
+const TorusKnot = ({ containerId = "introduction" }: { containerId?: string }) => {
   return (
     <Canvas
       className="w-full h-full opacity-20 pointer-events-none"
@@ -36,7 +61,7 @@ const TorusKnot = () => {
     >
       <ambientLight intensity={1.5} />
       <directionalLight position={[2, 2, 5]} intensity={2.0} />
-      <RotatingTorusKnot />
+      <RotatingTorusKnot containerId={containerId} />
     </Canvas>
   )
 }

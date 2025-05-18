@@ -1,17 +1,38 @@
 'use client'
 
 import { Canvas, useFrame } from '@react-three/fiber'
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
 
-const RotatingCubeInner = () => {
+const RotatingCubeInner = ({ containerId }: { containerId: string }) => {
   const meshRef = useRef<THREE.Mesh>(null!)
+  const [isVisible, setIsVisible] = useState(false)
+
+  useEffect(() => {
+    const container = document.getElementById(containerId)
+    if (!container) return
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Update visibility state based on intersection
+        setIsVisible(entries[0].isIntersecting)
+      },
+      { threshold: 0.1 }
+    )
+    
+    // Start observing the container
+    observer.observe(container)
+    
+    return () => {
+      observer.disconnect()
+    }
+  }, [containerId])
 
   useFrame(() => {
-    if (meshRef.current) {
-      meshRef.current.rotation.y += 0.001
-      meshRef.current.rotation.x += 0.0005
-      meshRef.current.rotation.z += 0.0008
+    if (meshRef.current && isVisible) {
+      meshRef.current.rotation.y += 0.003
+      meshRef.current.rotation.x += 0.0015
+      meshRef.current.rotation.z += 0.002
     }
   })
 
@@ -29,7 +50,7 @@ const RotatingCubeInner = () => {
   )
 }
 
-const RotatingCube = () => {
+const RotatingCube = ({ containerId = "activities" }: { containerId?: string }) => {
   return (
     <Canvas
       className="w-full h-full opacity-20 pointer-events-none"
@@ -37,7 +58,7 @@ const RotatingCube = () => {
     >
       <ambientLight intensity={1.5} />
       <directionalLight position={[2, 2, 5]} intensity={2.0} />
-      <RotatingCubeInner />
+      <RotatingCubeInner containerId={containerId} />
     </Canvas>
   )
 }

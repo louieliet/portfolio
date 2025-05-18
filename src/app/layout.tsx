@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Urbanist } from 'next/font/google'
 import './globals.css'
+import ClientComponents from './components/ClientComponents'
 
 const urbanist = Urbanist({ subsets: ['latin'] })
 
@@ -21,6 +22,7 @@ export default function RootLayout({
         <html lang="en">
             <body className={`${urbanist.className} antialiased`}>
                 {children}
+                <ClientComponents />
             </body>
         </html>
     )

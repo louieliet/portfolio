@@ -2,13 +2,36 @@
 
 import { Canvas } from '@react-three/fiber'
 import { Points, PointMaterial } from '@react-three/drei'
-import { useMemo, useRef } from 'react'
+import { useMemo, useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 
-const ParticleField = () => {
+const ParticleField = ({ containerId }: { containerId: string }) => {
   const ref = useRef<THREE.Points>(null!)
-  const count = 1500
+  const [isVisible, setIsVisible] = useState(true)
+  
+  // Reduce particle count for better performance
+  const count = window?.innerWidth < 768 ? 800 : 1200
+  
+  useEffect(() => {
+    const container = document.getElementById(containerId)
+    if (!container) return
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Update visibility state based on intersection
+        setIsVisible(entries[0].isIntersecting)
+      },
+      { threshold: 0.1 }
+    )
+    
+    // Start observing the container
+    observer.observe(container)
+    
+    return () => {
+      observer.disconnect()
+    }
+  }, [containerId])
 
   const positions = useMemo(() => {
     const arr = new Float32Array(count * 3)
@@ -18,9 +41,9 @@ const ParticleField = () => {
     return arr
   }, [count])
 
-  useFrame((_, delta) => {
-    if (ref.current) {
-      ref.current.rotation.y += delta * 0.01
+  useFrame(() => {
+    if (ref.current && isVisible) {
+      ref.current.rotation.y += 0.0015
     }
   })
 
@@ -37,10 +60,10 @@ const ParticleField = () => {
   )
 }
 
-const FloatingParticles = () => {
+const FloatingParticles = ({ containerId = "main-container" }: { containerId?: string }) => {
   return (
     <Canvas className="absolute inset-0 w-full h-full z-0 pointer-events-none opacity-[0.06]">
-      <ParticleField />
+      <ParticleField containerId={containerId} />
     </Canvas>
   )
 }

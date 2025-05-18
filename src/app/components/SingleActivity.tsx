@@ -26,7 +26,7 @@ const SingleActivity = ({ img, title, description, imageOnLeft }: SingleActivity
             </div>
 
             {/* Content Container */}
-            <div className={`w-full md:w-7/12 text-white ${imageOnLeft ? 'md:pl-4' : 'md:pr-4'}`}>
+            <div className={`w-full md:w-7/12 text-white ${imageOnLeft ? 'md:pr-40' : 'md:pl-44'}`}>
                 <div className={`${imageOnLeft ? 'md:ml-6' : 'md:-ml-6'}`}>
                     <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-5 leading-tight">
                         {title}
