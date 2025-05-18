@@ -107,7 +107,7 @@ export const imageUtils = {
    */
   getIdealImageSize: (containerWidth: number | string, pixelRatio?: number) => {
     // Convert percentage to pixels
-    let widthInPixels = typeof containerWidth === 'string' && containerWidth.includes('%')
+    const widthInPixels = typeof containerWidth === 'string' && containerWidth.includes('%')
       ? (parseFloat(containerWidth) / 100) * window.innerWidth
       : containerWidth as number
     

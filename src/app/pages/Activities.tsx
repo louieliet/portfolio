@@ -24,7 +24,10 @@ const Activities = () => {
         <div
             id="activities"
             ref={inViewRef}
-            className="activities-bg z-20 flex flex-col px-5 md:px-20 pb-20 relative overflow-hidden"
+            className="activities-bg z-20 flex flex-col px-5 md:px-20 pb-20 pt-36 relative overflow-visible"
+            data-section-id="activities"
+            data-section-type="activities"
+            style={{ marginTop: '-50px' }}
         >
             {/* 3D Element in background */}
             <div className="absolute inset-0 flex items-center justify-center z-0 opacity-40">

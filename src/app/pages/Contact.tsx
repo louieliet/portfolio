@@ -31,7 +31,7 @@ const Contact = () => {
     return (
         <section 
             id="contact" 
-            className="contact-bg min-h-[90vh] w-full relative overflow-hidden py-20 px-6 md:px-0"
+            className="contact-bg min-h-[90vh] w-full relative overflow-visible py-28 px-6 md:px-0"
             style={{ 
                 willChange: 'transform',
                 transform: 'translateZ(0)',

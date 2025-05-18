@@ -32,35 +32,35 @@ const Contact = dynamic(() => import('./Contact'), {
 
 const Home = () => {
     return (
-        <main>
+        <main className="relative">
             <SideMenu />
             {/* Uncomment the line below to debug section visibility */}
             {/* <SectionManager debug={true} /> */}
             <SectionTest />
             
-            <section id="intro-section" className="section-container" data-section-type="intro">
+            <section id="intro-section" className="section-container overflow-visible relative" data-section-type="intro">
                 <Introduction />
             </section>
             
-            <section id="whatido-section" className="section-container" data-section-type="whatido">
+            <section id="whatido-section" className="section-container overflow-visible relative" data-section-type="whatido">
                 <Suspense fallback={<div className="min-h-screen" />}>
                     <WhatIdo />
                 </Suspense>
             </section>
             
-            <section id="experience-section" className="section-container overflow-visible" data-section-type="experience">
+            <section id="experience-section" className="section-container overflow-visible relative" data-section-type="experience">
                 <Suspense fallback={<div className="min-h-screen" />}>
                     <Experience />
                 </Suspense>
             </section>
             
-            <section id="activities-section" className="section-container" data-section-type="activities">
+            <section id="activities-section" className="section-container overflow-visible relative" data-section-type="activities">
                 <Suspense fallback={<div className="min-h-screen" />}>
                     <Activities />
                 </Suspense>
             </section>
             
-            <section id="contact-section" className="section-container" data-section-type="contact">
+            <section id="contact-section" className="section-container overflow-visible relative" data-section-type="contact">
                 <Suspense fallback={<div className="min-h-[50vh]" />}>
                     <Contact />
                 </Suspense>

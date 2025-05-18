@@ -20,7 +20,7 @@ const Introduction = () => {
     }, [])
 
     return (
-        <div id="introduction" ref={inViewRef} className="intro-bg min-h-screen w-full pb-16 flex flex-col md:flex-row justify-between items-start relative overflow-hidden">
+        <div id="introduction" ref={inViewRef} className="intro-bg min-h-screen w-full pb-36 flex flex-col md:flex-row justify-between items-start relative overflow-hidden" style={{ marginBottom: '-30px' }}>
             <HeaderNav />
 
             <div className="absolute top-0 left-0 w-full flex justify-between items-center z-30 ">

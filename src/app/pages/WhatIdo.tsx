@@ -46,11 +46,12 @@ const WhatIdo = () => {
   return (
     <section 
       id="whatido" 
-      className="whatido-bg w-full min-h-screen relative overflow-x-hidden pt-28 pb-40 px-6 md:px-20 lg:px-28"
+      className="whatido-bg w-full min-h-screen relative overflow-x-hidden pt-36 pb-60 px-6 md:px-20 lg:px-28"
       style={{ 
         willChange: 'transform',
         transform: 'translateZ(0)',
         backfaceVisibility: 'hidden',
+        marginBottom: '-50px',
       }}
     >
       <div className="absolute top-0 left-0 w-full flex justify-between items-center z-30">

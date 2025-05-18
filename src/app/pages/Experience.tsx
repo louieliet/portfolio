@@ -5,10 +5,10 @@ const Experience = () => {
     return (
         <div
             id="experience"
-            className="experience-bg experience-section min-h-screen py-12 md:py-4 flex flex-col md:flex-row text-white justify-center items-center gap-10 md:px-0 overflow-visible relative"
+            className="experience-bg experience-section min-h-screen py-12 pt-24 md:py-4 md:pt-24 flex flex-col md:flex-row text-white justify-center items-center gap-10 md:px-0 overflow-visible relative"
             data-section-id="experience"
             data-section-type="experience"
-            style={{ marginBottom: '0', paddingBottom: '0' }}
+            style={{ marginBottom: '-50px', paddingBottom: '50px' }}
         >
             {/* Background Sphere positioned to the right */}
             <div className="absolute inset-0 w-full h-full z-0 left-80 pointer-events-none">

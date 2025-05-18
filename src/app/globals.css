@@ -20,12 +20,20 @@ body {
   position: relative;
   width: 100%;
   scroll-margin-top: 20px;
-  overflow: hidden;
+  overflow: visible;
+  padding-top: 1px; /* Helps with margin collapsing */
 }
 
-/* Create clear section boundaries */
+/* Remove default border for sections that will overlap */
 .section-container + .section-container {
   border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Remove border for sections that use custom overlapping */
+#experience-section,
+#activities-section,
+#contact-section {
+  border-top: none;
 }
 
 .intro-bg {
@@ -33,6 +41,10 @@ body {
     background: #0c0e13;
     background-image: linear-gradient(to bottom, #0c0e13, #151923);
     overflow: hidden;
+    border-bottom-left-radius: 50px;
+    border-bottom-right-radius: 50px;
+    z-index: 1;
+    padding-bottom: 50px;
 }
 
 .intro-bg::before {
@@ -48,6 +60,18 @@ body {
     animation: pulse 12s ease-in-out infinite alternate;
 }
 
+.intro-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 30%, rgba(255,255,255,0.02), transparent 70%),
+                radial-gradient(circle at 20% 70%, rgba(255,255,255,0.01), transparent 70%);
+    z-index: 0;
+    pointer-events: none;
+    /* Add subtle highlight at bottom edge for overlap effect */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
 @keyframes pulse {
     0% { transform: scale(1); }
     100% { transform: scale(1.05); }
@@ -61,12 +85,23 @@ body {
                 radial-gradient(circle at 20% 70%, rgba(255,255,255,0.01), transparent 70%);
     z-index: 0;
     pointer-events: none;
+    /* Add subtle highlight at bottom edge for overlap effect */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
 }  
 
 .whatido-bg {
     position: relative;
     background: #0c0e13;
-
+    border-top-left-radius: 50px;
+    border-top-right-radius: 50px;
+    border-bottom-left-radius: 50px;
+    border-bottom-right-radius: 50px;
+    margin-top: -50px;
+    z-index: 2;
+    box-shadow: 0 -15px 30px rgba(0, 0, 0, 0.4);
+    padding-top: 50px;
+    background-image: linear-gradient(to bottom, #0f1015, #0c0e13);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .whatido-bg::before {
@@ -91,6 +126,8 @@ body {
                 radial-gradient(circle at 70% 60%, rgba(255, 255, 255, 0.015), transparent 50%);
     z-index: 0;
     pointer-events: none;
+    /* Add subtle highlight at bottom edge for overlap effect */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
 }
 
 .experience-bg {
@@ -98,6 +135,16 @@ body {
     background: #0c0d11;
     border-top-left-radius: 50px;
     border-top-right-radius: 50px;
+    border-bottom-left-radius: 50px;
+    border-bottom-right-radius: 50px;
+    margin-top: -50px;  /* Create overlap effect with section above */
+    z-index: 3;
+    box-shadow: 0 -15px 30px rgba(0, 0, 0, 0.4);
+    padding-top: 50px; /* Add padding to compensate for the margin-top */
+    /* Add subtle gradient to enhance depth perception */
+    background-image: linear-gradient(to bottom, #0f1015, #0c0d11);
+    /* Add subtle border for layering effect */
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .experience-bg::before {
@@ -116,8 +163,18 @@ body {
 .activities-bg {
     position: relative;
     background: #0c0d11; /* Updated to match experience-bg color */
+    border-top-left-radius: 50px;
+    border-top-right-radius: 50px;
     border-bottom-left-radius: 50px;
     border-bottom-right-radius: 50px;
+    z-index: 4; /* Higher than the experience section */
+    margin-top: -50px; /* Create proper overlap with Experience section */
+    box-shadow: 0 -15px 25px rgba(0, 0, 0, 0.3);
+    padding-top: 70px; /* Increased padding to compensate for the margin-top */
+    /* Add subtle gradient to enhance depth perception */
+    background-image: linear-gradient(to bottom, #0f1015, #0c0d11);
+    /* Add subtle border for layering effect */
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .activities-bg::before {
@@ -141,12 +198,22 @@ body {
                 radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.02), transparent 60%);
     z-index: 0;
     pointer-events: none;
+    /* Add subtle highlight at top edge for overlap effect */
+    border-top: 1px solid rgba(255, 255, 255, 0.03);
 }
 
 .contact-bg {
     position: relative;
     background: #0c0d11;
-    border-radius: 0 0 50px 50px;
+    border-radius: 50px 50px 0 0;
+    margin-top: -50px; /* Consistent overlap with previous section */
+    z-index: 5; /* Higher than other sections */
+    box-shadow: 0 -15px 30px rgba(0, 0, 0, 0.4);
+    padding-top: 70px; /* Add padding to compensate for the margin-top */
+    /* Add subtle gradient to enhance depth perception */
+    background-image: linear-gradient(to bottom, #0f1015, #0c0d11);
+    /* Add subtle border for layering effect */
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .contact-bg::before {
@@ -170,4 +237,6 @@ body {
                 radial-gradient(circle at 60% 60%, rgba(255, 255, 255, 0.02), transparent 60%);
     z-index: 0;
     pointer-events: none;
+    /* Add subtle highlight at top edge */
+    border-top: 1px solid rgba(255, 255, 255, 0.03);
 }
