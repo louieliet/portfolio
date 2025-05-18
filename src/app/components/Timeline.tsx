@@ -3,13 +3,13 @@ import { dataAboutPage } from '@/utils/data'
 
 const TimeLine = () => {
     return (
-        <div className="flex flex-col justify-center  divide-slate-200">
-            <div className="w-full max-w-3xl mx-auto md:pb-40 md:pt-10">
+        <div className="flex flex-col justify-center divide-slate-200">
+            <div className="w-full max-w-3xl mx-auto md:pb-20 md:pt-10">
                 <div className="md:px-14">
                     {dataAboutPage.map((data) => (
                         <div
                             key={data.id}
-                            className="relative py-6 pl-8 sm:pl-32 group z-10"
+                            className="relative py-6 pl-8 sm:pl-32 group z-10 mb-4"
                         >
                             <h3 className="text-2xl md:text-4xl font-bold md:mb-0 mb-4 text-white">
                                 {data.title}

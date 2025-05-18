@@ -68,8 +68,8 @@ export function useIsExperienceSection() {
   
   useEffect(() => {
     const checkIfExperienceSection = () => {
-      // Look for elements with experience data attribute
-      const experienceSection = document.querySelector('[data-section-type="experience"]')
+      // Look for elements with experience data attributes - check both type and id
+      const experienceSection = document.querySelector('#experience, [data-section-id="experience"], [data-section-type="experience"]')
       if (!experienceSection) return false
       
       // Check if the experience section is in the viewport

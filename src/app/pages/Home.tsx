@@ -3,10 +3,10 @@ import dynamic from 'next/dynamic'
 import SideMenu from '../components/SideMenu'
 import Introduction from './Introduction'
 
-// Debug component for section visibility
-const SectionManager = dynamic(() => import('../components/SectionManager'), {
-    ssr: false
-})
+// Debug components - uncomment when needed for debugging
+// const SectionManager = dynamic(() => import('../components/SectionManager'), {
+//     ssr: false
+// })
 
 // Section test component to debug SphereBackground visibility
 const SectionTest = dynamic(() => import('../components/SectionTest'), {
@@ -48,7 +48,7 @@ const Home = () => {
                 </Suspense>
             </section>
             
-            <section id="experience-section" className="section-container" data-section-type="experience">
+            <section id="experience-section" className="section-container overflow-visible" data-section-type="experience">
                 <Suspense fallback={<div className="min-h-screen" />}>
                     <Experience />
                 </Suspense>

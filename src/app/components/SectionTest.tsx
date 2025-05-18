@@ -34,11 +34,11 @@ const SectionTest = () => {
       
       // Check all sections visibility
       const sections = {
-        intro: document.querySelector('[data-section-type="intro"]'),
-        whatido: document.querySelector('[data-section-type="whatido"]'),
-        experience: document.querySelector('[data-section-type="experience"]'),
-        activities: document.querySelector('[data-section-type="activities"]'),
-        contact: document.querySelector('[data-section-type="contact"]')
+        intro: document.querySelector('#intro-section, [data-section-type="intro"]'),
+        whatido: document.querySelector('#whatido-section, [data-section-type="whatido"]'),
+        experience: document.querySelector('#experience-section, [data-section-type="experience"], #experience, [data-section-id="experience"]'),
+        activities: document.querySelector('#activities-section, [data-section-type="activities"]'),
+        contact: document.querySelector('#contact-section, [data-section-type="contact"]')
       }
       
       // Create a new object for visible sections status without depending on previous state

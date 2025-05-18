@@ -11,7 +11,10 @@ const CrystalSphere = ({ containerId }: { containerId: string }) => {
   
   // Performance optimization - pause animation when not visible
   useEffect(() => {
-    const targetSection = document.getElementById(containerId)
+    const targetSection = document.getElementById(containerId) || 
+                          document.querySelector(`[data-section-id="${containerId}"]`) ||
+                          document.querySelector(`[data-section-type="${containerId}"]`)
+    
     if (!targetSection) return
     
     const observer = new IntersectionObserver(
@@ -98,7 +101,7 @@ const SphereBackground = ({ containerId = "experience", debug = false }: SphereB
       }
       
       // Additional targeted check for the specific element
-      const targetElement = document.querySelector('.experience-section, [data-section-id="experience"]');
+      const targetElement = document.querySelector('#experience, .experience-section, [data-section-id="experience"], [data-section-type="experience"]');
       if (targetElement) {
         const rect = targetElement.getBoundingClientRect();
         const isVisible = 
@@ -152,13 +155,26 @@ const SphereBackground = ({ containerId = "experience", debug = false }: SphereB
   }
   
   // Only render the sphere if we're in the Experience section and it's in view
-  if (!isExperienceSection || !isInView) return null;
+  if (!isExperienceSection || !isInView) {
+    if (debug) {
+      return (
+        <div className="fixed top-12 left-0 bg-black/80 text-white p-2 z-50 text-xs">
+          <div className="text-red-400">
+            SphereBackground Hidden
+          </div>
+          <div>isExperienceSection: {isExperienceSection ? 'true' : 'false'}</div>
+          <div>isInView: {isInView ? 'true' : 'false'}</div>
+        </div>
+      );
+    }
+    return null;
+  }
   
   return (
     <Canvas
       className="w-full h-full opacity-25 pointer-events-none z-0"
       camera={{ position: [0, -1, 6.5], fov: 50 }}
-      style={{ position: 'relative', top: '50px' }}
+      style={{ position: 'relative' }}
     >
       <ambientLight intensity={1.5} />
       <directionalLight position={[2, 2, 5]} intensity={2.0} />
