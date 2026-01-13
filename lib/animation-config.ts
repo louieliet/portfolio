@@ -15,42 +15,48 @@ export const animationConfig = {
   gsap: {
     // Fade-in animations
     fadeIn: {
-      duration: 0.8,
-      ease: "power3.out",
-      y: 30,
+      duration: 1.2,
+      ease: "power2.out",
+      y: 40,
     },
 
     // Stagger animations
     stagger: {
-      duration: 0.8,
-      ease: "power3.out",
-      y: 40,
-      delay: 0.1, // delay between each item
+      duration: 1.0,
+      ease: "power2.out",
+      y: 60,
+      delay: 0.15, // delay between each item
     },
 
     // Parallax settings
     parallax: {
       speed: 0.5, // 0.5 = half speed, 1 = no parallax, 2 = double speed
-      scrub: 0.5,
+      scrub: 0, // No scrub for discrete transitions, or use small value for smoothing
     },
 
     // Line drawing animations
     line: {
-      duration: 1.2,
+      duration: 1.5,
       ease: "power2.out",
+    },
+    
+    // Timeline drawing animation
+    timeline: {
+      duration: 1.5,
+      ease: "none",
     },
 
     // Scroll trigger positions
     scrollTrigger: {
-      fadeInStart: "top 85%",
+      fadeInStart: "top 80%",
       fadeInEnd: "top 60%",
-      staggerStart: "top 90%",
+      staggerStart: "top 85%",
     },
   },
 
   // Hover transitions (CSS-based)
   hover: {
-    duration: 200, // in milliseconds
+    duration: 300, // in milliseconds
     scale: 1.02,
   },
 };
