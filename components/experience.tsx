@@ -1,4 +1,8 @@
-import { experience } from "@/lib/data";
+"use client";
+
+import { experience, type ExperienceItem } from "@/lib/data";
+import Image from "next/image";
+import Link from "next/link";
 
 export default function Experience() {
   return (
@@ -17,19 +21,31 @@ export default function Experience() {
         </div>
 
         <div className="space-y-20">
-          {experience.map((job, index) => (
+          {experience.map((job: ExperienceItem, index) => (
             <div 
               key={index} 
               className="stagger-item grid grid-cols-1 md:grid-cols-12 gap-8 relative group"
             >
               {/* Timeline Dot */}
-              <div className="hidden md:block absolute left-4 -translate-x-1/2 top-2 w-3 h-3 bg-white border-2 border-black rounded-full z-10 group-hover:bg-black transition-colors duration-300"></div>
+              <div className={`hidden md:block absolute left-4 -translate-x-1/2 top-2 w-3 h-3 bg-white border-2 border-black rounded-full z-10 group-hover:bg-black transition-colors duration-300 ${
+                job.highlight ? 'ring-2 ring-black ring-offset-2' : ''
+              }`}></div>
 
               <div className="md:col-span-1 hidden md:block"></div> {/* Spacer for line */}
               
               <div className="md:col-span-4 md:pr-12">
                 <h3 className="text-3xl font-bold uppercase mb-2 leading-none">{job.company}</h3>
                 <div className="text-gray-500 font-medium tracking-wide text-sm mt-2">{job.period}</div>
+                
+                {job.appStoreUrl && (
+                  <Link 
+                    href={job.appStoreUrl} 
+                    target="_blank"
+                    className="inline-block mt-4 text-xs font-bold uppercase tracking-widest hover:opacity-60 transition-opacity"
+                  >
+                    View on App Store ↗
+                  </Link>
+                )}
               </div>
               
               <div className="md:col-span-7 space-y-6 pt-1 md:pt-0">
@@ -37,6 +53,30 @@ export default function Experience() {
                 <p className="text-gray-600 leading-relaxed text-lg">
                   {job.description}
                 </p>
+                
+                {/* Assets Gallery */}
+                {job.assets && job.assets.length > 0 && (
+                  <div className="grid grid-cols-3 gap-4 pt-4">
+                    {job.assets.map((asset: string, assetIndex: number) => (
+                      <div 
+                        key={assetIndex} 
+                        className="aspect-[9/16] bg-gray-100 border border-gray-300 relative overflow-hidden group/img hover:border-black transition-colors"
+                      >
+                        {/* Placeholder for actual images */}
+                        <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xs">
+                          <span>Screenshot {assetIndex + 1}</span>
+                        </div>
+                        {/* Uncomment when you have actual images */}
+                        {/* <Image 
+                          src={asset} 
+                          alt={`${job.company} screenshot ${assetIndex + 1}`}
+                          fill
+                          className="object-cover group-hover/img:scale-105 transition-transform duration-500"
+                        /> */}
+                      </div>
+                    ))}
+                  </div>
+                )}
                 
                 <div className="flex flex-wrap gap-2 pt-2 opacity-80 group-hover:opacity-100 transition-opacity">
                   {job.stack.map((tech) => (

@@ -1,3 +1,28 @@
+// Types
+export interface ExperienceItem {
+  company: string;
+  role: string;
+  period: string;
+  description: string;
+  stack: string[];
+  assets?: string[];
+  appStoreUrl?: string;
+  highlight?: boolean;
+}
+
+export interface ProjectItem {
+  id: string;
+  name: string;
+  subtitle: string;
+  description: string;
+  role: string;
+  stack: string[];
+  year: string;
+  highlight?: boolean;
+  link?: string;
+  category: "Web" | "Mobile" | "Gaming";
+}
+
 export const personalInfo = {
   name: "Emiliano Montes Gómez",
   role: "Frontend Engineer + UX/UI Designer",
@@ -69,24 +94,17 @@ export const experience = [
   },
   {
     company: "Vyvo Tech",
-    role: "Frontend Lead Engineer",
-    period: "Oct 2025 - Dec 2025",
-    description: "Led mobile app development, focusing on building high-quality, performant, and user-centered experiences. Oversaw the frontend team, guiding architecture decisions, reviewing code, and ensuring design system alignment. Managed build and deployment with EAS.",
-    stack: ["React Native", "EAS", "TypeScript"]
-  },
-  {
-    company: "Vyvo Tech",
-    role: "Frontend Developer & Product Designer",
-    period: "Sep 2025 - Oct 2025",
-    description: "Focused on building performant, scalable experiences. Translated designs into seamless digital experiences. Specialized in UX design: researching user needs, defining flows, creating prototypes, and testing solutions.",
-    stack: ["React Native", "Figma", "UX Research"]
-  },
-  {
-    company: "Vyvo Tech",
-    role: "Frontend Developer",
-    period: "Aug 2025 - Oct 2025",
-    description: "Frontend development in React Native.",
-    stack: ["React Native", "TypeScript"]
+    role: "Frontend Lead Engineer → Product Designer → Frontend Developer",
+    period: "Aug 2025 - Dec 2025",
+    description: "Built an AI-powered social network where users interact with AI agents (like Instagram/TikTok but with avatars that can like, comment, and have natural conversations). Led mobile app development from frontend developer to lead engineer. Designed and implemented views in React Native, conducted UX research, created prototypes, and oversaw the frontend team. Managed architecture decisions, code reviews, design system alignment, and deployment with EAS. App published on App Store.",
+    stack: ["React Native", "TypeScript", "EAS", "Figma", "UX Research", "AI Integration"],
+    assets: [
+      "/projects/vyvo-1.png",
+      "/projects/vyvo-2.png",
+      "/projects/vyvo-3.png"
+    ],
+    appStoreUrl: "https://apps.apple.com/app/vyvo", // User needs to provide actual URL
+    highlight: true
   },
   {
     company: "iOS Development Lab UPMX",
@@ -126,18 +144,6 @@ export const experience = [
 ]
 
 export const projects = [
-  {
-    id: "vyvo",
-    name: "Vyvo Tech",
-    subtitle: "AI Social Network",
-    description: "Social network where users interact with AI agents. Like Instagram/TikTok but with avatars that can like, comment, and have natural conversations. I designed and implemented views in React Native.",
-    role: "Frontend Engineer & UX/UI Designer",
-    stack: ["React Native", "TypeScript", "AI Integration"],
-    year: "2025",
-    highlight: true,
-    link: "#", // Needs link
-    category: "Mobile"
-  },
   {
     id: "lotus",
     name: "Lotus",
