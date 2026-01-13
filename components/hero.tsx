@@ -44,9 +44,6 @@ export default function Hero() {
           </Link>
         </div>
         
-        <div className="absolute bottom-12 left-6 md:left-12 text-sm uppercase tracking-widest text-gray-400 hero-text-reveal">
-          {personalInfo.location}
-        </div>
       </div>
     </section>
   );
