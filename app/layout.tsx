@@ -1,10 +1,18 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SmoothScrollProvider } from "@/components/smooth-scroll-provider";
 import { AnimationsProvider } from "@/components/animations-provider";
 
-const inter = Inter({ subsets: ["latin"] });
+const geistSans = Geist({ 
+  subsets: ["latin"],
+  variable: "--font-geist-sans",
+});
+
+const geistMono = Geist_Mono({ 
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
+});
 
 export const metadata: Metadata = {
   title: "Emiliano Montes | Frontend Engineer & UX/UI Designer",
@@ -18,7 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="lenis lenis-smooth">
-      <body className={`${inter.className} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <SmoothScrollProvider>
           <AnimationsProvider>
             {children}

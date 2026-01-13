@@ -31,7 +31,7 @@ export default function Hero() {
             </h2>
           </div>
           <div className="overflow-hidden">
-            <p className="hero-text-reveal text-xl md:text-2xl text-gray-600 leading-relaxed parallax-layer" data-speed="1.2">
+            <p className="hero-text-reveal text-xl md:text-2xl text-gray-600 leading-relaxed parallax-layer italic" data-speed="1.2">
               {personalInfo.tagline}
             </p>
           </div>

@@ -84,7 +84,8 @@ export const stack = {
   backend: ["Firebase", "RESTful APIs", "Git / CI/CD"]
 }
 
-export const experience = [
+// Professional Experience (Companies)
+export const experience: ExperienceItem[] = [
   {
     company: "iLuk.ai",
     role: "Frontend Engineer + UX/UI Designer",
@@ -107,11 +108,36 @@ export const experience = [
     highlight: true
   },
   {
+    company: "Pulse Studio",
+    role: "Frontend Developer",
+    period: "Apr 2025 - Aug 2025",
+    description: "Frontend development using modern frameworks and best practices. Collaborated on building responsive and performant web applications.",
+    stack: ["React", "Next.js", "TypeScript", "Tailwind CSS"]
+  },
+  {
+    company: "Luyoa",
+    role: "Frontend Developer",
+    period: "Jan 2025 - May 2025",
+    description: "Frontend development focused on creating intuitive user interfaces and seamless user experiences.",
+    stack: ["React", "TypeScript", "CSS"]
+  },
+  {
+    company: "Chain Solutions",
+    role: "Frontend Developer",
+    period: "Aug 2023 - Dec 2024",
+    description: "Frontend development of corporate websites. Worked on projects like Hus and Ragabe.",
+    stack: ["Next.js", "Tailwind CSS", "React"]
+  }
+]
+
+// Academic & Lab Experience
+export const academicExperience: ExperienceItem[] = [
+  {
     company: "iOS Development Lab UPMX",
     role: "Frontend Developer",
     period: "Jan 2025 - Oct 2025",
-    description: "iOS application development.",
-    stack: ["Swift", "SwiftUI"]
+    description: "iOS application development in SwiftUI. Explored modern iOS development patterns and best practices.",
+    stack: ["Swift", "SwiftUI", "iOS Development"]
   },
   {
     company: "Blank Canvas",
@@ -121,25 +147,11 @@ export const experience = [
     stack: ["Swift", "SwiftUI", "CoreML", "ARKit", "Figma"]
   },
   {
-    company: "Panteras Play",
-    role: "Programming Team Leader",
-    period: "Aug 2024 - Oct 2025",
-    description: "Led the programming team in the development of the video game Meraki in Unity 2D.",
-    stack: ["Unity 2D", "C#"]
-  },
-  {
     company: "PCI Lab UP",
     role: "Gameplay Development Leader",
     period: "Aug 2023 - Oct 2025",
     description: "Coordinator of design and implementation of game mechanics in Unity 3D. Led the Gameplay Development team to create the demo for the game Lotus, winner of the ILAN 2023 award, presented in Israel.",
     stack: ["Unity 3D", "C#", "Game UX Design"]
-  },
-  {
-    company: "Chain Solutions",
-    role: "Frontend Developer",
-    period: "Aug 2023 - Dec 2024",
-    description: "Frontend development of corporate websites. Worked on projects like Hus and Ragabe.",
-    stack: ["Next.js", "Tailwind CSS", "React"]
   }
 ]
 

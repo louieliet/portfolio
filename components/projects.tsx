@@ -69,7 +69,7 @@ export default function Projects() {
               <div className="mt-auto">
                  <div className="flex flex-wrap gap-2 mb-8">
                     {project.stack.map(tech => (
-                      <span key={tech} className="text-xs font-medium text-gray-500 border border-gray-200 px-2 py-1 uppercase tracking-wider">
+                      <span key={tech} className="text-xs font-medium text-gray-500 border border-gray-200 px-2 py-1 uppercase tracking-wider" style={{ fontFamily: 'var(--font-geist-mono)' }}>
                         {tech}
                       </span>
                     ))}
