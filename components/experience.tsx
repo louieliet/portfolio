@@ -3,7 +3,7 @@ import { experience } from "@/lib/data";
 export default function Experience() {
   return (
     <section id="experience" className="px-6 md:px-12 py-24 max-w-7xl mx-auto border-b border-black">
-      <div className="mb-16">
+      <div className="mb-16 fade-in">
         <h2 className="text-4xl md:text-6xl font-bold uppercase tracking-tighter mb-4">Experience</h2>
         <p className="text-xl text-gray-600 max-w-2xl">
           My professional journey in frontend development, product design, and team leadership.
@@ -14,7 +14,7 @@ export default function Experience() {
         {experience.map((job, index) => (
           <div 
             key={index} 
-            className="group relative border-t border-black py-12 md:py-16 grid grid-cols-1 md:grid-cols-12 gap-8 hover:bg-gray-50 transition-colors"
+            className="stagger-item group relative border-t border-black py-12 md:py-16 grid grid-cols-1 md:grid-cols-12 gap-8 hover:bg-gray-50 transition-colors duration-300"
           >
             <div className="md:col-span-4">
               <h3 className="text-2xl font-bold uppercase mb-2">{job.company}</h3>

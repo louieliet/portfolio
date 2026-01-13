@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { SmoothScrollProvider } from "@/components/smooth-scroll-provider";
+import { AnimationsProvider } from "@/components/animations-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -15,9 +17,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang="en" className="lenis lenis-smooth">
       <body className={`${inter.className} antialiased`}>
-        {children}
+        <SmoothScrollProvider>
+          <AnimationsProvider>
+            {children}
+          </AnimationsProvider>
+        </SmoothScrollProvider>
       </body>
     </html>
   );

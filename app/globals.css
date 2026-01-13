@@ -17,10 +17,31 @@
   }
   
   .brutalist-card {
-    @apply border border-black p-6 md:p-8 transition-colors hover:bg-black hover:text-white;
+    @apply border border-black p-6 md:p-8 transition-all duration-300 hover:bg-black hover:text-white hover:scale-[1.02];
   }
 
   .brutalist-button {
-    @apply border border-black px-6 py-3 text-sm font-medium uppercase tracking-wider transition-colors hover:bg-black hover:text-white inline-block;
+    @apply border border-black px-6 py-3 text-sm font-medium uppercase tracking-wider transition-all duration-200 hover:bg-black hover:text-white hover:border-2 inline-block;
+  }
+
+  /* Smooth scroll optimization */
+  html.lenis {
+    height: auto;
+  }
+
+  .lenis.lenis-smooth {
+    scroll-behavior: auto;
+  }
+
+  .lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+  }
+
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+
+  .lenis.lenis-scrolling iframe {
+    pointer-events: none;
   }
 }

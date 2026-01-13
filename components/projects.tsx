@@ -15,10 +15,10 @@ export default function Projects() {
 
   return (
     <section id="projects" className="px-6 md:px-12 py-24 max-w-7xl mx-auto border-b border-black">
-      <div className="mb-16">
+      <div className="mb-16 fade-in">
         <h2 className="text-4xl md:text-6xl font-bold uppercase tracking-tighter mb-8">Projects</h2>
         
-        <div className="flex flex-wrap gap-4 md:gap-8 border-b border-gray-200 pb-4">
+        <div className="flex flex-wrap gap-4 md:gap-8 border-b border-gray-200 pb-4 animate-line origin-left">
           {categories.map((cat) => (
             <button
               key={cat}
@@ -39,10 +39,10 @@ export default function Projects() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
         {filteredProjects.map((project) => (
-          <div key={project.id} className="group flex flex-col h-full">
-            <div className="aspect-video bg-gray-100 border border-black mb-6 relative overflow-hidden">
+          <div key={project.id} className="stagger-item group flex flex-col h-full">
+            <div className="aspect-video bg-gray-100 border border-black mb-6 relative overflow-hidden transition-all duration-300 group-hover:border-2">
                {/* Placeholder for image */}
-               <div className="absolute inset-0 flex items-center justify-center text-gray-400 uppercase tracking-widest text-sm">
+               <div className="absolute inset-0 flex items-center justify-center text-gray-400 uppercase tracking-widest text-sm transition-all duration-300 group-hover:scale-105">
                  {project.name} Preview
                </div>
             </div>

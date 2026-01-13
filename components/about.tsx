@@ -6,7 +6,7 @@ export default function About() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-24">
         
         {/* Left Column: Photo & Story */}
-        <div className="lg:col-span-5 space-y-12">
+        <div className="lg:col-span-5 space-y-12 fade-in">
            <div className="aspect-[3/4] bg-gray-200 border border-black relative grayscale">
              {/* Photo placeholder */}
              <div className="absolute inset-0 flex items-center justify-center text-gray-400 uppercase tracking-widest">
@@ -32,10 +32,10 @@ export default function About() {
         </div>
 
         {/* Right Column: Approach, Stack, Education */}
-        <div className="lg:col-span-7 space-y-16">
+        <div className="lg:col-span-7 space-y-16 fade-in">
           
           <div>
-            <h3 className="text-2xl font-bold uppercase mb-8 border-b border-black pb-4">My Approach</h3>
+            <h3 className="text-2xl font-bold uppercase mb-8 border-b border-black pb-4 animate-line origin-left">My Approach</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {personalInfo.about.approach.map((item, i) => (
                 <div key={i}>

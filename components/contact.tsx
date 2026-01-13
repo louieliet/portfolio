@@ -4,7 +4,7 @@ import { personalInfo } from "@/lib/data";
 export default function Contact() {
   return (
     <section id="contact" className="px-6 md:px-12 py-24 max-w-7xl mx-auto min-h-[60vh] flex flex-col justify-between">
-      <div>
+      <div className="fade-in">
         <h2 className="text-4xl md:text-6xl lg:text-8xl font-bold uppercase tracking-tighter mb-12">
           Let's Work Together
         </h2>
@@ -17,7 +17,7 @@ export default function Contact() {
         <div className="space-y-8">
            <div>
              <div className="text-sm text-gray-400 uppercase tracking-widest mb-2">Email</div>
-             <a href={`mailto:${personalInfo.email}`} className="text-2xl md:text-3xl font-medium hover:underline decoration-2 underline-offset-4">
+             <a href={`mailto:${personalInfo.email}`} className="text-2xl md:text-3xl font-medium transition-all duration-200 hover:underline decoration-2 underline-offset-4 hover:translate-x-1 inline-block">
                {personalInfo.email}
              </a>
            </div>
@@ -25,13 +25,13 @@ export default function Contact() {
            <div className="flex gap-8">
              <div>
                <div className="text-sm text-gray-400 uppercase tracking-widest mb-2">LinkedIn</div>
-               <Link href={personalInfo.linkedin} target="_blank" className="text-xl font-medium hover:underline decoration-2 underline-offset-4">
+               <Link href={personalInfo.linkedin} target="_blank" className="text-xl font-medium transition-all duration-200 hover:underline decoration-2 underline-offset-4 hover:translate-x-1 inline-block">
                  /in/emiliano-mg
                </Link>
              </div>
              <div>
                <div className="text-sm text-gray-400 uppercase tracking-widest mb-2">GitHub</div>
-               <Link href={personalInfo.github} target="_blank" className="text-xl font-medium hover:underline decoration-2 underline-offset-4">
+               <Link href={personalInfo.github} target="_blank" className="text-xl font-medium transition-all duration-200 hover:underline decoration-2 underline-offset-4 hover:translate-x-1 inline-block">
                  @Emiliano-MG
                </Link>
              </div>
