@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SmoothScrollProvider } from "@/components/smooth-scroll-provider";
 import { AnimationsProvider } from "@/components/animations-provider";
+import { GrainEffect } from "@/components/grain-effect";
 
 const geistSans = Geist({ 
   subsets: ["latin"],
@@ -27,6 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="lenis lenis-smooth">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <GrainEffect />
         <SmoothScrollProvider>
           <AnimationsProvider>
             {children}
