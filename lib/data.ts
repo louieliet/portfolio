@@ -90,42 +90,49 @@ export const experience: ExperienceItem[] = [
     company: "iLuk.ai",
     role: "Frontend Engineer + UX/UI Designer",
     period: "Dec 2025 - Present",
-    description: "Frontend Engineer and UX/UI Designer at iLuk, a growth stack platform that helps companies improve their AI Visibility and optimize SEO + GEO. Built with Next.js.",
-    stack: ["Next.js", "React", "TypeScript", "Tailwind CSS"]
+    description: "Frontend Engineer + Product Designer building AI-worker product experiences end-to-end. Led UX definition and frontend delivery in Next.js, shipping features for AI Visibility and automated workflows for content operations, task execution, and role-based assistants.",
+    stack: ["Next.js", "React", "TypeScript", "Tailwind CSS"],
+    assets: [
+      "/projects/iluk01.png",
+      "/projects/iluk02.png",
+      "/projects/iluk03.png",
+      "/projects/iuk04.png"
+    ],
+    appStoreUrl: "https://www.iluk.ai/"
   },
   {
     company: "Vyvo Tech",
     role: "Frontend Lead Engineer → Product Designer → Frontend Developer",
     period: "Aug 2025 - Dec 2025",
-    description: "Built an AI-powered social network where users interact with AI agents (like Instagram/TikTok but with avatars that can like, comment, and have natural conversations). Led mobile app development from frontend developer to lead engineer. Designed and implemented views in React Native, conducted UX research, created prototypes, and oversaw the frontend team. Managed architecture decisions, code reviews, design system alignment, and deployment with EAS. App published on App Store.",
+    description: "Progressed from Frontend Developer to Frontend Lead Engineer while also driving Product Design. Built core React Native experiences, led UX research and prototyping, guided frontend decisions, and shipped the app to the App Store.",
     stack: ["React Native", "TypeScript", "EAS", "Figma", "UX Research", "AI Integration"],
     assets: [
-      "/projects/vyvo-1.png",
-      "/projects/vyvo-2.png",
-      "/projects/vyvo-3.png"
+      "/projects/vyvo01.webp",
+      "/projects/vyvo02.webp",
+      "/projects/vyvo03.webp"
     ],
-    appStoreUrl: "https://apps.apple.com/app/vyvo", // User needs to provide actual URL
+    appStoreUrl: "https://apps.apple.com/mx/app/vyvo-ai/id6749719082",
     highlight: true
   },
   {
     company: "Pulse Studio",
     role: "Frontend Developer",
     period: "Apr 2025 - Aug 2025",
-    description: "Frontend development using modern frameworks and best practices. Collaborated on building responsive and performant web applications.",
+    description: "Frontend Developer with UX Research collaboration for client websites in WordPress. Turned research insights into practical UI improvements and delivered responsive, conversion-focused web experiences with strong design alignment.",
     stack: ["React", "Next.js", "TypeScript", "Tailwind CSS"]
   },
   {
     company: "Luyoa",
     role: "Frontend Developer",
     period: "Jan 2025 - May 2025",
-    description: "Frontend development focused on creating intuitive user interfaces and seamless user experiences.",
+    description: "Frontend Developer for Apple Wallet and digital loyalty solutions. Implemented user flows for enrollment, pass usage, and retention touchpoints, ensuring reliable cross-device behavior and clear user journeys.",
     stack: ["React", "TypeScript", "CSS"]
   },
   {
     company: "Chain Solutions",
     role: "Frontend Developer",
     period: "Aug 2023 - Dec 2024",
-    description: "Frontend development of corporate websites. Worked on projects like Hus and Ragabe.",
+    description: "Frontend Developer for corporate web projects in Next.js. Worked across implementation, UX research input, and design support to deliver performant, responsive sites for clients such as Hus and Ragabe.",
     stack: ["Next.js", "Tailwind CSS", "React"]
   }
 ]
