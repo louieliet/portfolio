@@ -4,6 +4,7 @@ import { experience, academicExperience, type ExperienceItem } from "@/lib/data"
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import ImageLightbox from "@/components/image-lightbox";
 
 type ImageViewerState = {
   company: string;
@@ -178,7 +179,12 @@ export default function Experience() {
     };
   }, [viewer]);
 
-  const activeAsset = viewer ? viewer.assets[viewer.index] : null;
+  const lightboxImages = viewer
+    ? viewer.assets.map((src, index) => ({
+      src,
+      alt: `${viewer.company} screenshot ${index + 1}`
+    }))
+    : [];
 
   return (
     <>
@@ -218,64 +224,15 @@ export default function Experience() {
         />
       </section>
 
-      {viewer && activeAsset && (
-        <div
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm p-4 md:p-8 flex items-center justify-center"
-          role="dialog"
-          aria-modal="true"
-          aria-label={`${viewer.company} image viewer`}
-          onClick={(event) => {
-            if (event.target === event.currentTarget) {
-              closeViewer();
-            }
-          }}
-        >
-          <button
-            type="button"
-            onClick={closeViewer}
-            className="absolute top-4 right-4 md:top-6 md:right-6 text-white border border-white/40 px-3 py-2 text-sm uppercase tracking-wider hover:bg-white hover:text-black transition-colors"
-            aria-label="Close image modal"
-          >
-            Close
-          </button>
-
-          {viewer.assets.length > 1 && (
-            <>
-              <button
-                type="button"
-                onClick={showPrevious}
-                className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 text-white border border-white/40 w-10 h-10 md:w-12 md:h-12 text-2xl leading-none hover:bg-white hover:text-black transition-colors"
-                aria-label="Previous image"
-              >
-                ‹
-              </button>
-              <button
-                type="button"
-                onClick={showNext}
-                className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 text-white border border-white/40 w-10 h-10 md:w-12 md:h-12 text-2xl leading-none hover:bg-white hover:text-black transition-colors"
-                aria-label="Next image"
-              >
-                ›
-              </button>
-            </>
-          )}
-
-          <div className="relative w-full max-w-5xl h-[78vh] md:h-[84vh] border border-white/20 bg-black/20 p-3 md:p-6">
-            <Image
-              src={activeAsset}
-              alt={`${viewer.company} screenshot ${viewer.index + 1}`}
-              fill
-              className="object-contain"
-              sizes="100vw"
-              priority
-            />
-          </div>
-
-          <div className="absolute bottom-4 md:bottom-6 text-white text-xs uppercase tracking-[0.2em] bg-black/50 border border-white/20 px-3 py-2">
-            {viewer.company} {viewer.index + 1}/{viewer.assets.length}
-          </div>
-        </div>
-      )}
+      <ImageLightbox
+        isOpen={Boolean(viewer)}
+        images={lightboxImages}
+        currentIndex={viewer ? viewer.index : 0}
+        onClose={closeViewer}
+        onNext={showNext}
+        onPrevious={showPrevious}
+        ariaLabel={viewer ? `${viewer.company} image viewer` : "Experience image viewer"}
+      />
     </>
   );
 }

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { projects } from "@/lib/data";
+import ImageLightbox from "@/components/image-lightbox";
 
 type ImageViewerState = {
     allImages: string[];
@@ -68,7 +69,12 @@ export default function ProjectPageClient({ project }: { project: (typeof projec
         };
     }, [viewer]);
 
-    const activeAsset = viewer ? viewer.allImages[viewer.index] : null;
+    const lightboxImages = viewer
+        ? viewer.allImages.map((src, index) => ({
+            src,
+            alt: `${project.name} screenshot ${index + 1}`,
+        }))
+        : [];
 
     return (
         <main className="px-6 md:px-12 py-16 md:py-24 max-w-7xl mx-auto">
@@ -205,62 +211,15 @@ export default function ProjectPageClient({ project }: { project: (typeof projec
                 </div>
             </section>
 
-            {viewer && activeAsset && (
-                <div
-                    className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm p-2 md:p-4 flex items-center justify-center"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label="Image viewer"
-                    onClick={(event) => {
-                        if (event.target === event.currentTarget) {
-                            closeViewer();
-                        }
-                    }}
-                >
-                    <button
-                        type="button"
-                        onClick={closeViewer}
-                        className="absolute top-4 right-4 md:top-6 md:right-6 text-white border border-white/40 px-4 py-3 text-base uppercase tracking-wider hover:bg-white hover:text-black transition-colors"
-                        aria-label="Close image modal"
-                    >
-                        Close
-                    </button>
-
-                    {viewer.allImages.length > 1 && (
-                        <>
-                            <button
-                                type="button"
-                                onClick={showPrevious}
-                                className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 z-20 text-white border border-white/40 text-3xl leading-none hover:bg-white hover:text-black transition-colors"
-                                style={{ width: '50px', height: '50px' }}
-                                aria-label="Previous image"
-                            >
-                                ‹
-                            </button>
-                            <button
-                                type="button"
-                                onClick={showNext}
-                                className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 z-20 text-white border border-white/40 text-3xl leading-none hover:bg-white hover:text-black transition-colors"
-                                style={{ width: '50px', height: '50px' }}
-                                aria-label="Next image"
-                            >
-                                ›
-                            </button>
-                        </>
-                    )}
-
-                    <div className="relative border border-white/20 bg-black/20 p-2 md:p-3 max-w-[95vw] max-h-[85vh]">
-                        <img
-                            src={activeAsset}
-                            alt={`${project.name} screenshot ${viewer.index + 1}`}
-                            className="block w-auto h-auto max-w-[95vw] max-h-[85vh] object-contain"
-                        />
-                        <div className="absolute bottom-3 right-3 text-white text-sm uppercase tracking-[0.2em] bg-black/50 border border-white/20 px-4 py-3">
-                            {viewer.index + 1}/{viewer.allImages.length}
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ImageLightbox
+                isOpen={Boolean(viewer)}
+                images={lightboxImages}
+                currentIndex={viewer ? viewer.index : 0}
+                onClose={closeViewer}
+                onNext={showNext}
+                onPrevious={showPrevious}
+                ariaLabel="Project image viewer"
+            />
         </main>
     );
 }

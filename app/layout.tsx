@@ -4,13 +4,14 @@ import "./globals.css";
 import { SmoothScrollProvider } from "@/components/smooth-scroll-provider";
 import { AnimationsProvider } from "@/components/animations-provider";
 import { GrainEffect } from "@/components/grain-effect";
+import ScrollRestoration from "@/components/scroll-restoration";
 
-const geistSans = Geist({ 
+const geistSans = Geist({
   subsets: ["latin"],
   variable: "--font-geist-sans",
 });
 
-const geistMono = Geist_Mono({ 
+const geistMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-geist-mono",
 });
@@ -31,6 +32,7 @@ export default function RootLayout({
         <GrainEffect />
         <SmoothScrollProvider>
           <AnimationsProvider>
+            <ScrollRestoration />
             {children}
           </AnimationsProvider>
         </SmoothScrollProvider>

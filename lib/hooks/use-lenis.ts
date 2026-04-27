@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Lenis from "lenis";
 import { animationConfig } from "@/lib/animation-config";
+import { setLenisInstance } from "@/lib/lenis-store";
 
 export function useLenis() {
   useEffect(() => {
@@ -17,6 +18,8 @@ export function useLenis() {
       touchMultiplier: animationConfig.smoothScroll.touchMultiplier,
     });
 
+    setLenisInstance(lenis);
+
     // Sync Lenis with browser frame
     function raf(time: number) {
       lenis.raf(time);
@@ -27,6 +30,7 @@ export function useLenis() {
 
     // Cleanup
     return () => {
+      setLenisInstance(null);
       lenis.destroy();
     };
   }, []);
