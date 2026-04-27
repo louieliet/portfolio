@@ -207,7 +207,7 @@ export default function ProjectPageClient({ project }: { project: (typeof projec
 
             {viewer && activeAsset && (
                 <div
-                    className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm p-2 md:p-4 flex items-center justify-center md:justify-start"
+                    className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm p-2 md:p-4 flex items-center justify-center"
                     role="dialog"
                     aria-modal="true"
                     aria-label="Image viewer"
@@ -231,7 +231,7 @@ export default function ProjectPageClient({ project }: { project: (typeof projec
                             <button
                                 type="button"
                                 onClick={showPrevious}
-                                className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 text-white border border-white/40 text-3xl leading-none hover:bg-white hover:text-black transition-colors"
+                                className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 z-20 text-white border border-white/40 text-3xl leading-none hover:bg-white hover:text-black transition-colors"
                                 style={{ width: '50px', height: '50px' }}
                                 aria-label="Previous image"
                             >
@@ -240,7 +240,7 @@ export default function ProjectPageClient({ project }: { project: (typeof projec
                             <button
                                 type="button"
                                 onClick={showNext}
-                                className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 text-white border border-white/40 text-3xl leading-none hover:bg-white hover:text-black transition-colors"
+                                className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 z-20 text-white border border-white/40 text-3xl leading-none hover:bg-white hover:text-black transition-colors"
                                 style={{ width: '50px', height: '50px' }}
                                 aria-label="Next image"
                             >
@@ -249,21 +249,15 @@ export default function ProjectPageClient({ project }: { project: (typeof projec
                         </>
                     )}
 
-                    <div className="w-full flex-1">
-                        <div className="relative w-full min-h-[82vh] border border-white/20 bg-black/20 p-3 md:p-6" style={{ maxHeight: '117vh', aspectRatio: 'auto' }}>
-                            <Image
-                                src={activeAsset}
-                                alt={`${project.name} screenshot ${viewer.index + 1}`}
-                                fill
-                                className="object-contain"
-                                sizes="100vw"
-                                priority
-                            />
+                    <div className="relative border border-white/20 bg-black/20 p-2 md:p-3 max-w-[95vw] max-h-[85vh]">
+                        <img
+                            src={activeAsset}
+                            alt={`${project.name} screenshot ${viewer.index + 1}`}
+                            className="block w-auto h-auto max-w-[95vw] max-h-[85vh] object-contain"
+                        />
+                        <div className="absolute bottom-3 right-3 text-white text-sm uppercase tracking-[0.2em] bg-black/50 border border-white/20 px-4 py-3">
+                            {viewer.index + 1}/{viewer.allImages.length}
                         </div>
-                    </div>
-
-                    <div className="absolute bottom-4 md:bottom-6 text-white text-sm uppercase tracking-[0.2em] bg-black/50 border border-white/20 px-4 py-3">
-                        {viewer.index + 1}/{viewer.allImages.length}
                     </div>
                 </div>
             )}
