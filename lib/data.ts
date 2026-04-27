@@ -20,6 +20,7 @@ export interface ProjectItem {
   year: string;
   highlight?: boolean;
   link?: string;
+  images?: string[];
   category: "Web" | "Mobile" | "Gaming";
 }
 
@@ -175,43 +176,38 @@ export const projects = [
     category: "Gaming"
   },
   {
-    id: "blank-canvas",
-    name: "Blank Canvas",
-    subtitle: "iOS Innovation Studio",
-    description: "Co-founded an innovation group within the iOS Lab at Universidad Panamericana. Developed 2 apps (Fashion Finder, Notably) using SwiftUI, CoreML, and ARKit.",
-    role: "Co-founder, Product Designer & iOS Developer",
-    stack: ["SwiftUI", "CoreML", "ARKit", "Figma", "Firebase"],
-    year: "2023-2025",
-    category: "Mobile"
+    id: "nba-insights",
+    name: "NBA Insights",
+    subtitle: "Big Data + ML Platform",
+    description: "Big Data project for class where a Hadoop cluster was modernized into a BigQuery-based architecture with a frontend-consumable ML model. The app lets users explore player and team statistics, plus a Victory Predictor trained on 600K+ NBA games to estimate whether a team won from player stats.",
+    role: "Data + Frontend Builder",
+    stack: ["BigQuery", "BigQuery ML", "Hadoop", "React", "Data Viz"],
+    year: "2025",
+    link: "https://nba-insights-web-six.vercel.app/",
+    images: ["/projects/nba01.png", "/projects/nba02.png", "/projects/nba03.png", "/projects/nba04.png", "/projects/nba05.png", "/projects/nba06.png"],
+    category: "Web"
   },
   {
-    id: "fashion-finder",
-    name: "Fashion Finder",
-    subtitle: "ML Personal Stylist",
-    description: "iOS app with machine learning that suggests outfits based on your mood, the weather, and your digital closet. I trained a custom ML model with CoreML.",
-    role: "UX Designer & iOS Developer",
-    stack: ["SwiftUI", "CoreML (Custom)", "Firebase"],
-    year: "Personal Project",
-    category: "Mobile"
+    id: "sat-redesign",
+    name: "SAT Redesign",
+    subtitle: "UX Redesign",
+    description: "User experience design project focused on redesigning the flows for getting an RFC and scheduling an appointment. The work was informed by UX research, including user journeys and interviews, to reduce friction and improve clarity across the process.",
+    role: "UX Designer",
+    stack: ["UX Research", "User Journeys", "Interviews", "Wireframing", "Prototyping"],
+    year: "2025",
+    link: "https://sat-ux-redesign.vercel.app/",
+    images: ["/projects/sat01.png", "/projects/sat02.png", "/projects/sat03.png", "/projects/sat04.png", "/projects/sat05.png", "/projects/sat06.png", "/projects/sat07.png", "/projects/sat08.png", "/projects/sat09.png"],
+    category: "Web"
   },
   {
-    id: "notably",
-    name: "Notably",
-    subtitle: "iOS App",
-    description: "iOS application developed under Blank Canvas. Focused on [Add specific description if available].",
-    role: "iOS Developer",
-    stack: ["SwiftUI", "Swift"],
-    year: "2023-2025",
-    category: "Mobile"
-  },
-  {
-    id: "habitus",
-    name: "Habitus",
-    subtitle: "Habit Tracker App",
-    description: "Habit tracking app built in React Native and Firebase. Tracks daily habits, shows progress, and includes a reminder system.",
-    role: "React Native Developer",
-    stack: ["React Native", "Firebase", "Push Notifications"],
-    year: "Personal Project",
+    id: "neura-path",
+    name: "NeuraPath",
+    subtitle: "STEM Career Recommender",
+    description: "Winner of the Apple Enactus Hackathon 2025 Swift Change Makers challenge for Bosch. Built a student-facing experience that combines swipe cards, a quick-thinking mini game, and a model using 16 personalities, multiple intelligences, and NLP to recommend an ideal STEM career and send users directly to university enrollment pages.",
+    role: "Product Designer & iOS Builder",
+    stack: ["SwiftUI", "NLP", "ML", "Forms", "Career Matching"],
+    year: "2025",
+    images: ["/projects/neurapath01.png", "/projects/neurapath02.png", "/projects/neurapath03.png", "/projects/neurapath04.png", "/projects/neurapath05.png", "/projects/neurapath06.png", "/projects/neurapath07.png"],
     category: "Mobile"
   },
   {
@@ -223,17 +219,6 @@ export const projects = [
     stack: ["Next.js", "Tailwind CSS", "React"],
     year: "2023-2024",
     link: "https://hus-demo.vercel.app/",
-    category: "Web"
-  },
-  {
-    id: "ragabe",
-    name: "Ragabe Website",
-    subtitle: "Business Website",
-    description: "Business page with responsive design. Worked on layout, components, and visual polish.",
-    role: "Frontend Developer",
-    stack: ["Next.js", "React", "Tailwind CSS"],
-    year: "2023-2024",
-    link: "https://dev.ragabe.git.chainsol.io/",
     category: "Web"
   },
   {
