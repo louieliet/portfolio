@@ -32,6 +32,7 @@ export const personalInfo = {
   email: "emilianomg2003@hotmail.com",
   linkedin: "https://www.linkedin.com/in/emiliano-mg/",
   github: "https://github.com/louieliet", // Placeholder based on common pattern, will need user to confirm or update
+  phone: "+52 735 135 1245",
   about: {
     history: "My career started in game development, but I discovered my true passion was designing experiences for real users, not just on-screen characters. Today, I combine product design with frontend engineering. I don't just implement designs given to me; I design the complete experience (research, wireframes, prototypes) and then build it in production code. I don't need a 2-week handoff between design and development because both live in my head simultaneously.",
     approach: [
@@ -104,7 +105,7 @@ export const experience: ExperienceItem[] = [
   {
     company: "Vyvo Tech",
     role: "Frontend Lead Engineer → Product Designer → Frontend Developer",
-    period: "Aug 2025 - Dec 2025",
+    period: "Oct 2025 - Dec 2025",
     description: "Progressed from Frontend Developer to Frontend Lead Engineer while also driving Product Design. Built core React Native experiences, led UX research and prototyping, guided frontend decisions, and shipped the app to the App Store.",
     stack: ["React Native", "TypeScript", "EAS", "Figma", "UX Research", "AI Integration"],
     assets: [
@@ -123,9 +124,16 @@ export const experience: ExperienceItem[] = [
     stack: ["React", "Next.js", "TypeScript", "Tailwind CSS"]
   },
   {
+    company: "Legaltec",
+    role: "Fullstack Developer",
+    period: "Mar 2025 - Aug 2025",
+    description: "Developed web applications using NextJS, TypeScript, and TailwindCSS. Built backend services using Firebase and NodeJS. Integrated APIs and contributed to scalable cloud-based architectures.",
+    stack: ["Next.js", "TypeScript", "Tailwind CSS", "Firebase", "NodeJS"]
+  },
+  {
     company: "Luyoa",
     role: "Frontend Developer",
-    period: "Jan 2025 - May 2025",
+    period: "Dec 2024 - Mar 2025",
     description: "Frontend Developer for Apple Wallet and digital loyalty solutions. Implemented user flows for enrollment, pass usage, and retention touchpoints, ensuring reliable cross-device behavior and clear user journeys.",
     stack: ["React", "TypeScript", "CSS"]
   },
@@ -150,16 +158,24 @@ export const academicExperience: ExperienceItem[] = [
   {
     company: "Blank Canvas",
     role: "Co-founder",
-    period: "Aug 2023 - Oct 2025",
+    period: "Aug 2023 - Present",
     description: "Co-founded an innovation group within iOS Lab UP. Developed 2 apps: Fashion Finder and Notably. Led the design thinking process: research, wireframing, prototyping, and development in SwiftUI.",
     stack: ["Swift", "SwiftUI", "CoreML", "ARKit", "Figma"]
   },
   {
     company: "PCI Lab UP",
     role: "Gameplay Development Leader",
-    period: "Aug 2023 - Oct 2025",
+    period: "Jan 2024 - Present",
     description: "Coordinator of design and implementation of game mechanics in Unity 3D. Led the Gameplay Development team to create the demo for the game Lotus, winner of the ILAN 2023 award, presented in Israel.",
     stack: ["Unity 3D", "C#", "Game UX Design"]
+  }
+  ,
+  {
+    company: "Animation & Videogame Engineering Student Association",
+    role: "President",
+    period: "Jul 2023 - Jul 2024",
+    description: "Organized academic and professional development events and represented student interests before faculty and administration.",
+    stack: []
   }
 ]
 
@@ -203,7 +219,7 @@ export const projects = [
     id: "neura-path",
     name: "NeuraPath",
     subtitle: "STEM Career Recommender",
-    description: "Winner of the Apple Enactus Hackathon 2025 Swift Change Makers challenge for Bosch. Built a student-facing experience that combines swipe cards, a quick-thinking mini game, and a model using 16 personalities, multiple intelligences, and NLP to recommend an ideal STEM career and send users directly to university enrollment pages.",
+    description: "Winner – National Swift Changemakers Hackathon 2025 (Bosch Challenge). Built a student-facing experience that combines swipe cards, a quick-thinking mini game, and a model using 16 personalities, multiple intelligences, and NLP to recommend an ideal STEM career and send users directly to university enrollment pages.",
     role: "Product Designer & iOS Builder",
     stack: ["SwiftUI", "NLP", "ML", "Forms", "Career Matching"],
     year: "2025",
@@ -244,5 +260,33 @@ export const projects = [
     link: "https://louieliet.itch.io/mechapaws",
     images: ["/projects/merakicover.png"],
     category: "Gaming"
+  }
+]
+
+export const certifications = [
+  { name: "Unity Essentials Pathway", issuer: "Unity", year: 2023 },
+  { name: "App Development with Swift Associate", issuer: "Apple", year: 2024 }
+]
+
+export const languages = [
+  { name: "Spanish", level: "Native" },
+  { name: "English", level: "TOEFL Certified – 2024" }
+]
+
+// Additional professional experiences not previously listed
+export const additionalExperience: ExperienceItem[] = [
+  {
+    company: "Unity 3D Developer – Contagion / Nazora Studios",
+    role: "Unity 3D Developer",
+    period: "Jan 2024 - Aug 2024",
+    description: "Designed and developed core gameplay systems and foundational architecture for Unity 3D projects. Implemented modular character and enemy systems and collaborated on performance optimization.",
+    stack: ["Unity 3D", "C#"]
+  },
+  {
+    company: "Grupo CARSO / CTIN",
+    role: "Unity Developer Intern",
+    period: "May 2024 - Nov 2024",
+    description: "Developed AR filters and 2D mini-games; contributed to backend services and cloud integrations.",
+    stack: ["Unity", "Spark AR", "Effect House"]
   }
 ]
