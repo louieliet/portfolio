@@ -7,7 +7,6 @@ import { getLenisInstance } from "@/lib/lenis-store";
 import {
     clearHomeReturnScrollPosition,
     getHomeReturnScrollPosition,
-    getScrollPosition,
     saveScrollPosition,
 } from "@/lib/scroll-position-store";
 
@@ -30,7 +29,7 @@ export default function ScrollRestoration() {
         }
 
         const homeReturnY = pathname === "/" ? getHomeReturnScrollPosition() : null;
-        const targetY = homeReturnY ?? getScrollPosition(pathname);
+        const targetY = homeReturnY ?? 0;
         const isRestoringHomeReturn = homeReturnY !== null;
         let hasRestored = false;
         let scrollSaveRafId = 0;

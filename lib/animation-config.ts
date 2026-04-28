@@ -48,9 +48,9 @@ export const animationConfig = {
 
     // Scroll trigger positions
     scrollTrigger: {
-      fadeInStart: "top 95%",
+      fadeInStart: "top bottom+=160",
       fadeInEnd: "top 60%",
-      staggerStart: "top 95%",
+      staggerStart: "top bottom+=260",
     },
   },
 
