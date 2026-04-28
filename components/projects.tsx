@@ -16,10 +16,13 @@ export default function Projects() {
 
   return (
     <section id="projects" className="px-6 md:px-12 py-32 max-w-7xl mx-auto border-b border-black">
-      <div className="mb-24 fade-in">
-        <h2 className="text-4xl md:text-7xl font-bold uppercase tracking-tighter mb-12">Projects</h2>
+      <div className="mb-28 fade-in">
+        <h2 className="text-4xl md:text-7xl font-bold uppercase tracking-tighter mb-8">Projects</h2>
+        <p className="text-lg md:text-2xl text-gray-600 max-w-2xl leading-relaxed mb-8 md:mb-10">
+          Click on any project to see more.
+        </p>
 
-        <div className="flex flex-wrap gap-x-8 gap-y-4 border-b border-gray-200 pb-6 animate-line origin-left">
+        <div className="flex flex-wrap gap-x-8 gap-y-4 border-b border-gray-200 pb-8 animate-line origin-left">
           {categories.map((cat) => (
             <button
               key={cat}
@@ -37,7 +40,7 @@ export default function Projects() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-20 stagger-container">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-24 mt-16 stagger-container">
         {filteredProjects.map((project) => (
           <Link
             key={project.id}
@@ -91,12 +94,6 @@ export default function Projects() {
                     </span>
                   ))}
                 </div>
-
-                {project.link && (
-                  <span className="inline-flex items-center text-sm font-bold uppercase tracking-widest hover:opacity-60 transition-opacity">
-                    View Project <span className="ml-2">↗</span>
-                  </span>
-                )}
               </div>
             </div>
           </Link>

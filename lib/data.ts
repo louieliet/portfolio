@@ -31,7 +31,7 @@ export const personalInfo = {
   location: "Mexico City, Mexico",
   email: "emilianomg2003@hotmail.com",
   linkedin: "https://www.linkedin.com/in/emiliano-mg/",
-  github: "https://github.com/Emiliano-MG", // Placeholder based on common pattern, will need user to confirm or update
+  github: "https://github.com/louieliet", // Placeholder based on common pattern, will need user to confirm or update
   about: {
     history: "My career started in game development, but I discovered my true passion was designing experiences for real users, not just on-screen characters. Today, I combine product design with frontend engineering. I don't just implement designs given to me; I design the complete experience (research, wireframes, prototypes) and then build it in production code. I don't need a 2-week handoff between design and development because both live in my head simultaneously.",
     approach: [
@@ -59,14 +59,14 @@ export const personalInfo = {
         year: "2021 - 2025"
       },
       {
-        degree: "Interactive Design Specialization (UX/UI)",
-        institution: "[Institution]", // User didn't specify
-        year: "2025"
+        degree: "Interactive Design postgraduate (UX/UI)",
+        institution: "Universidad Panamericana", // User didn't specify
+        year: "2025 - Present"
       },
       {
         degree: "Data Science Diploma",
-        institution: "[Institution]", // User didn't specify
-        year: "In progress"
+        institution: "Universidad Panamericana", // User didn't specify
+        year: "2025 - Present"
       }
     ],
     interests: [
@@ -79,8 +79,8 @@ export const personalInfo = {
 
 export const stack = {
   design: ["Figma", "Wireframing", "Prototyping", "User Research", "Usability Testing"],
-  frontend: ["React / Next.js", "TypeScript", "Tailwind CSS", "Design Systems", "Accessibility"],
-  mobile: ["SwiftUI", "React Native", "iOS HIG", "Mobile UX Patterns"],
+  frontend: ["React / Next.js", "TypeScript", "Tailwind CSS", "Design Systems", "Accessibility", "WordPress"],
+  mobile: ["SwiftUI", "React Native", "Mobile UX Patterns"],
   gaming: ["Unity 3D / 2D", "Game UX Design", "C#"],
   backend: ["Firebase", "RESTful APIs", "Git / CI/CD"]
 }
@@ -207,7 +207,18 @@ export const projects = [
     role: "Product Designer & iOS Builder",
     stack: ["SwiftUI", "NLP", "ML", "Forms", "Career Matching"],
     year: "2025",
-    images: ["/projects/neurapath01.png", "/projects/neurapath02.png", "/projects/neurapath03.png", "/projects/neurapath04.png", "/projects/neurapath05.png", "/projects/neurapath06.png", "/projects/neurapath07.png"],
+    images: ["/projects/neurapathcover.png", "/projects/neurapath01.png", "/projects/neurapath02.png", "/projects/neurapath03.png", "/projects/neurapath04.png", "/projects/neurapath05.png", "/projects/neurapath06.png", "/projects/neurapath07.png"],
+    category: "Mobile"
+  },
+  {
+    id: "wellty",
+    name: "Wellty",
+    subtitle: "Identity-Based Wellness App",
+    description: "Winner of the iOS Lab Universidad Panamericana + Windsurf hackathon. Built a wellness app that moves beyond dashboards and metric overload by asking who you want to be today, then reinforcing that identity through 2-minute micro-actions, XP, and the seven dimensions of wellness.",
+    role: "Product Designer & iOS Builder",
+    stack: ["SwiftUI", "iOS", "Wellness UX", "Gamification", "Local Persistence"],
+    year: "2025",
+    images: ["/projects/welltycover.png", "/projects/wellty01.png", "/projects/wellty02.png", "/projects/wellty03.png", "/projects/wellty04.png", "/projects/wellty05.png", "/projects/wellty06.png", "/projects/wellty07.png", "/projects/wellty09.png", "/projects/wellty10.png", "/projects/wellty11.png", "/projects/wellty12.png", "/projects/wellty13.png"],
     category: "Mobile"
   },
   {
@@ -219,6 +230,7 @@ export const projects = [
     stack: ["Next.js", "Tailwind CSS", "React"],
     year: "2023-2024",
     link: "https://hus-demo.vercel.app/",
+    images: ["/projects/huscover.png"],
     category: "Web"
   },
   {
@@ -229,6 +241,8 @@ export const projects = [
     role: "Programming Team Leader",
     stack: ["Unity 2D", "C#"],
     year: "2024-2025",
+    link: "https://louieliet.itch.io/mechapaws",
+    images: ["/projects/merakicover.png"],
     category: "Gaming"
   }
 ]
