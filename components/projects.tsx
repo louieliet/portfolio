@@ -35,12 +35,12 @@ export default function Projects() {
           Click on any project to see more.
         </p>
 
-        <div className="flex flex-wrap gap-x-8 gap-y-4 border-b border-gray-200 pb-8 animate-line origin-left">
+        <div className="flex flex-wrap gap-x-8 gap-y-4 border-b border-gray-200 pb-8">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setFilter(cat)}
-              className={`text-lg md:text-xl uppercase tracking-widest transition-all duration-300 ${filter === cat ? "font-bold text-black translate-x-2" : "text-gray-400 hover:text-black hover:translate-x-1"
+              className={`text-lg md:text-xl uppercase tracking-widest transition-colors duration-300 ${filter === cat ? "font-bold text-black" : "text-gray-400 hover:text-black"
                 }`}
             >
               {cat} <span className="text-xs align-top opacity-50 ml-1">
