@@ -17,14 +17,14 @@ export const animationConfig = {
     fadeIn: {
       duration: 1.2,
       ease: "power2.out",
-      y: 40,
+      y: 24,
     },
 
     // Stagger animations
     stagger: {
       duration: 1.0,
       ease: "power2.out",
-      y: 60,
+      y: 32,
       delay: 0.15, // delay between each item
     },
 
@@ -48,9 +48,9 @@ export const animationConfig = {
 
     // Scroll trigger positions
     scrollTrigger: {
-      fadeInStart: "top 80%",
+      fadeInStart: "top 95%",
       fadeInEnd: "top 60%",
-      staggerStart: "top 85%",
+      staggerStart: "top 95%",
     },
   },
 

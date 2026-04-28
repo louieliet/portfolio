@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import { animationConfig } from "@/lib/animation-config";
 import { setLenisInstance } from "@/lib/lenis-store";
@@ -11,25 +12,30 @@ export function useLenis() {
     const lenis = new Lenis({
       duration: animationConfig.smoothScroll.duration,
       easing: animationConfig.smoothScroll.easing,
-      direction: "vertical",
-      gestureDirection: "vertical",
-      smooth: true,
-      smoothTouch: false,
+      orientation: "vertical",
+      gestureOrientation: "vertical",
+      smoothWheel: true,
+      syncTouch: false,
       touchMultiplier: animationConfig.smoothScroll.touchMultiplier,
     });
 
     setLenisInstance(lenis);
+    lenis.on("scroll", ScrollTrigger.update);
 
     // Sync Lenis with browser frame
+    let rafId = 0;
+
     function raf(time: number) {
       lenis.raf(time);
-      requestAnimationFrame(raf);
+      rafId = requestAnimationFrame(raf);
     }
 
-    requestAnimationFrame(raf);
+    rafId = requestAnimationFrame(raf);
 
     // Cleanup
     return () => {
+      cancelAnimationFrame(rafId);
+      lenis.off("scroll", ScrollTrigger.update);
       setLenisInstance(null);
       lenis.destroy();
     };

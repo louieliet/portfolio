@@ -2,32 +2,14 @@
 
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { getLenisInstance } from "@/lib/lenis-store";
-
-const STORAGE_KEY = "scroll-positions";
-
-type ScrollPositions = Record<string, number>;
-
-function readPositions(): ScrollPositions {
-    if (typeof window === "undefined") {
-        return {};
-    }
-
-    try {
-        const raw = window.sessionStorage.getItem(STORAGE_KEY);
-        return raw ? (JSON.parse(raw) as ScrollPositions) : {};
-    } catch {
-        return {};
-    }
-}
-
-function writePositions(positions: ScrollPositions) {
-    if (typeof window === "undefined") {
-        return;
-    }
-
-    window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
-}
+import {
+    clearHomeReturnScrollPosition,
+    getHomeReturnScrollPosition,
+    getScrollPosition,
+    saveScrollPosition,
+} from "@/lib/scroll-position-store";
 
 export default function ScrollRestoration() {
     const pathname = usePathname();
@@ -47,41 +29,84 @@ export default function ScrollRestoration() {
             return;
         }
 
-        const positions = readPositions();
-        const targetY = typeof positions[pathname] === "number" ? positions[pathname] : 0;
+        const homeReturnY = pathname === "/" ? getHomeReturnScrollPosition() : null;
+        const targetY = homeReturnY ?? getScrollPosition(pathname);
+        const isRestoringHomeReturn = homeReturnY !== null;
+        let hasRestored = false;
+        let scrollSaveRafId = 0;
 
-        const restoreScroll = (attempt: number) => {
+        const getCurrentScroll = () => {
             const lenis = getLenisInstance();
+            return lenis ? lenis.scroll : window.scrollY;
+        };
 
-            if (lenis) {
-                lenis.scrollTo(targetY, { immediate: true });
+        const saveCurrentScrollPosition = () => {
+            saveScrollPosition(pathname, getCurrentScroll());
+        };
+
+        const persistScrollAfterUserScroll = () => {
+            if (isRestoringHomeReturn && !hasRestored) {
                 return;
             }
 
-            if (attempt < 10) {
-                requestAnimationFrame(() => restoreScroll(attempt + 1));
+            window.cancelAnimationFrame(scrollSaveRafId);
+            scrollSaveRafId = window.requestAnimationFrame(saveCurrentScrollPosition);
+        };
+
+        const refreshScrollTrigger = () => {
+            requestAnimationFrame(() => ScrollTrigger.refresh());
+        };
+
+        const scrollToTarget = () => {
+            const lenis = getLenisInstance();
+
+            if (lenis) {
+                lenis.resize();
+                lenis.scrollTo(targetY, { immediate: true, force: true });
                 return;
             }
 
             window.scrollTo(0, targetY);
         };
 
-        restoreScroll(0);
+        const restoreScroll = (attempt: number) => {
+            const maxScroll = Math.max(
+                0,
+                document.documentElement.scrollHeight - window.innerHeight
+            );
+            const layoutCanReachTarget = targetY <= maxScroll + 2;
 
-        let rafId = 0;
+            if (!layoutCanReachTarget && attempt < 30) {
+                requestAnimationFrame(() => restoreScroll(attempt + 1));
+                return;
+            }
 
-        const captureScroll = () => {
-            const updated = readPositions();
-            const lenis = getLenisInstance();
-            updated[pathname] = lenis ? lenis.scroll : window.scrollY;
-            writePositions(updated);
-            rafId = window.requestAnimationFrame(captureScroll);
+            scrollToTarget();
+            saveScrollPosition(pathname, targetY);
+
+            if (isRestoringHomeReturn) {
+                clearHomeReturnScrollPosition();
+            }
+
+            hasRestored = true;
+
+            requestAnimationFrame(() => {
+                scrollToTarget();
+                saveScrollPosition(pathname, targetY);
+                refreshScrollTrigger();
+            });
         };
 
-        rafId = window.requestAnimationFrame(captureScroll);
+        requestAnimationFrame(() => restoreScroll(0));
+
+        window.addEventListener("scroll", persistScrollAfterUserScroll, { passive: true });
+        window.addEventListener("pagehide", saveCurrentScrollPosition);
 
         return () => {
-            window.cancelAnimationFrame(rafId);
+            window.removeEventListener("scroll", persistScrollAfterUserScroll);
+            window.removeEventListener("pagehide", saveCurrentScrollPosition);
+            window.cancelAnimationFrame(scrollSaveRafId);
+            saveCurrentScrollPosition();
         };
     }, [pathname]);
 

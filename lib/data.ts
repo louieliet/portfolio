@@ -189,6 +189,16 @@ export const projects = [
     stack: ["Unity 3D", "C#", "Figma", "Game UX Design"],
     year: "2023-2025",
     highlight: true,
+    images: [
+      "/projects/lotuscover.png",
+      "/projects/lotus01.png",
+      "/projects/lotus02.png",
+      "/projects/lotus03.png",
+      "/projects/lotus04.png",
+      "/projects/lotus06.png",
+      "/projects/lotus07.png",
+      "/projects/lotus08.png",
+    ],
     category: "Gaming"
   },
   {
@@ -258,7 +268,13 @@ export const projects = [
     stack: ["Unity 2D", "C#"],
     year: "2024-2025",
     link: "https://louieliet.itch.io/mechapaws",
-    images: ["/projects/merakicover.png"],
+    images: [
+      "/projects/merakicover.png",
+      "/projects/meraki01.png",
+      "/projects/meraki02.png",
+      "/projects/meraki03.png",
+      "/projects/meraki04.png",
+    ],
     category: "Gaming"
   }
 ]

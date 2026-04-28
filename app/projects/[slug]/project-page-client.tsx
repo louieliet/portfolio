@@ -81,6 +81,7 @@ export default function ProjectPageClient({ project }: { project: (typeof projec
             <div className="mb-12">
                 <Link
                     href="/"
+                    scroll={false}
                     className="inline-flex items-center text-sm font-bold uppercase tracking-widest hover:opacity-60 transition-opacity"
                 >
                     ← Back to home

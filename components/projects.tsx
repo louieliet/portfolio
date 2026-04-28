@@ -4,6 +4,11 @@ import { useState } from "react";
 import { projects } from "@/lib/data";
 import Image from "next/image";
 import Link from "next/link";
+import { getLenisInstance } from "@/lib/lenis-store";
+import {
+  saveHomeReturnScrollPosition,
+  saveScrollPosition,
+} from "@/lib/scroll-position-store";
 
 const categories = ["All", "Web", "Mobile", "Gaming"];
 
@@ -13,6 +18,14 @@ export default function Projects() {
   const filteredProjects = projects.filter(
     (p) => filter === "All" || p.category === filter
   );
+
+  const saveHomeScrollPosition = () => {
+    const lenis = getLenisInstance();
+    const position = Math.max(lenis?.scroll ?? 0, window.scrollY);
+
+    saveScrollPosition("/", position);
+    saveHomeReturnScrollPosition(position);
+  };
 
   return (
     <section id="projects" className="px-6 md:px-12 py-32 max-w-7xl mx-auto border-b border-black">
@@ -43,8 +56,12 @@ export default function Projects() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-24 mt-16 stagger-container">
         {filteredProjects.map((project) => (
           <Link
+            id={`project-${project.id}`}
             key={project.id}
             href={`/projects/${project.id}`}
+            scroll={false}
+            onClick={saveHomeScrollPosition}
+            onPointerDown={saveHomeScrollPosition}
             className="stagger-item group flex flex-col h-full cursor-pointer"
           >
             <div className="aspect-[4/3] bg-gray-100 mb-8 relative overflow-hidden border border-transparent group-hover:border-black transition-colors duration-500">

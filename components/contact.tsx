@@ -6,10 +6,10 @@ export default function Contact() {
     <section id="contact" className="px-6 md:px-12 py-24 max-w-7xl mx-auto min-h-[60vh] flex flex-col justify-between">
       <div className="fade-in">
         <h2 className="text-4xl md:text-6xl lg:text-8xl font-bold uppercase tracking-tighter mb-12">
-          Let's Work Together
+          Let&apos;s Work Together
         </h2>
         <p className="text-xl md:text-2xl text-gray-600 max-w-2xl mb-16 leading-relaxed">
-          If you are looking for a frontend engineer who also understands product design, UX research, and technical architecture, let's talk.
+          If you are looking for a frontend engineer who also understands product design, UX research, and technical architecture, let&apos;s talk.
         </p>
       </div>
 

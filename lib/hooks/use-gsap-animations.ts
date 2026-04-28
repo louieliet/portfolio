@@ -36,7 +36,7 @@ export function useGSAPAnimations() {
             trigger: element,
             start: scrollTrigger.fadeInStart,
             end: scrollTrigger.fadeInEnd,
-            toggleActions: "play none none reverse", // Reverse on scroll up for premium feel
+            toggleActions: "play none none none",
           },
         }
       );
@@ -60,14 +60,6 @@ export function useGSAPAnimations() {
             overwrite: true,
           });
         },
-        onLeaveBack: (batch) => {
-          gsap.to(batch, {
-            opacity: 0,
-            y: stagger.y,
-            duration: 0.5,
-            overwrite: true,
-          });
-        },
       });
       
       // Set initial state
@@ -78,7 +70,7 @@ export function useGSAPAnimations() {
     gsap.utils.toArray<HTMLElement>(".parallax-layer").forEach((layer) => {
       const speed = parseFloat(layer.getAttribute("data-speed") || "0.5");
       gsap.to(layer, {
-        y: (i, target) => {
+        y: () => {
           return ScrollTrigger.maxScroll(window) * speed * 0.1; // Limit movement
         },
         ease: "none",
@@ -152,7 +144,13 @@ export function useGSAPAnimations() {
       );
     }
 
+    const refreshId = window.setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 0);
+
     return () => {
+      window.clearTimeout(refreshId);
+      animationsInitialized.current = false;
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
   }, []);
