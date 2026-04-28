@@ -21,34 +21,16 @@ export default function About() {
           <div>
             <h2 className="text-4xl font-bold uppercase tracking-tighter mb-6">About Me</h2>
             <div className="space-y-4 text-lg leading-relaxed text-gray-800">
-              <p>{personalInfo.about.history}</p>
+              {personalInfo.about.history.split("\n\n").map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
             </div>
           </div>
 
-          <div>
-            <h3 className="text-xl font-bold uppercase mb-4">Interests</h3>
-            <ul className="list-disc list-inside space-y-2 text-gray-700">
-              {personalInfo.about.interests.map((interest, i) => (
-                <li key={i}>{interest}</li>
-              ))}
-            </ul>
-          </div>
         </div>
 
-        {/* Right Column: Approach, Stack, Education */}
+        {/* Right Column: Stack, Education */}
         <div className="lg:col-span-7 space-y-16 fade-in">
-
-          <div>
-            <h3 className="text-2xl font-bold uppercase mb-8 border-b border-black pb-4 animate-line origin-left">My Approach</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {personalInfo.about.approach.map((item, i) => (
-                <div key={i}>
-                  <h4 className="text-lg font-bold uppercase mb-2">0{i + 1}. {item.title}</h4>
-                  <p className="text-gray-600">{item.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
 
           <div>
             <h3 className="text-2xl font-bold uppercase mb-8 border-b border-black pb-4">Stack</h3>

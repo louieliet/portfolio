@@ -113,7 +113,7 @@ export default function ProjectPageClient({ project }: { project: (typeof projec
                         </p>
                     </div>
 
-                    <div className="border border-gray-200 rounded-3xl p-6 md:p-8 bg-white/70 backdrop-blur-sm space-y-4">
+                    <div className="border-t border-gray-200 pt-6 space-y-5">
                         <div>
                             <div className="text-xs uppercase tracking-widest text-gray-500 mb-2">Role</div>
                             <div className="text-lg font-medium">{project.role}</div>
@@ -147,18 +147,18 @@ export default function ProjectPageClient({ project }: { project: (typeof projec
                         )}
                     </div>
 
-                    <div className="grid grid-cols-1 gap-4">
-                        <div className="rounded-3xl border border-gray-200 p-6 bg-white/70 backdrop-blur-sm">
+                    <div className="space-y-8">
+                        <div className="border-t border-gray-200 pt-6">
                             <div className="text-xs uppercase tracking-widest text-gray-500 mb-3">Overview</div>
                             <p className="text-gray-600 leading-relaxed">
-                                This project page consolidates the context, the role you played, and the core stack used to build the experience.
+                                {project.overview}
                             </p>
                         </div>
 
-                        <div className="rounded-3xl border border-gray-200 p-6 bg-white/70 backdrop-blur-sm">
+                        <div className="border-t border-gray-200 pt-6">
                             <div className="text-xs uppercase tracking-widest text-gray-500 mb-3">Focus</div>
                             <p className="text-gray-600 leading-relaxed">
-                                The detail view is designed to showcase the main visual, supporting screenshots, and the practical value of the project in a clean case-study format.
+                                {project.focus}
                             </p>
                         </div>
                     </div>
