@@ -1,6 +1,15 @@
 import Image from "next/image";
 import { personalInfo, stack } from "@/lib/data";
 
+const stackSections = [
+  { title: "Design & UX", items: stack.design },
+  { title: "Frontend", items: stack.frontend },
+  { title: "Mobile", items: stack.mobile },
+  { title: "Gaming", items: stack.gaming },
+  { title: "Backend & Tools", items: stack.backend },
+  { title: "Data", items: stack.data },
+];
+
 export default function About() {
   return (
     <section id="about" className="px-6 md:px-12 py-24 max-w-7xl mx-auto border-b border-black">
@@ -35,36 +44,20 @@ export default function About() {
           <div>
             <h3 className="text-2xl font-bold uppercase mb-8 border-b border-black pb-4">Stack</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <div>
-                <h4 className="font-bold uppercase mb-4 text-sm tracking-wider text-gray-500">Design & UX</h4>
-                <ul className="space-y-2">
-                  {stack.design.map(tech => <li key={tech} className="border-b border-gray-100 pb-1">{tech}</li>)}
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-bold uppercase mb-4 text-sm tracking-wider text-gray-500">Frontend</h4>
-                <ul className="space-y-2">
-                  {stack.frontend.map(tech => <li key={tech} className="border-b border-gray-100 pb-1">{tech}</li>)}
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-bold uppercase mb-4 text-sm tracking-wider text-gray-500">Mobile</h4>
-                <ul className="space-y-2">
-                  {stack.mobile.map(tech => <li key={tech} className="border-b border-gray-100 pb-1">{tech}</li>)}
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-bold uppercase mb-4 text-sm tracking-wider text-gray-500">Gaming</h4>
-                <ul className="space-y-2">
-                  {stack.gaming.map(tech => <li key={tech} className="border-b border-gray-100 pb-1">{tech}</li>)}
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-bold uppercase mb-4 text-sm tracking-wider text-gray-500">Backend & Tools</h4>
-                <ul className="space-y-2">
-                  {stack.backend.map(tech => <li key={tech} className="border-b border-gray-100 pb-1">{tech}</li>)}
-                </ul>
-              </div>
+              {stackSections.map((section) => (
+                <div key={section.title}>
+                  <h4 className="font-bold uppercase mb-4 text-sm tracking-wider text-gray-500">
+                    {section.title}
+                  </h4>
+                  <ul className="space-y-2">
+                    {section.items.map((tech) => (
+                      <li key={tech} className="border-b border-gray-100 pb-1">
+                        {tech}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
           </div>
 

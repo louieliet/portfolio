@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Emiliano Montes | Frontend Engineer & UX/UI Designer",
-  description: "Portfolio of Emiliano Montes, a Frontend Engineer and Product Designer specializing in building end-to-end digital experiences.",
+  title: "Emiliano Montes | Frontend and Mobile Engineer",
+  description: "Portfolio of Emiliano Montes, a Frontend and Mobile Engineer building scalable web and mobile products with strong UX foundations.",
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },

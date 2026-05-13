@@ -28,15 +28,15 @@ export interface ProjectItem {
 
 export const personalInfo = {
   name: "Emiliano Montes Gómez",
-  role: "Frontend Engineer + UX/UI Designer",
-  tagline: "I design and build end-to-end digital experiences. From user research to production code.",
+  role: "Frontend and Mobile Engineer",
+  tagline: "I build scalable web and mobile products with strong UX foundations.",
   location: "Mexico City, Mexico",
   email: "emilianomg2003@hotmail.com",
   linkedin: "https://www.linkedin.com/in/emiliano-mg/",
-  github: "https://github.com/louieliet", // Placeholder based on common pattern, will need user to confirm or update
+  github: "https://github.com/louieliet",
   phone: "+52 735 135 1245",
   about: {
-    history: "I am an Animation and Video Game Engineering student at Universidad Panamericana, currently pursuing a postgraduate specialization in Interactive Design focused on UX/UI and a diploma in Data Science. My work sits at the intersection of frontend engineering, product design, and data-informed thinking.\n\nI design and build digital experiences that balance usability, visual clarity, and technical execution. My background in game development, UX/UI, and data science gives me a broad perspective on how products are imagined, implemented, and improved.\n\nI am especially interested in frontend development, interaction design, backend systems, cloud computing, and big data. My goal is to contribute to projects that create value by connecting design, code, and data into thoughtful digital solutions.",
+    history: "I am an Animation and Video Game Engineer from Universidad Panamericana, currently pursuing a postgraduate specialization in Interactive Design and a diploma in Data Science. My work sits at the intersection of frontend engineering, mobile development, product design, and data-informed thinking.\n\nI build scalable web and mobile experiences that balance usability, visual clarity, and technical execution. My background in React, Next.js, React Native, SwiftUI, backend integrations, and game development gives me a broad perspective on how products are imagined, implemented, and improved.\n\nI am especially interested in frontend systems, mobile applications, interaction design, backend integrations, cloud computing, and big data. My goal is to contribute to products that create value by connecting design, code, and data into intuitive, maintainable, and high-performance digital experiences.",
     approach: [
       {
         title: "Research",
@@ -62,13 +62,13 @@ export const personalInfo = {
         year: "2021 - 2025"
       },
       {
-        degree: "Interactive Design postgraduate (UX/UI)",
-        institution: "Universidad Panamericana", // User didn't specify
-        year: "2025 - Present"
+        degree: "Postgraduate Specialization in Interactive Design",
+        institution: "Universidad Panamericana",
+        year: "2025 - 2026"
       },
       {
         degree: "Data Science Diploma",
-        institution: "Universidad Panamericana", // User didn't specify
+        institution: "Universidad Panamericana",
         year: "2025 - Present"
       }
     ],
@@ -81,20 +81,21 @@ export const personalInfo = {
 }
 
 export const stack = {
-  design: ["Figma", "Wireframing", "Prototyping", "User Research", "Usability Testing"],
-  frontend: ["React / Next.js", "TypeScript", "Tailwind CSS", "Design Systems", "Accessibility", "WordPress"],
-  mobile: ["SwiftUI", "React Native", "Mobile UX Patterns"],
-  gaming: ["Unity 3D / 2D", "Game UX Design", "C#"],
-  backend: ["Firebase", "RESTful APIs", "Git / CI/CD"]
+  design: ["Figma", "UX Research", "Prototyping", "Design Systems", "User-Centered Design"],
+  frontend: ["React / Next.js", "TypeScript", "Tailwind CSS", "Design Systems", "WordPress"],
+  mobile: ["Swift", "SwiftUI", "UIKit", "React Native", "Expo", "Apple Wallet"],
+  gaming: ["Unity 3D / 2D", "C#", "C++", "Game UX Design"],
+  backend: ["Node.js", "Firebase", "REST APIs", "Google Cloud", "Git / CI/CD"],
+  data: ["SQL", "ETL", "Data Processing", "Big Data Fundamentals"]
 }
 
 // Professional Experience (Companies)
 export const experience: ExperienceItem[] = [
   {
     company: "iLuk.ai",
-    role: "Frontend Engineer + UX/UI Designer",
+    role: "Frontend Engineer",
     period: "Dec 2025 - Present",
-    description: "Frontend Engineer + Product Designer building AI-worker product experiences end-to-end. Led UX definition and frontend delivery in Next.js, shipping features for AI Visibility and automated workflows for content operations, task execution, and role-based assistants.",
+    description: "Develop and maintain scalable frontend systems for AI-driven digital platforms. Build high-performance UI components aligned with product vision and business goals, collaborating with multidisciplinary teams to deliver user-centered features with measurable impact.",
     stack: ["Next.js", "React", "TypeScript", "Tailwind CSS"],
     assets: [
       "/projects/iluk01.png",
@@ -106,10 +107,10 @@ export const experience: ExperienceItem[] = [
   },
   {
     company: "Vyvo Tech",
-    role: "Frontend Lead Engineer → Product Designer → Frontend Developer",
+    role: "Frontend Lead Engineer",
     period: "Oct 2025 - Dec 2025",
-    description: "Progressed from Frontend Developer to Frontend Lead Engineer while also driving Product Design. Built core React Native experiences, led UX research and prototyping, guided frontend decisions, and shipped the app to the App Store.",
-    stack: ["React Native", "TypeScript", "EAS", "Figma", "UX Research", "AI Integration"],
+    description: "Led frontend development for mobile applications using React Native and Expo. Defined frontend architecture, supervised code quality standards, managed EAS build and deployment processes, and mentored developers to align implementation with product strategy.",
+    stack: ["React Native", "TypeScript", "Expo", "EAS", "Figma"],
     assets: [
       "/projects/vyvo01.webp",
       "/projects/vyvo02.webp",
@@ -120,10 +121,10 @@ export const experience: ExperienceItem[] = [
   },
   {
     company: "Pulse Studio",
-    role: "Frontend Developer",
+    role: "Web Designer",
     period: "Apr 2025 - Aug 2025",
-    description: "Frontend Developer with UX Research collaboration for client websites in WordPress. Turned research insights into practical UI improvements and delivered responsive, conversion-focused web experiences with strong design alignment.",
-    stack: ["React", "Next.js", "TypeScript", "Tailwind CSS"]
+    description: "Designed and developed SEO-optimized WordPress websites. Created UX/UI prototypes in Figma, ensured brand consistency, and delivered responsive digital experiences focused on performance.",
+    stack: ["WordPress", "Figma", "SEO", "Responsive Design"]
   },
   {
     company: "Legaltec",
@@ -134,35 +135,49 @@ export const experience: ExperienceItem[] = [
   },
   {
     company: "Luyoa",
-    role: "Frontend Developer",
+    role: "Frontend / Mobile Developer",
     period: "Dec 2024 - Mar 2025",
-    description: "Frontend Developer for Apple Wallet and digital loyalty solutions. Implemented user flows for enrollment, pass usage, and retention touchpoints, ensuring reliable cross-device behavior and clear user journeys.",
-    stack: ["React", "TypeScript", "CSS"]
+    description: "Developed web and mobile applications using React, Next.js, and React Native, with a focus on responsive interfaces and user experience. Implemented Apple Wallet solutions and mobile integrations while optimizing scalable and maintainable digital flows.",
+    stack: ["React", "Next.js", "React Native", "TypeScript", "Apple Wallet"]
+  },
+  {
+    company: "Contagion / Nazora Studios",
+    role: "Unity 3D Developer",
+    period: "Jan 2024 - Aug 2024",
+    description: "Designed and developed core gameplay systems and base architecture in Unity 3D. Implemented modular character and enemy systems, programmed movement, state, and interaction mechanics, and contributed to performance optimization and debugging for real-time interactive systems.",
+    stack: ["Unity 3D", "C#"]
   },
   {
     company: "Chain Solutions",
-    role: "Frontend Developer",
+    role: "Frontend Developer Intern",
     period: "Aug 2023 - Dec 2024",
-    description: "Frontend Developer for corporate web projects in Next.js. Worked across implementation, UX research input, and design support to deliver performant, responsive sites for clients such as Hus and Ragabe.",
-    stack: ["Next.js", "Tailwind CSS", "React"]
+    description: "Developed responsive web interfaces with React and Tailwind CSS. Participated in fullstack implementations using Next.js and TypeScript for corporate web projects.",
+    stack: ["React", "Next.js", "TypeScript", "Tailwind CSS"]
+  },
+  {
+    company: "Grupo CARSO / CTIN",
+    role: "Unity Developer Intern",
+    period: "May 2024 - Nov 2024",
+    description: "Developed AR filters with Spark AR and Effect House, created 2D mini-games in Unity, and contributed to backend services in Google Cloud.",
+    stack: ["Unity", "Spark AR", "Effect House", "Google Cloud"]
   }
 ]
 
 // Academic & Lab Experience
 export const academicExperience: ExperienceItem[] = [
   {
-    company: "iOS Development Lab UPMX",
-    role: "Frontend Developer",
-    period: "Jan 2025 - Oct 2025",
-    description: "iOS application development in SwiftUI. Explored modern iOS development patterns and best practices.",
-    stack: ["Swift", "SwiftUI", "iOS Development"]
+    company: "UPocket, Universidad Panamericana",
+    role: "iOS Developer",
+    period: "Jan 2025 - Aug 2025",
+    description: "Developed SwiftUI-based features for UPocket, an iOS application published on the App Store for Universidad Panamericana students. Led the campus space reservation module, connected mobile views to REST APIs, and implemented reusable UI patterns, loading states, user interactions, and error-aware flows.",
+    stack: ["Swift", "SwiftUI", "REST APIs", "iOS Development"]
   },
   {
     company: "Blank Canvas",
-    role: "Co-founder",
+    role: "Co-founder / iOS Developer",
     period: "Aug 2023 - Present",
-    description: "Co-founded an innovation group within iOS Lab UP. Developed 2 apps: Fashion Finder and Notably. Led the design thinking process: research, wireframing, prototyping, and development in SwiftUI.",
-    stack: ["Swift", "SwiftUI", "CoreML", "ARKit", "Figma"]
+    description: "Lead iOS development and product design, defining mobile flows, initial architecture, and user-centered interfaces. Develop SwiftUI features and coordinate UX, visual design, and technical architecture decisions for maintainable mobile experiences.",
+    stack: ["Swift", "SwiftUI", "Figma", "Mobile UX", "Product Design"]
   },
   {
     company: "PCI Lab UP",
@@ -182,6 +197,26 @@ export const academicExperience: ExperienceItem[] = [
 ]
 
 export const projects = [
+  {
+    id: "integra-ai",
+    name: "Integra AI",
+    subtitle: "B2B AI Consultancy Landing Page",
+    description: "Landing page for a B2B AI consultancy. Designed and built a conversion-focused website that communicates services, process, team credibility, and contact flows through a clean responsive interface, bilingual navigation, animated hero, and production-oriented messaging.",
+    overview: "Integra AI is a B2B landing page for an AI consultancy focused on agents, CRM/ERP integrations, MLOps, and AI strategy. The site turns a complex technical offer into a clear commercial experience, guiding visitors from business pain points to services, process, team credibility, proof points, and contact.",
+    focus: "My focus was shaping the UX narrative and frontend execution: building a sharp hero, service structure, process section, team storytelling, responsive layouts, animated canvas ribbon, bilingual navigation, and contact flow. The goal was to make enterprise AI feel concrete, understandable, and conversion-ready.",
+    role: "Frontend Engineer & UX/UI Designer",
+    stack: ["Astro", "Tailwind CSS", "JavaScript", "Canvas", "Responsive Design", "SEO"],
+    year: "2026",
+    link: "https://integra-group.ai/",
+    images: [
+      "/projects/integra-cover.png",
+      "/projects/integra01.png",
+      "/projects/integra02.png",
+      "/projects/integra03.png",
+      "/projects/integra04.png",
+    ],
+    category: "Web"
+  },
   {
     id: "lotus",
     name: "Lotus",
@@ -237,7 +272,7 @@ export const projects = [
     id: "neura-path",
     name: "NeuraPath",
     subtitle: "STEM Career Recommender",
-    description: "Winner – National Swift Changemakers Hackathon 2025 (Bosch Challenge). Built a student-facing experience that combines swipe cards, a quick-thinking mini game, and a model using 16 personalities, multiple intelligences, and NLP to recommend an ideal STEM career and send users directly to university enrollment pages.",
+    description: "Winner – National Swift Changemakers Hackathon 2025 (Bosch Challenge). Built an iOS vocational guidance app focused on promoting STEM careers through a gender-bias-free test, interactive flows, and a recommendation model using 16 personalities, multiple intelligences, and NLP.",
     overview: "NeuraPath helps students discover STEM career paths through a mobile experience that combines personality signals, learning preferences, and lightweight game interactions. The app was built during the National Swift Changemakers Hackathon 2025 for the Bosch Challenge.",
     focus: "The focus was product design and iOS execution: shaping the recommendation flow, designing fast and engaging interactions, and building the SwiftUI experience that connects assessment, career matching, and university enrollment actions.",
     role: "Product Designer & iOS Builder",
@@ -303,22 +338,4 @@ export const certifications = [
 export const languages = [
   { name: "Spanish", level: "Native" },
   { name: "English", level: "TOEFL Certified – 2024" }
-]
-
-// Additional professional experiences not previously listed
-export const additionalExperience: ExperienceItem[] = [
-  {
-    company: "Unity 3D Developer – Contagion / Nazora Studios",
-    role: "Unity 3D Developer",
-    period: "Jan 2024 - Aug 2024",
-    description: "Designed and developed core gameplay systems and foundational architecture for Unity 3D projects. Implemented modular character and enemy systems and collaborated on performance optimization.",
-    stack: ["Unity 3D", "C#"]
-  },
-  {
-    company: "Grupo CARSO / CTIN",
-    role: "Unity Developer Intern",
-    period: "May 2024 - Nov 2024",
-    description: "Developed AR filters and 2D mini-games; contributed to backend services and cloud integrations.",
-    stack: ["Unity", "Spark AR", "Effect House"]
-  }
 ]
