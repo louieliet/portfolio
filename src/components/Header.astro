@@ -1,0 +1,27 @@
+---
+import { personalInfo } from '@/lib/data';
+import Button from '@/components/ui/button.astro';
+
+const initials = personalInfo.name
+  .split(' ')
+  .slice(0, 2)
+  .map((n) => n[0])
+  .join('');
+---
+
+<header class="site-header header-grid" aria-label="Site header">
+  <a class="brand" href="/" aria-label="{personalInfo.name} portfolio home">
+    <span class="brand-mark" aria-hidden="true">{initials}</span>
+    <span>{personalInfo.name.split(' ').slice(0, 2).join(' ')}</span>
+  </a>
+
+  <nav class="site-nav" aria-label="Primary navigation">
+    <a href="#projects">Work</a>
+    <a href="#about">About</a>
+    <a href="#contact">Contact</a>
+  </nav>
+
+  <div class="header-actions">
+    <Button href="#contact" size="micro">Hire me</Button>
+  </div>
+</header>

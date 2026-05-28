@@ -1,0 +1,97 @@
+---
+import { personalInfo } from '@/lib/data';
+---
+
+<section class="hero-section sticky top-0 h-[100dvh] w-full z-0 flex flex-col justify-center overflow-hidden bg-[#0a0a0a] text-white">
+  <!-- Decorative Liquid Image Background -->
+  <div class="absolute inset-0 z-0 opacity-40 mix-blend-overlay">
+    <div class="w-full h-full bg-image-liquid opacity-30 scale-110" style="background: radial-gradient(circle at 50% 50%, #333 0%, #000 100%);"></div>
+  </div>
+
+  <div class="relative z-10 w-full px-6 md:px-12 flex flex-col items-center justify-center text-center">
+    
+    <div class="overflow-hidden w-full">
+      <h1 class="hero-title font-display uppercase leading-[0.85] tracking-[-0.04em]" style="font-size: clamp(60px, 15vw, 240px);">
+        {personalInfo.name.split(" ")[0]}
+        <br />
+        <span class="text-white/50">{personalInfo.name.split(" ")[1]}</span>
+      </h1>
+    </div>
+
+    <div class="mt-8 md:mt-16 overflow-hidden">
+      <p class="hero-subtitle text-xl md:text-3xl font-medium tracking-wide text-white/80 max-w-2xl mx-auto">
+        {personalInfo.role}
+      </p>
+    </div>
+
+    <div class="absolute bottom-12 left-1/2 -translate-x-1/2 overflow-hidden">
+      <div class="hero-scroll-indicator text-xs uppercase tracking-[0.3em] font-mono text-white/50 flex flex-col items-center gap-4">
+        <span>Scroll to explore</span>
+        <div class="w-[1px] h-12 bg-white/20 relative overflow-hidden">
+          <div class="w-full h-full bg-white absolute top-0 left-0 animate-scroll-down"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .animate-scroll-down {
+    animation: scrollDown 2s infinite ease-in-out;
+  }
+  @keyframes scrollDown {
+    0% { transform: translateY(-100%); }
+    50% { transform: translateY(0); }
+    100% { transform: translateY(100%); }
+  }
+</style>
+
+<script>
+  import { gsap } from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  // We scope this so it runs when the component mounts
+  function initHeroAnimations() {
+    // Initial load animation
+    const tl = gsap.timeline();
+    
+    tl.fromTo(".hero-title", 
+      { y: 200, opacity: 0, rotateX: 10 },
+      { y: 0, opacity: 1, rotateX: 0, duration: 1.5, ease: "power4.out" }
+    )
+    .fromTo(".hero-subtitle",
+      { y: 50, opacity: 0 },
+      { y: 0, opacity: 1, duration: 1, ease: "power3.out" },
+      "-=1"
+    )
+    .fromTo(".hero-scroll-indicator",
+      { opacity: 0 },
+      { opacity: 1, duration: 1 },
+      "-=0.5"
+    );
+
+    // Scroll scrub animation (fade out and push down as user scrolls)
+    gsap.to(".hero-section .relative.z-10", {
+      y: 150,
+      opacity: 0,
+      scale: 0.95,
+      ease: "none",
+      scrollTrigger: {
+        trigger: ".page-shell", // The element that scrolls over the hero
+        start: "top bottom",
+        end: "top 20%", // Finish fading before it's completely covered
+        scrub: true,
+      }
+    });
+  }
+
+  // Astro view transitions support
+  document.addEventListener("astro:page-load", initHeroAnimations);
+  if (document.readyState === "complete") {
+    initHeroAnimations();
+  } else {
+    window.addEventListener("load", initHeroAnimations);
+  }
+</script>

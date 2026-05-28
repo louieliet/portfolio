@@ -1,0 +1,22 @@
+---
+import type { GetStaticPaths } from 'astro';
+import Layout from '../../layouts/Layout.astro';
+import { projects } from '@/lib/data';
+import ProjectPageClient from '../../components/project-page-client';
+
+export const getStaticPaths = (() => {
+  return projects.map((project) => ({
+    params: { slug: project.id },
+    props: { project },
+  }));
+}) satisfies GetStaticPaths;
+
+const { project } = Astro.props;
+---
+
+<Layout
+  title={`${project.name} | Projects`}
+  description={project.description}
+>
+  <ProjectPageClient project={project} client:load />
+</Layout>

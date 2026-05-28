@@ -1,0 +1,27 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Hero from '../components/hero.astro';
+import RevealScene from '../components/reveal-scene.astro';
+import Experience from '../components/experience';
+import Projects from '../components/projects';
+import Statement from '../components/statement';
+import About from '../components/about.astro';
+import Contact from '../components/contact.astro';
+---
+
+<Layout>
+  <!-- Full-bleed Sticky Hero -->
+  <Hero />
+
+  <!-- Scrollytelling Scene (Outside page-shell for full bleed clipping) -->
+  <RevealScene />
+
+  <!-- Constrained Content sliding over the Hero/Reveal -->
+  <main class="page-shell relative z-10 bg-[#0a0a0a] min-h-screen border-t border-white/10 shadow-[0_-20px_50px_rgba(0,0,0,0.5)] text-[#f5f5f5]">
+    <Experience client:load />
+    <Projects client:load />
+    <Statement client:load />
+    <About />
+    <Contact />
+  </main>
+</Layout>
