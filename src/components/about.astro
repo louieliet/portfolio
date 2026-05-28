@@ -3,129 +3,105 @@ import { personalInfo, stack } from '@/lib/data';
 
 const stackSections = [
   { title: "Design & UX", items: stack.design },
-  { title: "Frontend", items: stack.frontend },
-  { title: "Mobile", items: stack.mobile },
-  { title: "Gaming", items: stack.gaming },
-  { title: "Backend & Tools", items: stack.backend },
-  { title: "Data", items: stack.data },
+  { title: "Frontend & Mobile", items: [...stack.frontend, ...stack.mobile] },
+  { title: "Systems & Data", items: [...stack.backend, ...stack.data, ...stack.gaming] },
 ];
 ---
 
-<!-- Mask Reveal Scene -->
-<section class="about-reveal-scene h-[100dvh] w-full relative overflow-hidden flex flex-col items-center justify-center bg-[#0a0a0a] z-20">
-  <div class="reveal-mask absolute inset-0 z-10 flex items-center justify-center pointer-events-none" style="clip-path: polygon(35% 20%, 65% 20%, 65% 80%, 35% 80%);">
-    <div class="w-full h-full bg-image-liquid opacity-60 mix-blend-overlay absolute inset-0 z-20 pointer-events-none"></div>
-    <img
-      src="/projects/me.jpeg"
-      alt="Portrait"
-      class="reveal-img w-full h-full object-cover mix-blend-luminosity opacity-80 scale-[1.3]"
-    />
-    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-10"></div>
-  </div>
-  
-  <div class="relative z-20 flex w-full justify-between px-6 md:px-24 pointer-events-none mix-blend-difference overflow-hidden">
-    <h2 class="reveal-text-left font-display text-6xl md:text-[10rem] uppercase tracking-tighter text-white">Not just</h2>
-    <h2 class="reveal-text-right font-display text-6xl md:text-[10rem] uppercase tracking-tighter text-white">Code.</h2>
-  </div>
-</section>
-
-<!-- Content Section -->
-<section id="about" class="py-32 border-t border-white/10 relative overflow-hidden bg-[#0a0a0a] z-10">
-  
-  <div class="max-w-[100rem] mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8">
+<section id="about" class="asymmetric-scene bg-[#0a0a0a]">
+  {/* 40% Column - Manifesto (Sticky) */}
+  <div class="sticky-sidebar">
+    <span class="kicker">The Manifesto</span>
+    <h2 class="font-display uppercase tracking-tighter leading-[0.85] text-5xl md:text-[5.5rem] mb-6">
+      Design.<br />
+      Code.<br />
+      Data.<br />
+      <span class="text-white/30">Systems.</span>
+    </h2>
     
-    <!-- Left Column: The Narrative -->
-    <div class="lg:col-span-8 lg:col-start-3 space-y-16 fade-in pt-12 lg:pt-24">
-      <span class="kicker">The person behind the work</span>
-      <div class="space-y-8 text-2xl md:text-4xl leading-[1.3] text-white/80 font-medium max-w-4xl">
-        {personalInfo.about.history.split("\n\n").map((paragraph, i) => (
-          <p class={i === 0 ? "text-white" : "text-white/50"}>{paragraph}</p>
+    <div class="w-24 md:w-32 aspect-square mt-12 mb-8 relative border border-white/20 filter grayscale contrast-125">
+      <img
+        src="/projects/me.jpeg"
+        alt="Portrait"
+        class="w-full h-full object-cover opacity-80"
+        loading="lazy"
+      />
+      <div class="absolute inset-0 bg-white/5 mix-blend-overlay"></div>
+    </div>
+  </div>
+
+  {/* 60% Column - Content & Capabilities */}
+  <div class="brutalist-list pt-0">
+    <article class="brutalist-item border-none pb-12 md:pb-24">
+      <p class="text-xl md:text-3xl leading-relaxed text-white/80 font-medium max-w-2xl">
+        Building products isn't about writing syntax. It's about bridging the gap between complex technical architectures and human intuition. My background spanning game engines, mobile apps, and data systems allows me to engineer interfaces that don't just function—they resonate.
+      </p>
+    </article>
+
+    {/* Methodologies */}
+    <article class="brutalist-item">
+      <div class="item-meta flex justify-between mb-8">
+        <span>01</span>
+        <span>Approach</span>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-16">
+        {personalInfo.about.approach.map((step) => (
+          <div class="group">
+            <h4 class="font-display text-2xl uppercase tracking-tighter mb-3 flex items-center gap-3">
+              <span class="inline-block w-2 h-2 bg-white/30 rounded-full group-hover:bg-white transition-colors duration-300"></span>
+              {step.title}
+            </h4>
+            <p class="text-white/60 leading-relaxed">
+              {step.description}
+            </p>
+          </div>
         ))}
       </div>
+    </article>
 
-      <div class="pt-24 border-t border-white/20 grid grid-cols-1 md:grid-cols-2 gap-16">
-        <div>
-          <h3 class="font-mono text-sm uppercase tracking-[0.2em] text-white/40 mb-8">Capabilities</h3>
-          <div class="space-y-12">
-            {stackSections.map((section) => (
-              <div>
-                <h4 class="font-display text-2xl uppercase tracking-tight mb-4 text-white">
-                  {section.title}
-                </h4>
-                <div class="flex flex-wrap gap-2">
-                  {section.items.map((tech) => (
-                    <span class="text-xs uppercase font-mono tracking-widest text-white/50 bg-white/5 px-3 py-1">
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <h3 class="font-mono text-sm uppercase tracking-[0.2em] text-white/40 mb-8">Education</h3>
-          <div class="space-y-8">
-            {personalInfo.about.education.map((edu) => (
-              <div class="group">
-                <h4 class="font-display text-xl uppercase tracking-tight text-white mb-2">
-                  {edu.degree}
-                </h4>
-                <div class="text-white/50 font-medium">{edu.institution}</div>
-                <div class="text-xs font-mono text-white/30 mt-2">{edu.year}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+    {/* Technical Stack */}
+    <article class="brutalist-item">
+      <div class="item-meta flex justify-between mb-8">
+        <span>02</span>
+        <span>Capabilities</span>
       </div>
-    </div>
+      
+      <div class="flex flex-col gap-12">
+        {stackSections.map((section) => (
+          <div class="border-l border-white/20 pl-6 md:pl-10 relative">
+            <div class="absolute -left-[5px] top-1.5 w-[9px] h-[9px] bg-[#0a0a0a] border border-white/40"></div>
+            <h4 class="font-mono text-sm uppercase tracking-widest text-white/40 mb-4">
+              [ {section.title} ]
+            </h4>
+            <p class="font-display text-xl md:text-3xl text-white/90 leading-tight max-w-2xl">
+              {section.items.join(" · ")}
+            </p>
+          </div>
+        ))}
+      </div>
+    </article>
 
+    {/* Education */}
+    <article class="brutalist-item">
+      <div class="item-meta flex justify-between mb-8">
+        <span>03</span>
+        <span>Education</span>
+      </div>
+      
+      <div class="flex flex-col gap-8">
+        {personalInfo.about.education.map((edu) => (
+          <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-2 items-baseline border-b border-white/10 pb-6 last:border-0 last:pb-0">
+            <h4 class="font-display text-xl md:text-3xl uppercase tracking-tighter text-white">
+              {edu.degree}
+            </h4>
+            <div class="text-right">
+              <div class="text-white/60">{edu.institution}</div>
+              <div class="text-xs font-mono text-white/30 mt-1 uppercase tracking-widest">{edu.year}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </article>
   </div>
 </section>
-
-<script>
-  import { gsap } from "gsap";
-  import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-  function initAboutAnimations() {
-    gsap.registerPlugin(ScrollTrigger);
-
-    const scene = document.querySelector(".about-reveal-scene");
-    if (!scene) return;
-
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: scene,
-        start: "top top",
-        end: "+=150%",
-        scrub: true,
-        pin: true,
-        pinSpacing: true,
-      }
-    });
-
-    // Expand mask to full screen
-    tl.to(".reveal-mask", {
-      clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
-      ease: "none"
-    }, 0);
-
-    // Zoom out image
-    tl.to(".reveal-img", {
-      scale: 1,
-      ease: "none"
-    }, 0);
-
-    // Slide text to the center (meeting behind the mask)
-    tl.fromTo(".reveal-text-left", { x: "-10vw" }, { x: "20vw", ease: "none" }, 0);
-    tl.fromTo(".reveal-text-right", { x: "10vw" }, { x: "-20vw", ease: "none" }, 0);
-  }
-
-  document.addEventListener("astro:page-load", initAboutAnimations);
-  if (document.readyState === "complete") {
-    initAboutAnimations();
-  } else {
-    window.addEventListener("load", initAboutAnimations);
-  }
-</script>
