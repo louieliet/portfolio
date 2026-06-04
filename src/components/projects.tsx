@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { projects } from "@/lib/data";
 import Image from "@/components/ui/image";
 import { gsap } from "gsap";
@@ -6,107 +6,165 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 export default function Projects() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  // Derive the active project to update the dynamic metadata sidebar
+  const activeProject = projects[activeIndex] || projects[0];
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+
     gsap.registerPlugin(ScrollTrigger);
 
-    const container = containerRef.current;
-    if (!container) return;
-
-    // Vertical parallax for project images within the asymmetric grid
-    const projectImages = container.querySelectorAll('.project-parallax-img');
-    projectImages.forEach((img) => {
-      // Create a slight zoom-out/parallax effect as the image enters the viewport
-      gsap.fromTo(img, 
-        { scale: 1.15, y: "5%" },
-        {
-          scale: 1, 
-          y: "0%",
-          ease: "none",
-          scrollTrigger: {
-            trigger: img.parentElement,
-            start: "top bottom",
-            end: "bottom top",
-            scrub: true,
-          }
+    const ctx = gsap.context(() => {
+      const sections = gsap.utils.toArray<HTMLElement>(".lumena-viewer-section");
+      
+      sections.forEach((section, i) => {
+        ScrollTrigger.create({
+          trigger: section,
+          start: "top center",
+          end: "bottom center",
+          onEnter: () => setActiveIndex(i),
+          onEnterBack: () => setActiveIndex(i),
+        });
+        
+        // Optional subtle parallax on the image
+        const img = section.querySelector(".lumena-viewer-image-wrapper img");
+        if (img) {
+          gsap.fromTo(
+            img,
+            { yPercent: -15, scale: 1.1 },
+            {
+              yPercent: 15,
+              scale: 1,
+              ease: "none",
+              scrollTrigger: {
+                trigger: section,
+                start: "top bottom",
+                end: "bottom top",
+                scrub: true,
+              },
+            }
+          );
         }
-      );
-    });
-
-    return () => {
-      ScrollTrigger.getAll().forEach((t) => {
-        if (t.vars.trigger && container.contains(t.vars.trigger as Node)) t.kill();
       });
-    };
+    }, containerRef);
+
+    return () => ctx.revert();
   }, []);
 
+  const scrollToProject = (index: number) => {
+    const sections = document.querySelectorAll(".lumena-viewer-section");
+    const target = sections[index];
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
-    <section id="projects" ref={containerRef} className="asymmetric-scene bg-[#0a0a0a]">
-      {/* 40% Column - Sticky Context */}
-      <div className="sticky-sidebar">
-        <span className="kicker">Selected Works</span>
-        <h2 className="font-display uppercase">
-          We close <br />
-          <span className="text-white/40">that gap.</span>
-        </h2>
-        <p className="lead-text">
-          Experiences designed to command attention and convert technical
-          complexity into clear narratives.
-        </p>
+    <section id="projects" className="lumena-layout font-sans" ref={containerRef}>
+      {/* ── Left: Sticky Index & Metadata ────────────────────────────── */}
+      <div className="lumena-sidebar">
+        <h2 className="lumena-sidebar-header font-display">Selected Works</h2>
+        
+        <div className="lumena-index-list">
+          {projects.map((project, i) => (
+            <div
+              key={project.id}
+              className={`lumena-index-item ${i === activeIndex ? "is-active" : ""}`}
+              onClick={() => scrollToProject(i)}
+              role="button"
+              tabIndex={0}
+            >
+              <span>{project.name}</span>
+              <span className="lumena-index-item-number">({String(i + 1).padStart(2, "0")})</span>
+            </div>
+          ))}
+        </div>
+
+        <a
+          href="#contact"
+          className="inline-flex justify-center items-center px-6 py-3 font-mono text-[10px] tracking-widest uppercase transition-colors"
+          style={{ 
+            backgroundColor: 'var(--text)', 
+            color: 'var(--bg)', 
+            borderRadius: '100px',
+            alignSelf: 'flex-start',
+            marginBottom: '2rem'
+          }}
+        >
+          Start a conversation
+        </a>
+
+        {/* Dynamic Metadata based on active project */}
+        <div className="lumena-metadata mobile-hidden">
+          <div className="lumena-metadata-row">
+            <span className="lumena-metadata-label font-mono uppercase">Role</span>
+            <span>{activeProject.role}</span>
+          </div>
+          <div className="lumena-metadata-row">
+            <span className="lumena-metadata-label font-mono uppercase">Stack</span>
+            <span>{activeProject.stack.join(", ")}</span>
+          </div>
+          <div className="lumena-metadata-row" style={{ borderBottom: 'none' }}>
+            <span className="lumena-metadata-label font-mono uppercase">Year</span>
+            <span>{activeProject.year}</span>
+          </div>
+        </div>
       </div>
 
-      {/* 60% Column - Brutalist List */}
-      <div className="brutalist-list">
-        {projects.map((project, index) => (
-          <article key={project.id} className="brutalist-item group">
-            <div className="item-meta flex justify-between">
-              <span>SS/0{index + 1}</span>
-              <span>{project.category}</span>
-            </div>
-            
-            <a
-              href={`/projects/${project.id}`}
-              className="block w-full aspect-[4/3] relative overflow-hidden bg-white/5 border border-white/10 group-hover:border-white/30 transition-colors duration-500 mt-4 mb-6"
-            >
+      {/* ── Right: Scrolling Content Sections ──────────────────────────── */}
+      <div className="lumena-content">
+        {projects.map((project, i) => (
+          <article key={project.id} className="lumena-viewer-section">
+            <div className="lumena-viewer-image-wrapper">
               {project.images?.[0] ? (
-                <div className="absolute inset-0 overflow-hidden">
-                  <Image
-                    src={project.images[0]}
-                    alt={`${project.name} cover`}
-                    fill
-                    className="project-parallax-img object-cover opacity-70 group-hover:opacity-100 transition-opacity duration-500"
-                    sizes="(max-width: 900px) 100vw, 60vw"
-                  />
-                </div>
+                <Image
+                  src={project.images[0]}
+                  alt={`${project.name} cover`}
+                  fill
+                  className="object-cover transition-transform duration-700 hover:scale-105"
+                  sizes="(max-width: 900px) 100vw, 70vw"
+                />
               ) : (
-                <div className="absolute inset-0 bg-white/5" />
+                <div className="absolute inset-0" style={{ backgroundColor: 'var(--border-light)' }} />
               )}
-            </a>
-
-            <div>
-              <h3 className="font-display text-3xl md:text-5xl uppercase tracking-tighter leading-[0.9] mb-4 group-hover:text-white/80 transition-colors">
-                {project.name}
-              </h3>
-              <p className="text-white/70 md:text-lg max-w-2xl">
-                {project.subtitle}
-              </p>
             </div>
-            
-            <div className="mt-4">
-               <a href={`/projects/${project.id}`} className="inline-flex items-center gap-2 border border-white/20 px-4 py-2 uppercase tracking-widest text-[10px] font-mono hover:bg-white hover:text-black transition-colors duration-300">
-                  Case Study <span>→</span>
-               </a>
+
+            <h3 className="lumena-viewer-title font-display">{project.name}</h3>
+            <h4 className="lumena-viewer-subtitle font-sans">{project.subtitle}</h4>
+
+            <div className="lumena-viewer-body">
+              <div>
+                <h5 className="lumena-viewer-label font-display">About the Project</h5>
+                <p className="lumena-viewer-paragraph">{project.overview || project.description}</p>
+              </div>
+
+              {project.focus && (
+                <div>
+                  <h5 className="lumena-viewer-label font-display">Implementation Focus</h5>
+                  <p className="lumena-viewer-paragraph">{project.focus}</p>
+                </div>
+              )}
+              
+              <div className="mt-8">
+                 <a
+                    href={`/projects/${project.id}`}
+                    className="inline-flex items-center gap-2 px-4 py-2 uppercase tracking-widest text-[10px] font-mono transition-colors"
+                    style={{ border: '1px solid var(--border-light)' }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--border-light)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    View Full Case Study <span aria-hidden="true">→</span>
+                 </a>
+              </div>
             </div>
           </article>
         ))}
-        
-        {/* Outro brutalist item */}
-        <article className="brutalist-item pt-12 mt-12 text-center items-center justify-center border-t border-white/20">
-          <a href="#contact" className="font-display text-4xl md:text-6xl uppercase tracking-tighter hover:text-white/50 transition-colors">
-            View All <br/> Stories ↗
-          </a>
-        </article>
       </div>
     </section>
   );

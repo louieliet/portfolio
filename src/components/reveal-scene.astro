@@ -2,31 +2,26 @@
 // src/components/reveal-scene.astro
 ---
 
-<section class="scrollytelling-scene" id="reveal" aria-label="Creative philosophy">
+<section class="scrollytelling-scene relative z-10" id="reveal" aria-label="Creative philosophy" style="background-color: #0a0a0a; color: #f5f5f5;">
   <div class="pin-container">
+    <!-- Flash overlay: briefly lights up at peak reveal for a photographic "punch" -->
+    <div class="reveal-flash-overlay absolute inset-0 z-0 pointer-events-none bg-[#f0ede8] opacity-0 will-change-[opacity]"></div>
+
     <div class="split-text">
-      <span class="text-left">ENGINEERING</span>
-      <div class="image-mask">
+      <span class="text-left" style="color: #f5f5f5;">CODE</span>
+      <div class="image-mask" style="background-color: #0a0a0a;">
         <img
-          src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=76&w=1400&auto=format&fit=crop"
-          srcset="
-            https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=72&w=800&auto=format&fit=crop 800w,
-            https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=76&w=1400&auto=format&fit=crop 1400w,
-            https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=78&w=2200&auto=format&fit=crop 2200w
-          "
-          sizes="100vw"
-          width="1400"
-          height="933"
-          alt="Abstract interface texture" 
-          class="bg-image-liquid"
+          src="/me02.png"
+          alt="Emiliano Montes"
+          class="w-full h-full object-cover object-[center_20%]"
           loading="lazy"
           decoding="async"
         />
       </div>
-      <span class="text-right">THE EXPERIENCE</span>
+      <span class="text-right" style="color: #f5f5f5;">BEAUTY</span>
     </div>
-    <p class="pin-caption absolute bottom-[8vh] text-center font-mono text-sm md:text-base text-white/50 max-w-[45ch] opacity-0 z-10 will-change-[transform,opacity]">
-      Because scalable code doesn't matter if the interface is frustrating to use.
+    <p class="pin-caption absolute bottom-[8vh] text-center font-mono text-sm md:text-base max-w-[45ch] z-10 will-change-[transform,opacity] opacity-0" style="color: rgba(245,245,245,0.5);">
+        I make it work. Then I make it feel right.
     </p>
   </div>
 </section>
@@ -41,53 +36,59 @@
     const pinScene = document.querySelector(".scrollytelling-scene");
     if (!pinScene) return;
 
-    // We use fromTo for the mask to strictly lock its start state and avoid jitter
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: pinScene,
         start: "top top",
-        end: "+=180%", // Pinned for 1.8 viewport heights
-        scrub: 0.8, // Slight smoothing for the scrub
+        end: "+=220%",      // More scroll real estate = slower, more controlled reveal
+        scrub: 1,           // Heavier lag feels editorial and mechanical
         pin: true,
-        pinSpacing: true, // Let GSAP handle the padding naturally
+        pinSpacing: true,
+        anticipatePin: 1,
       }
     });
 
-    // Single, unified expansion block. Everything happens together.
-    tl.fromTo(".image-mask", 
-      { clipPath: "inset(20% 35% 20% 35%)" },
-      { clipPath: "inset(0% 0% 0% 0%)", duration: 2, ease: "power2.inOut" },
-      0 // The '0' forces this to start at the exact beginning of the timeline
-    )
-    
-    // Image dolly zoom (scale down as mask opens)
-    .fromTo(".bg-image-liquid", 
-      { scale: 1.5 },
-      { scale: 1, duration: 2, ease: "power2.inOut" },
+    // Phase 1 (0 → 1.6): Clip expands + texts split + image scales in
+    tl.fromTo(".image-mask",
+      { clipPath: "inset(38% 46% 38% 46%)" },   // Tighter start = more dramatic punch
+      { clipPath: "inset(0% 0% 0% 0%)", duration: 1.6, ease: "power2.inOut" },
       0
     )
-    
-    // Text collision moving outward
-    .fromTo(".text-left", 
+    .fromTo(".bg-image-liquid",
+      { scale: 1.6 },
+      { scale: 1, duration: 1.6, ease: "power2.inOut" },
+      0
+    )
+    // More extreme horizontal spread for hard editorial collision
+    .fromTo(".text-left",
       { x: "0vw" },
-      { x: "-22vw", duration: 2, ease: "power2.inOut" },
+      { x: "-38vw", duration: 1.6, ease: "power2.inOut" },
       0
     )
-    .fromTo(".text-right", 
+    .fromTo(".text-right",
       { x: "0vw" },
-      { x: "22vw", duration: 2, ease: "power2.inOut" },
+      { x: "38vw", duration: 1.6, ease: "power2.inOut" },
       0
     )
-    
-    // Caption fades in at the very end of the sequence
-    .fromTo(".pin-caption", 
-      { opacity: 0, y: 20 },
-      { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" },
-      1.6 // Starts right before the expansion finishes
+
+    // Phase 2 (1.4 → 1.7): Brief editorial flash — photographic "pop"
+    .to(".reveal-flash-overlay",
+      { opacity: 0.15, duration: 0.15, ease: "power2.out" },
+      1.4
+    )
+    .to(".reveal-flash-overlay",
+      { opacity: 0, duration: 0.4, ease: "power2.in" },
+      1.55
+    )
+
+    // Phase 3 (1.6 → 2.0): Caption fades in
+    .fromTo(".pin-caption",
+      { opacity: 0, y: 16 },
+      { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" },
+      1.6
     );
   }
 
-  // Support Astro View Transitions
   document.addEventListener("astro:page-load", initRevealScene);
   if (document.readyState === "complete") {
     initRevealScene();

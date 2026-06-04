@@ -1,7 +1,9 @@
 import { experience, academicExperience, type ExperienceItem } from "@/lib/data";
 import Image from "@/components/ui/image";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import ImageLightbox from "@/components/image-lightbox";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 type ImageViewerState = {
   company: string;
@@ -9,84 +11,156 @@ type ImageViewerState = {
   index: number;
 };
 
-function TimelineSection({
+// ─── Master-Detail Timeline Component ──────────────────────────────────────────
+function LumenaTimeline({
+  title,
+  subtitle,
   items,
   onAssetClick,
+  idPrefix
 }: {
+  title: string;
+  subtitle: string;
   items: ExperienceItem[];
   onAssetClick: (job: ExperienceItem, assetIndex: number, trigger: HTMLButtonElement) => void;
+  idPrefix: string;
 }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  // Derive active item for dynamic metadata in the sidebar
+  const activeItem = items[activeIndex] || items[0];
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    const ctx = gsap.context(() => {
+      const sections = gsap.utils.toArray<HTMLElement>(`.${idPrefix}-section`);
+      
+      sections.forEach((section, i) => {
+        ScrollTrigger.create({
+          trigger: section,
+          start: "top center",
+          end: "bottom center",
+          onEnter: () => setActiveIndex(i),
+          onEnterBack: () => setActiveIndex(i),
+        });
+      });
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, [idPrefix]);
+
+  const scrollToItem = (index: number) => {
+    const sections = document.querySelectorAll(`.${idPrefix}-section`);
+    const target = sections[index];
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
-    <div className="brutalist-list">
-      {items.map((job: ExperienceItem, index) => (
-        <article key={index} className="brutalist-item">
-          <div className="item-meta flex justify-between">
-            <span>0{index + 1}</span>
-            <span>{job.period}</span>
-          </div>
-          
-          <div>
-            <h3 className="font-display text-3xl md:text-5xl uppercase tracking-tighter leading-[0.9] mb-2 flex items-center">
-              {job.company}
-              {job.highlight && <span className="ml-3 inline-block w-3 h-3 bg-white rounded-full align-middle"></span>}
-            </h3>
-            <h4 className="text-lg text-white/60 font-medium mb-6">
-              {job.role}
-            </h4>
-            
-            <p className="text-white/80 md:text-lg leading-relaxed max-w-2xl mb-8">
-              {job.description}
-            </p>
-
-            <div className="flex flex-wrap gap-2 mb-8">
-              {job.stack.map((tech) => (
-                <span
-                  key={tech}
-                  className="text-[10px] uppercase font-mono tracking-widest border border-white/10 bg-white/5 px-3 py-1.5 text-white/60"
-                >
-                  {tech}
-                </span>
-              ))}
+    <section className="lumena-layout font-sans" ref={containerRef}>
+      {/* ── Left: Sticky Index & Metadata ────────────────────────────── */}
+      <div className="lumena-sidebar">
+        <h2 className="lumena-sidebar-header font-display">{title}</h2>
+        
+        <div className="lumena-index-list">
+          {items.map((job, i) => (
+            <div
+              key={`${idPrefix}-${i}`}
+              className={`lumena-index-item ${i === activeIndex ? "is-active" : ""}`}
+              onClick={() => scrollToItem(i)}
+              role="button"
+              tabIndex={0}
+            >
+              <span>{job.company}</span>
+              <span className="lumena-index-item-number">({String(i + 1).padStart(2, "0")})</span>
             </div>
+          ))}
+        </div>
 
-            {job.appStoreUrl && (
-              <a
-                href={job.appStoreUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex mb-8 text-[11px] font-mono uppercase tracking-[0.15em] text-white/50 hover:text-white transition-colors items-center gap-2 border-b border-white/20 pb-1"
-              >
-                {job.appStoreUrl.includes("apps.apple.com") ? "App Store" : "Visit Site"} ↗
-              </a>
-            )}
-
-            {job.assets && job.assets.length > 0 && (
-              <div className="flex gap-4 overflow-x-auto pb-4 snap-x hide-scrollbar">
-                {job.assets.map((asset: string, assetIndex: number) => (
-                  <button
-                    type="button"
-                    key={assetIndex}
-                    onClick={(event) => onAssetClick(job, assetIndex, event.currentTarget)}
-                    className="shrink-0 w-48 md:w-64 aspect-[9/16] relative bg-white/5 border border-white/10 cursor-zoom-in group/img snap-start overflow-hidden"
-                  >
-                    <Image
-                      src={asset}
-                      alt={`${job.company} screenshot ${assetIndex + 1}`}
-                      fill
-                      className="object-cover opacity-60 group-hover/img:opacity-100 group-hover/img:scale-105 transition-all duration-700 ease-out"
-                      sizes="(max-width: 768px) 48vw, 256px"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
+        {/* Dynamic Metadata based on active job */}
+        <div className="lumena-metadata mobile-hidden">
+          <div className="lumena-metadata-row">
+            <span className="lumena-metadata-label font-mono uppercase">Role</span>
+            <span>{activeItem.role}</span>
           </div>
-        </article>
-      ))}
-    </div>
+          <div className="lumena-metadata-row">
+            <span className="lumena-metadata-label font-mono uppercase">Period</span>
+            <span>{activeItem.period}</span>
+          </div>
+          <div className="lumena-metadata-row" style={{ borderBottom: 'none' }}>
+            <span className="lumena-metadata-label font-mono uppercase">Stack</span>
+            <span>{activeItem.stack.join(", ")}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Right: Scrolling Content Sections ──────────────────────────── */}
+      <div className="lumena-content">
+        <p className="lumena-viewer-subtitle" style={{ marginTop: '-1rem' }}>{subtitle}</p>
+        
+        {items.map((job, i) => (
+          <article key={`${idPrefix}-content-${i}`} className={`${idPrefix}-section lumena-viewer-section`} style={{ minHeight: 'auto', marginBottom: '8rem', paddingBottom: 0 }}>
+            
+            <h3 className="lumena-viewer-title font-display flex items-center" style={{ marginBottom: '1rem', fontSize: 'clamp(2rem, 3vw, 4rem)' }}>
+              {job.company}
+              {job.highlight && <span className="ml-4 inline-block w-3 h-3 rounded-full" style={{ backgroundColor: 'var(--text)' }}></span>}
+            </h3>
+            
+            <h4 className="font-sans text-xl opacity-60 mb-8">{job.role}</h4>
+
+            <div className="lumena-viewer-body" style={{ maxWidth: '75ch' }}>
+              <p className="lumena-viewer-paragraph text-lg">{job.description}</p>
+
+              {job.appStoreUrl && (
+                <div className="mt-4">
+                  <a
+                    href={job.appStoreUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 border-b pb-1 font-mono text-[10px] uppercase tracking-widest opacity-60 hover:opacity-100 transition-opacity"
+                    style={{ borderColor: 'var(--text)' }}
+                  >
+                    {job.appStoreUrl.includes("apps.apple.com") ? "App Store" : "Visit Site"} ↗
+                  </a>
+                </div>
+              )}
+
+              {/* Assets Carousel */}
+              {job.assets && job.assets.length > 0 && (
+                <div className="mt-8 flex gap-6 overflow-x-auto pb-6 snap-x hide-scrollbar">
+                  {job.assets.map((asset: string, assetIndex: number) => (
+                    <button
+                      type="button"
+                      key={assetIndex}
+                      onClick={(event) => onAssetClick(job, assetIndex, event.currentTarget)}
+                      className="shrink-0 w-56 md:w-72 aspect-[9/16] relative cursor-zoom-in group/img snap-start overflow-hidden"
+                      style={{ backgroundColor: 'var(--border-light)' }}
+                    >
+                      <Image
+                        src={asset}
+                        alt={`${job.company} screenshot ${assetIndex + 1}`}
+                        fill
+                        className="object-cover transition-transform duration-700 hover:scale-105"
+                        sizes="(max-width: 768px) 56vw, 288px"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }
 
+// ─── Root Component ───────────────────────────────────────────────────────────
 export default function Experience() {
   const [viewer, setViewer] = useState<ImageViewerState | null>(null);
   const lastTriggerRef = useRef<HTMLElement | null>(null);
@@ -127,41 +201,25 @@ export default function Experience() {
 
   return (
     <>
-      <section id="experience" className="asymmetric-scene bg-[#0a0a0a]">
-        <div className="sticky-sidebar">
-          <span className="kicker">Professional experience</span>
-          <h2 className="font-display uppercase">
-            The Track <br />
-            <span className="text-white/30">Record.</span>
-          </h2>
-          <p className="lead-text">
-            Building interfaces, systems, and teams that ship.
-          </p>
-        </div>
-
-        <TimelineSection
+      <div id="experience">
+        <LumenaTimeline
+          idPrefix="exp"
+          title="The Track Record."
+          subtitle="Building interfaces, systems, and teams that ship."
           items={experience}
           onAssetClick={openViewer}
         />
-      </section>
+      </div>
 
-      <section id="aside" className="asymmetric-scene bg-[#0a0a0a]">
-        <div className="sticky-sidebar">
-          <span className="kicker">Academic & research</span>
-          <h2 className="font-display uppercase">
-            Academic <br />
-            <span className="text-white/30">& Labs.</span>
-          </h2>
-          <p className="lead-text">
-            Exploring new interactions and foundational knowledge.
-          </p>
-        </div>
-
-        <TimelineSection
+      <div id="aside">
+        <LumenaTimeline
+          idPrefix="acad"
+          title="Academic & Labs."
+          subtitle="Exploring new interactions and foundational knowledge."
           items={academicExperience}
           onAssetClick={openViewer}
         />
-      </section>
+      </div>
 
       <ImageLightbox
         isOpen={Boolean(viewer)}

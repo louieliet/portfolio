@@ -1,48 +1,67 @@
 ---
 import { personalInfo } from '@/lib/data';
+import { HeroBackground } from './HeroBackground';
 ---
 
-<section class="hero-section sticky top-0 h-[100dvh] w-full z-0 flex flex-col justify-center overflow-hidden bg-[#0a0a0a] text-white">
-  <!-- Decorative Liquid Image Background -->
-  <div class="absolute inset-0 z-0 opacity-40 mix-blend-overlay">
-    <div class="w-full h-full bg-image-liquid opacity-30 scale-110" style="background: radial-gradient(circle at 50% 50%, #333 0%, #000 100%);"></div>
-  </div>
+<section class="hero-section sticky top-0 min-h-[100dvh] w-full z-0 flex flex-col justify-between overflow-hidden text-white px-6 md:px-12 pt-[120px] pb-10" style="background-color: #000000;">
 
-  <div class="relative z-10 w-full px-6 md:px-12 flex flex-col items-center justify-center text-center">
+  <!-- Capa Premium WebGL (Fluido Reactivo) -->
+  <HeroBackground client:load />
+
+  <!-- TOP ROW -->
+  <div class="relative z-10 flex flex-col md:flex-row justify-between items-start w-full gap-8">
     
-    <div class="overflow-hidden w-full">
-      <h1 class="hero-title font-display uppercase leading-[0.85] tracking-[-0.04em]" style="font-size: clamp(60px, 15vw, 240px);">
-        {personalInfo.name.split(" ")[0]}
-        <br />
-        <span class="text-white/50">{personalInfo.name.split(" ")[1]}</span>
+    <!-- Top Left: Editorial Mark -->
+    <div class="hero-anim-top hidden md:flex flex-col gap-2 font-mono text-[11px] uppercase tracking-[0.08em] text-white/50 mt-4">
+      <span class="text-white">01/</span>
+      <span>From Mexico<br/>With Love</span>
+    </div>
+
+    <!-- Top Right: Role -->
+    <div class="hero-anim-top flex flex-col items-start md:items-end w-full md:w-auto">
+      <h1 class="font-display uppercase leading-[0.85] tracking-[-0.04em] text-left md:text-right" style="font-size: clamp(3.5rem, 9vw, 11rem);">
+        <span class="block">Creative</span>
+        <span class="block text-white/70">Engineer</span>
       </h1>
     </div>
+  </div>
 
-    <div class="mt-8 md:mt-16 overflow-hidden">
-      <p class="hero-subtitle text-xl md:text-3xl font-medium tracking-wide text-white/80 max-w-2xl mx-auto">
-        {personalInfo.role}
-      </p>
+  <!-- BOTTOM ROW -->
+  <div class="relative z-10 flex flex-col-reverse md:flex-row justify-between items-end w-full gap-8 mt-12 md:mt-0">
+    
+    <!-- Bottom Left: Name -->
+    <div class="hero-anim-bottom w-full">
+      <h2 class="font-display uppercase leading-[0.85] tracking-[-0.04em] text-left" style="font-size: clamp(3.5rem, 12vw, 15rem);">
+        <span class="block">{personalInfo.name.split(" ")[0]}</span>
+        <span class="block">{personalInfo.name.split(" ")[1]}</span>
+      </h2>
     </div>
 
-    <div class="absolute bottom-12 left-1/2 -translate-x-1/2 overflow-hidden">
-      <div class="hero-scroll-indicator text-xs uppercase tracking-[0.3em] font-mono text-white/50 flex flex-col items-center gap-4">
-        <span>Scroll to explore</span>
-        <div class="w-[1px] h-12 bg-white/20 relative overflow-hidden">
-          <div class="w-full h-full bg-white absolute top-0 left-0 animate-scroll-down"></div>
+    <!-- Bottom Right: Meta & Scroll -->
+    <div class="hero-anim-bottom flex flex-col items-start md:items-end gap-6 mb-2 md:mb-6 flex-shrink-0">
+      <p class="font-sans text-sm md:text-base leading-relaxed max-w-[25ch] text-left md:text-right text-white/60">
+        Based in CDMX.<br/>
+        Passionate about Architecture & UI.
+      </p>
+      
+      <div class="flex items-center gap-4 text-[10px] uppercase tracking-[0.25em] font-mono text-white/40">
+        <div class="w-12 h-[1px] bg-white/20 relative overflow-hidden">
+          <div class="w-full h-full bg-white/80 absolute top-0 left-0 animate-scroll-right"></div>
         </div>
+        <span>Scroll</span>
       </div>
     </div>
   </div>
 </section>
 
 <style>
-  .animate-scroll-down {
-    animation: scrollDown 2s infinite ease-in-out;
+  .animate-scroll-right {
+    animation: scrollRight 2.5s infinite ease-in-out;
   }
-  @keyframes scrollDown {
-    0% { transform: translateY(-100%); }
-    50% { transform: translateY(0); }
-    100% { transform: translateY(100%); }
+  @keyframes scrollRight {
+    0% { transform: translateX(-100%); }
+    50% { transform: translateX(0); }
+    100% { transform: translateX(100%); }
   }
 </style>
 
@@ -52,42 +71,38 @@ import { personalInfo } from '@/lib/data';
 
   gsap.registerPlugin(ScrollTrigger);
 
-  // We scope this so it runs when the component mounts
   function initHeroAnimations() {
-    // Initial load animation
-    const tl = gsap.timeline();
-    
-    tl.fromTo(".hero-title", 
-      { y: 200, opacity: 0, rotateX: 10 },
-      { y: 0, opacity: 1, rotateX: 0, duration: 1.5, ease: "power4.out" }
-    )
-    .fromTo(".hero-subtitle",
-      { y: 50, opacity: 0 },
-      { y: 0, opacity: 1, duration: 1, ease: "power3.out" },
-      "-=1"
-    )
-    .fromTo(".hero-scroll-indicator",
-      { opacity: 0 },
-      { opacity: 1, duration: 1 },
-      "-=0.5"
-    );
+    const ctx = gsap.context(() => {
+      // ── Content entrance ───────────────────────────────────────────────────
+      const tl = gsap.timeline({ delay: 0.1 });
 
-    // Scroll scrub animation (fade out and push down as user scrolls)
-    gsap.to(".hero-section .relative.z-10", {
-      y: 150,
-      opacity: 0,
-      scale: 0.95,
-      ease: "none",
-      scrollTrigger: {
-        trigger: ".page-shell", // The element that scrolls over the hero
-        start: "top bottom",
-        end: "top 20%", // Finish fading before it's completely covered
-        scrub: true,
-      }
+      tl.fromTo(".hero-anim-top > *",
+        { y: 60, opacity: 0 },
+        { y: 0, opacity: 1, duration: 1.4, stagger: 0.15, ease: "power4.out" }
+      )
+      .fromTo(".hero-anim-bottom > *",
+        { y: 60, opacity: 0 },
+        { y: 0, opacity: 1, duration: 1.4, stagger: 0.15, ease: "power4.out" },
+        "-=1.2"
+      );
+
+      // ── Parallax out on scroll ─────────────────────────────────────────────
+      gsap.to(".hero-section .relative.z-10", {
+        y: 150,
+        opacity: 0,
+        ease: "none",
+        scrollTrigger: {
+          trigger: ".scrollytelling-scene",
+          start: "top bottom",
+          end: "top 20%",
+          scrub: true,
+        }
+      });
     });
+
+    return () => ctx.revert();
   }
 
-  // Astro view transitions support
   document.addEventListener("astro:page-load", initHeroAnimations);
   if (document.readyState === "complete") {
     initHeroAnimations();

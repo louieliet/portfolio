@@ -17,10 +17,10 @@ export function ScrollProgress() {
   }, []);
 
   return (
-    <div className="fixed top-0 left-0 w-full h-[2px] z-50 bg-gray-100">
+    <div className="fixed top-0 left-0 w-full h-[2px] z-50 transition-colors duration-1000" style={{ backgroundColor: 'var(--border-light)' }}>
       <div
-        className="h-full bg-black transition-all duration-100 ease-out origin-left"
-        style={{ width: `${scrollProgress}%` }}
+        className="h-full transition-all duration-100 ease-out origin-left"
+        style={{ width: `${scrollProgress}%`, backgroundColor: 'var(--text)' }}
       />
     </div>
   );
