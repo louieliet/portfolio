@@ -2,14 +2,11 @@
 // src/components/reveal-scene.astro
 ---
 
-<section class="scrollytelling-scene relative z-10" id="reveal" aria-label="Creative philosophy" style="background-color: #0a0a0a; color: #f5f5f5;">
+<section class="scrollytelling-scene relative z-10" id="reveal" aria-label="Creative philosophy">
   <div class="pin-container">
-    <!-- Flash overlay: briefly lights up at peak reveal for a photographic "punch" -->
-    <div class="reveal-flash-overlay absolute inset-0 z-0 pointer-events-none bg-[#f0ede8] opacity-0 will-change-[opacity]"></div>
-
     <div class="split-text">
-      <span class="text-left" style="color: #f5f5f5;">CODE</span>
-      <div class="image-mask" style="background-color: #0a0a0a;">
+      <span class="text-left">CODE</span>
+      <div class="image-mask">
         <img
           src="/me02.png"
           alt="Emiliano Montes"
@@ -18,9 +15,9 @@
           decoding="async"
         />
       </div>
-      <span class="text-right" style="color: #f5f5f5;">BEAUTY</span>
+      <span class="text-right">BEAUTY</span>
     </div>
-    <p class="pin-caption absolute bottom-[8vh] text-center font-mono text-sm md:text-base max-w-[45ch] z-10 will-change-[transform,opacity] opacity-0" style="color: rgba(245,245,245,0.5);">
+    <p class="pin-caption absolute bottom-[8vh] text-center font-mono text-sm md:text-base max-w-[45ch] z-10 will-change-[transform,opacity] opacity-0" style="color: var(--text-muted);">
         I make it work. Then I make it feel right.
     </p>
   </div>
@@ -71,22 +68,26 @@
       0
     )
 
-    // Phase 2 (1.4 → 1.7): Brief editorial flash — photographic "pop"
-    .to(".reveal-flash-overlay",
-      { opacity: 0.15, duration: 0.15, ease: "power2.out" },
-      1.4
-    )
-    .to(".reveal-flash-overlay",
-      { opacity: 0, duration: 0.4, ease: "power2.in" },
-      1.55
-    )
-
-    // Phase 3 (1.6 → 2.0): Caption fades in
+    // Phase 2 (1.6 → 2.0): Caption fades in
     .fromTo(".pin-caption",
       { opacity: 0, y: 16 },
       { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" },
       1.6
     );
+
+    // ── Parallax & Blur out on scroll into Track Record ─────────────────────
+    gsap.to(".pin-container", {
+      y: 100,
+      opacity: 0,
+      filter: "blur(8px)",
+      ease: "none",
+      scrollTrigger: {
+        trigger: ".page-shell",
+        start: "top bottom",
+        end: "top 10%",
+        scrub: true,
+      }
+    });
   }
 
   document.addEventListener("astro:page-load", initRevealScene);

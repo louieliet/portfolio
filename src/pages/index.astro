@@ -16,7 +16,7 @@ import Contact from '../components/contact.astro';
   <RevealScene />
 
   <!-- Constrained Content sliding over the Hero/Reveal -->
-  <main class="page-shell relative z-10 min-h-screen border-t brutalist-border shadow-[0_-20px_50px_rgba(0,0,0,0.2)]">
+  <main class="page-shell relative z-10 min-h-screen">
     <Experience client:load />
     <Projects client:load />
     <About />
@@ -40,6 +40,14 @@ import Contact from '../components/contact.astro';
       end: "bottom bottom",
       onEnter: () => document.body.classList.add("theme-light"),
       onLeaveBack: () => document.body.classList.remove("theme-light"),
+    });
+
+    ScrollTrigger.create({
+      trigger: pageShell,
+      start: "top bottom",
+      end: "bottom bottom",
+      onEnter: () => document.body.classList.add("hero-background-paused"),
+      onLeaveBack: () => document.body.classList.remove("hero-background-paused"),
     });
   }
 

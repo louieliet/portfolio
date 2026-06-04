@@ -83,7 +83,11 @@ function LumenaTimeline({
         </div>
 
         {/* Dynamic Metadata based on active job */}
-        <div className="lumena-metadata mobile-hidden">
+        <div 
+          key={`metadata-${activeIndex}`} 
+          className="lumena-metadata mobile-hidden" 
+          style={{ animation: 'contentSwap 400ms cubic-bezier(0.23, 1, 0.32, 1) forwards' }}
+        >
           <div className="lumena-metadata-row">
             <span className="lumena-metadata-label font-mono uppercase">Role</span>
             <span>{activeItem.role}</span>
@@ -122,7 +126,7 @@ function LumenaTimeline({
                     href={job.appStoreUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 border-b pb-1 font-mono text-[10px] uppercase tracking-widest opacity-60 hover:opacity-100 transition-opacity"
+                    className="inline-flex items-center gap-2 border-b pb-1 font-mono text-[10px] uppercase tracking-widest opacity-60 hover:opacity-100 transition-all duration-200 active:scale-95"
                     style={{ borderColor: 'var(--text)' }}
                   >
                     {job.appStoreUrl.includes("apps.apple.com") ? "App Store" : "Visit Site"} ↗
@@ -138,14 +142,14 @@ function LumenaTimeline({
                       type="button"
                       key={assetIndex}
                       onClick={(event) => onAssetClick(job, assetIndex, event.currentTarget)}
-                      className="shrink-0 w-56 md:w-72 aspect-[9/16] relative cursor-zoom-in group/img snap-start overflow-hidden"
+                      className="shrink-0 w-56 md:w-72 aspect-[9/16] relative cursor-zoom-in group/img snap-start overflow-hidden transition-transform duration-[200ms] ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97]"
                       style={{ backgroundColor: 'var(--border-light)' }}
                     >
                       <Image
                         src={asset}
                         alt={`${job.company} screenshot ${assetIndex + 1}`}
                         fill
-                        className="object-cover transition-transform duration-700 hover:scale-105"
+                        className="object-cover transition-transform duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)] group-hover/img:scale-105"
                         sizes="(max-width: 768px) 56vw, 288px"
                       />
                     </button>

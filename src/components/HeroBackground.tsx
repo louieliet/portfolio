@@ -148,6 +148,7 @@ function ShaderMesh() {
   // Guardamos posiciones de ratón para interpolación suave (lerp)
   const targetMouse = useRef(new THREE.Vector2(0, 0));
   const currentMouse = useRef(new THREE.Vector2(0, 0));
+  const isPaused = useRef(false);
 
   const uniforms = useMemo(
     () => ({
@@ -171,14 +172,27 @@ function ShaderMesh() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
+  useEffect(() => {
+    const syncPausedState = () => {
+      isPaused.current = document.body.classList.contains('hero-background-paused');
+    };
+
+    syncPausedState();
+
+    const observer = new MutationObserver(syncPausedState);
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+    return () => observer.disconnect();
+  }, []);
+
   useFrame(({ clock }) => {
-    if (materialRef.current) {
-      materialRef.current.uniforms.uTime.value = clock.getElapsedTime();
-      
-      // Amortiguación física (spring damping simulado con lerp)
-      currentMouse.current.lerp(targetMouse.current, 0.04);
-      materialRef.current.uniforms.uMouse.value.copy(currentMouse.current);
-    }
+    if (!materialRef.current || isPaused.current) return;
+
+    materialRef.current.uniforms.uTime.value = clock.getElapsedTime();
+
+    // Amortiguación física (spring damping simulado con lerp)
+    currentMouse.current.lerp(targetMouse.current, 0.04);
+    materialRef.current.uniforms.uMouse.value.copy(currentMouse.current);
   });
 
   return (
