@@ -4,7 +4,7 @@ interface ButtonProps {
   href?: string;
   type?: 'button' | 'submit' | 'reset';
   variant?: 'primary' | 'secondary' | 'inverted';
-  size?: 'default' | 'micro';
+  size?: 'default' | 'micro' | 'section-cta';
   icon?: 'arrow-up-right' | 'arrow-down';
   className?: string;
   children: ReactNode;
@@ -49,6 +49,7 @@ export default function Button({
     variant === 'secondary' ? 'btn-secondary' : '',
     variant === 'inverted' ? 'btn-inverted' : '',
     size === 'micro' ? 'btn-micro' : '',
+    size === 'section-cta' ? 'btn-section-cta' : '',
     className,
   ].filter(Boolean).join(' ');
 

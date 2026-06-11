@@ -682,6 +682,24 @@
     transform: scale(0.8);
   }
 
+  /* Section CTA (40% larger than micro) */
+  .btn-section-cta {
+    gap: 0.7rem;
+    padding: 0.63rem 0.63rem 0.63rem 1.19rem;
+    font-family: var(--font-mono);
+    font-size: 15px;
+    letter-spacing: 0.02em;
+  }
+
+  .btn-section-cta .btn-icon {
+    width: 25px;
+    height: 25px;
+  }
+
+  .btn-section-cta .btn-icon svg {
+    transform: scale(1.12);
+  }
+
   /* Hover — pointer devices only */
   @media (hover: hover) and (pointer: fine) {
     .btn:not(.btn-secondary):hover::before {

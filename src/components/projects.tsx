@@ -83,7 +83,7 @@ export default function Projects() {
           ))}
         </div>
 
-        <Button href="#contact" size="micro" className="mb-8" variant="inverted">
+        <Button href="#contact" size="section-cta" className="mb-8" variant="inverted">
           Start a conversation
         </Button>
 
@@ -139,7 +139,7 @@ export default function Projects() {
               )}
 
               <div className="mt-8">
-                <Button href={`/projects/${project.id}`} variant="secondary" size="micro">
+                <Button href={`/projects/${project.id}`} variant="secondary" size="section-cta">
                   View Full Case Study
                 </Button>
               </div>
