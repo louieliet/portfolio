@@ -111,30 +111,30 @@ function LumenaTimeline({
         {items.map((job, i) => (
           <article key={`${idPrefix}-content-${i}`} className={`${idPrefix}-section lumena-viewer-section`} style={{ minHeight: 'auto', marginBottom: '8rem', paddingBottom: 0 }}>
 
-            <h3 className="lumena-viewer-title font-display flex items-center" style={{ marginBottom: '1rem', fontSize: 'clamp(2rem, 3vw, 4rem)' }}>
-              {job.company}
-              {job.highlight && <span className="ml-4 inline-block w-3 h-3 rounded-full" style={{ backgroundColor: 'var(--text)' }}></span>}
-            </h3>
-
-            <h4 className="font-sans text-xl opacity-60 mb-8">{job.role}</h4>
-
-            <div className="lumena-viewer-body" style={{ maxWidth: '75ch' }}>
-              <p className="lumena-viewer-paragraph text-lg">{job.description}</p>
+            <div className="mb-8 grid gap-6 md:grid-cols-[minmax(0,1fr)_auto] md:gap-x-10 md:gap-y-4" style={{ maxWidth: '75ch' }}>
+              <h3 className="order-1 lumena-viewer-title font-display flex items-center gap-4 md:col-start-1 md:row-start-1" style={{ marginBottom: 0, fontSize: 'clamp(2rem, 3vw, 4rem)' }}>
+                {job.company}
+                {job.highlight && <span className="inline-block w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: 'var(--text)' }}></span>}
+              </h3>
 
               {job.appStoreUrl && (
-                <div className="mt-4">
-                  <Button
-                    href={job.appStoreUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    size="section-cta"
-                    variant="inverted"
-                  >
-                    {job.appStoreUrl.includes("apps.apple.com") ? "App Store" : "Visit Site"}
-                  </Button>
-                </div>
+                <Button
+                  href={job.appStoreUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  size="section-cta"
+                  variant="inverted"
+                  className="order-4 md:order-none md:col-start-2 md:row-start-1 md:self-center md:shrink-0"
+                >
+                  {job.appStoreUrl.includes("apps.apple.com") ? "App Store" : "Visit Site"}
+                </Button>
               )}
 
+              <h4 className="order-2 font-sans text-xl opacity-60 md:col-start-1 md:row-start-2">{job.role}</h4>
+              <p className="order-3 lumena-viewer-paragraph text-lg md:col-span-2 md:row-start-3">{job.description}</p>
+            </div>
+
+            <div className="lumena-viewer-body" style={{ maxWidth: '75ch' }}>
               {/* Assets Carousel */}
               {job.assets && job.assets.length > 0 && (
                 <div className="mt-8 flex gap-6 overflow-x-auto pb-6 snap-x hide-scrollbar">
