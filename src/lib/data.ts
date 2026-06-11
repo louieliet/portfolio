@@ -140,27 +140,6 @@ export const experience: ExperienceItem[] = [
     description: "Developed web and mobile applications using React, Next.js, and React Native, with a focus on responsive interfaces and user experience. Implemented Apple Wallet solutions and mobile integrations while optimizing scalable and maintainable digital flows.",
     stack: ["React", "Next.js", "React Native", "TypeScript", "Apple Wallet"]
   },
-  {
-    company: "Contagion / Nazora Studios",
-    role: "Unity 3D Developer",
-    period: "Jan 2024 - Aug 2024",
-    description: "Designed and developed core gameplay systems and base architecture in Unity 3D. Implemented modular character and enemy systems, programmed movement, state, and interaction mechanics, and contributed to performance optimization and debugging for real-time interactive systems.",
-    stack: ["Unity 3D", "C#"]
-  },
-  {
-    company: "Chain Solutions",
-    role: "Frontend Developer Intern",
-    period: "Aug 2023 - Dec 2024",
-    description: "Developed responsive web interfaces with React and Tailwind CSS. Participated in fullstack implementations using Next.js and TypeScript for corporate web projects.",
-    stack: ["React", "Next.js", "TypeScript", "Tailwind CSS"]
-  },
-  {
-    company: "Grupo CARSO / CTIN",
-    role: "Unity Developer Intern",
-    period: "May 2024 - Nov 2024",
-    description: "Developed AR filters with Spark AR and Effect House, created 2D mini-games in Unity, and contributed to backend services in Google Cloud.",
-    stack: ["Unity", "Spark AR", "Effect House", "Google Cloud"]
-  }
 ]
 
 // Academic & Lab Experience

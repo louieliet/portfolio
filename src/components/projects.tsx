@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { projects } from "@/lib/data";
 import Image from "@/components/ui/image";
+import Button from "@/components/ui/button";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -18,7 +19,7 @@ export default function Projects() {
 
     const ctx = gsap.context(() => {
       const sections = gsap.utils.toArray<HTMLElement>(".lumena-viewer-section");
-      
+
       sections.forEach((section, i) => {
         ScrollTrigger.create({
           trigger: section,
@@ -27,7 +28,7 @@ export default function Projects() {
           onEnter: () => setActiveIndex(i),
           onEnterBack: () => setActiveIndex(i),
         });
-        
+
         // Optional subtle parallax on the image
         const img = section.querySelector(".lumena-viewer-image-wrapper img");
         if (img) {
@@ -66,7 +67,7 @@ export default function Projects() {
       {/* ── Left: Sticky Index & Metadata ────────────────────────────── */}
       <div className="lumena-sidebar">
         <h2 className="lumena-sidebar-header font-display">Selected Works</h2>
-        
+
         <div className="lumena-index-list">
           {projects.map((project, i) => (
             <div
@@ -82,19 +83,9 @@ export default function Projects() {
           ))}
         </div>
 
-        <a
-          href="#contact"
-          className="inline-flex justify-center items-center px-6 py-3 font-mono text-[10px] tracking-widest uppercase transition-colors"
-          style={{ 
-            backgroundColor: 'var(--text)', 
-            color: 'var(--bg)', 
-            borderRadius: '100px',
-            alignSelf: 'flex-start',
-            marginBottom: '2rem'
-          }}
-        >
+        <Button href="#contact" size="micro" className="mb-8">
           Start a conversation
-        </a>
+        </Button>
 
         {/* Dynamic Metadata based on active project */}
         <div className="lumena-metadata mobile-hidden">
@@ -146,21 +137,11 @@ export default function Projects() {
                   <p className="lumena-viewer-paragraph">{project.focus}</p>
                 </div>
               )}
-              
+
               <div className="mt-8">
-                 <a
-                    href={`/projects/${project.id}`}
-                    className="inline-flex items-center gap-2 px-4 py-2 uppercase tracking-widest text-[10px] font-mono transition-colors"
-                    style={{ border: '1px solid var(--border-light)' }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'var(--border-light)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                    }}
-                  >
-                    View Full Case Study <span aria-hidden="true">→</span>
-                 </a>
+                <Button href={`/projects/${project.id}`} variant="secondary" size="micro">
+                  View Full Case Study
+                </Button>
               </div>
             </div>
           </article>

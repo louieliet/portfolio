@@ -1,5 +1,6 @@
 import { experience, academicExperience, type ExperienceItem } from "@/lib/data";
 import Image from "@/components/ui/image";
+import Button from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
 import ImageLightbox from "@/components/image-lightbox";
 import { gsap } from "gsap";
@@ -38,7 +39,7 @@ function LumenaTimeline({
 
     const ctx = gsap.context(() => {
       const sections = gsap.utils.toArray<HTMLElement>(`.${idPrefix}-section`);
-      
+
       sections.forEach((section, i) => {
         ScrollTrigger.create({
           trigger: section,
@@ -66,7 +67,7 @@ function LumenaTimeline({
       {/* ── Left: Sticky Index & Metadata ────────────────────────────── */}
       <div className="lumena-sidebar">
         <h2 className="lumena-sidebar-header font-display">{title}</h2>
-        
+
         <div className="lumena-index-list">
           {items.map((job, i) => (
             <div
@@ -83,9 +84,9 @@ function LumenaTimeline({
         </div>
 
         {/* Dynamic Metadata based on active job */}
-        <div 
-          key={`metadata-${activeIndex}`} 
-          className="lumena-metadata mobile-hidden" 
+        <div
+          key={`metadata-${activeIndex}`}
+          className="lumena-metadata mobile-hidden"
           style={{ animation: 'contentSwap 400ms cubic-bezier(0.23, 1, 0.32, 1) forwards' }}
         >
           <div className="lumena-metadata-row">
@@ -106,15 +107,15 @@ function LumenaTimeline({
       {/* ── Right: Scrolling Content Sections ──────────────────────────── */}
       <div className="lumena-content">
         <p className="lumena-viewer-subtitle" style={{ marginTop: '-1rem' }}>{subtitle}</p>
-        
+
         {items.map((job, i) => (
           <article key={`${idPrefix}-content-${i}`} className={`${idPrefix}-section lumena-viewer-section`} style={{ minHeight: 'auto', marginBottom: '8rem', paddingBottom: 0 }}>
-            
+
             <h3 className="lumena-viewer-title font-display flex items-center" style={{ marginBottom: '1rem', fontSize: 'clamp(2rem, 3vw, 4rem)' }}>
               {job.company}
               {job.highlight && <span className="ml-4 inline-block w-3 h-3 rounded-full" style={{ backgroundColor: 'var(--text)' }}></span>}
             </h3>
-            
+
             <h4 className="font-sans text-xl opacity-60 mb-8">{job.role}</h4>
 
             <div className="lumena-viewer-body" style={{ maxWidth: '75ch' }}>
@@ -122,15 +123,14 @@ function LumenaTimeline({
 
               {job.appStoreUrl && (
                 <div className="mt-4">
-                  <a
+                  <Button
                     href={job.appStoreUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 border-b pb-1 font-mono text-[10px] uppercase tracking-widest opacity-60 hover:opacity-100 transition-all duration-200 active:scale-95"
-                    style={{ borderColor: 'var(--text)' }}
+                    size="micro"
                   >
-                    {job.appStoreUrl.includes("apps.apple.com") ? "App Store" : "Visit Site"} ↗
-                  </a>
+                    {job.appStoreUrl.includes("apps.apple.com") ? "App Store" : "Visit Site"}
+                  </Button>
                 </div>
               )}
 
@@ -198,9 +198,9 @@ export default function Experience() {
 
   const lightboxImages = viewer
     ? viewer.assets.map((src, index) => ({
-        src,
-        alt: `${viewer.company} screenshot ${index + 1}`,
-      }))
+      src,
+      alt: `${viewer.company} screenshot ${index + 1}`,
+    }))
     : [];
 
   return (
