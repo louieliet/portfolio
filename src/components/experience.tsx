@@ -5,12 +5,170 @@ import { useState, useRef, useEffect } from "react";
 import ImageLightbox from "@/components/image-lightbox";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { motion } from "framer-motion";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type ImageViewerState = {
   company: string;
   assets: string[];
   index: number;
 };
+
+// ─── Controlled Gallery Component ──────────────────────────────────────────────
+// Layout math:
+//   Desktop: active = 62% of viewport - gap/2, inactive = 38% - gap/2 (gap-5 = 20px)
+//   Active + gap + inactive = (62%-10) + 20 + (38%-10) = 100% ✓
+//   stepSize = inactiveWidth + gap = (viewport * 0.38 - 10) + 20 = viewport * 0.38 + 10
+//   Mobile:  all cards = 76% (partial preview), gap-4 = 16px
+
+const ACTIVE_RATIO  = 0.62;
+const INACTIVE_RATIO = 0.38;
+const GAP_DESKTOP   = 20; // gap-5
+const GAP_MOBILE    = 16; // gap-4
+
+function ControlledGallery({ 
+  assets, 
+  companyName, 
+  onImageClick 
+}: { 
+  assets: string[]; 
+  companyName: string;
+  onImageClick: (index: number, trigger: HTMLButtonElement) => void;
+}) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [stepSize, setStepSize] = useState(0);
+  const [breakoutWidth, setBreakoutWidth] = useState<number | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const measureBreakout = () => {
+      if (!rootRef.current) return;
+
+      const { left } = rootRef.current.getBoundingClientRect();
+      setBreakoutWidth(Math.max(rootRef.current.offsetWidth, window.innerWidth - left));
+    };
+
+    measureBreakout();
+    window.addEventListener("resize", measureBreakout);
+
+    return () => window.removeEventListener("resize", measureBreakout);
+  }, []);
+
+  useEffect(() => {
+    const measureStep = () => {
+      if (!viewportRef.current) return;
+      const w = viewportRef.current.offsetWidth;
+      const isMobile = window.innerWidth < 768;
+      if (isMobile) {
+        setStepSize(w * 0.76 + GAP_MOBILE);
+      } else {
+        // step = inactiveWidth + gap = (w * INACTIVE_RATIO - gap/2) + gap
+        setStepSize(w * INACTIVE_RATIO + GAP_DESKTOP / 2);
+      }
+    };
+
+    measureStep();
+  }, [assets.length, breakoutWidth]);
+
+  useEffect(() => {
+    setCurrentIndex((i) => Math.min(i, Math.max(assets.length - 1, 0)));
+  }, [assets.length]);
+
+  const paginate = (dir: number) => {
+    setCurrentIndex((i) => {
+      const next = i + dir;
+      if (next < 0) return assets.length - 1;
+      if (next >= assets.length) return 0;
+      return next;
+    });
+  };
+
+  return (
+    <div
+      ref={rootRef}
+      className="mt-8 w-full"
+      style={breakoutWidth ? { width: `${breakoutWidth}px` } : undefined}
+    >
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <div className="font-mono text-xs uppercase tracking-[0.08em] opacity-50">
+          {String(currentIndex + 1).padStart(2, "0")} / {String(assets.length).padStart(2, "0")}
+        </div>
+
+        {assets.length > 1 && (
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => paginate(-1)}
+              className="grid h-9 w-9 place-items-center border border-[var(--border-light)] bg-[var(--bg)] text-[var(--text)] transition-[background-color,transform] duration-200 ease-[var(--ease-out)] hover:bg-[var(--text)] hover:text-[var(--bg)] active:scale-[0.96]"
+              aria-label="Previous image"
+            >
+              <ChevronLeft size={18} strokeWidth={1.5} />
+            </button>
+            <button
+              type="button"
+              onClick={() => paginate(1)}
+              className="grid h-9 w-9 place-items-center border border-[var(--border-light)] bg-[var(--text)] text-[var(--bg)] transition-[background-color,transform] duration-200 ease-[var(--ease-out)] hover:bg-[var(--bg)] hover:text-[var(--text)] active:scale-[0.96]"
+              aria-label="Next image"
+            >
+              <ChevronRight size={18} strokeWidth={1.5} />
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div ref={viewportRef} className="relative overflow-hidden">
+        <motion.div
+          ref={trackRef}
+          className="flex gap-4 md:gap-5"
+          animate={{ x: -currentIndex * stepSize }}
+          transition={{ type: "spring", stiffness: 110, damping: 24 }}
+        >
+          {assets.map((asset, assetIndex) => {
+            const isActive = assetIndex === currentIndex;
+
+            return (
+              <motion.button
+                type="button"
+                key={asset}
+                onClick={(event) => {
+                  if (!isActive) {
+                    setCurrentIndex(assetIndex);
+                    return;
+                  }
+                  onImageClick(assetIndex, event.currentTarget);
+                }}
+                className={`relative aspect-[4/3] shrink-0 overflow-hidden rounded-2xl bg-[var(--border-light)] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.08)] w-[76%] ${
+                  isActive
+                    ? "md:w-[calc(62%-0.625rem)]"
+                    : "md:w-[calc(38%-0.625rem)]"
+                }`}
+                animate={{ opacity: isActive ? 1 : 0.46 }}
+                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                aria-current={isActive ? "true" : undefined}
+                aria-label={
+                  isActive
+                    ? `Open ${companyName} screenshot ${assetIndex + 1}`
+                    : `Select ${companyName} screenshot ${assetIndex + 1}`
+                }
+              >
+                <Image
+                  src={asset}
+                  alt={`${companyName} screenshot ${assetIndex + 1}`}
+                  fill
+                  draggable={false}
+                  className="object-cover pointer-events-none"
+                  sizes="(max-width: 768px) 76vw, 51ch"
+                />
+              </motion.button>
+            );
+          })}
+        </motion.div>
+      </div>
+    </div>
+  );
+}
 
 // ─── Master-Detail Timeline Component ──────────────────────────────────────────
 function LumenaTimeline({
@@ -134,28 +292,14 @@ function LumenaTimeline({
               <p className="order-3 lumena-viewer-paragraph text-lg md:col-span-2 md:row-start-3">{job.description}</p>
             </div>
 
-            <div className="lumena-viewer-body" style={{ maxWidth: '75ch' }}>
+            <div className="lumena-viewer-body relative" style={{ maxWidth: 'none', width: '100%' }}>
               {/* Assets Carousel */}
               {job.assets && job.assets.length > 0 && (
-                <div className="mt-8 flex gap-6 overflow-x-auto pb-6 snap-x hide-scrollbar">
-                  {job.assets.map((asset: string, assetIndex: number) => (
-                    <button
-                      type="button"
-                      key={assetIndex}
-                      onClick={(event) => onAssetClick(job, assetIndex, event.currentTarget)}
-                      className="shrink-0 w-56 md:w-72 aspect-[9/16] relative cursor-zoom-in group/img snap-start overflow-hidden transition-transform duration-[200ms] ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97]"
-                      style={{ backgroundColor: 'var(--border-light)' }}
-                    >
-                      <Image
-                        src={asset}
-                        alt={`${job.company} screenshot ${assetIndex + 1}`}
-                        fill
-                        className="object-cover transition-transform duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)] group-hover/img:scale-105"
-                        sizes="(max-width: 768px) 56vw, 288px"
-                      />
-                    </button>
-                  ))}
-                </div>
+                <ControlledGallery 
+                  assets={job.assets} 
+                  companyName={job.company} 
+                  onImageClick={(assetIndex, trigger) => onAssetClick(job, assetIndex, trigger)} 
+                />
               )}
             </div>
           </article>
