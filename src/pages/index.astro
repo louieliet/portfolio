@@ -31,15 +31,32 @@ import Contact from '../components/contact.astro';
   gsap.registerPlugin(ScrollTrigger);
 
   function initThemeToggle() {
-    const pageShell = document.querySelector(".page-shell");
+    const pageShell = document.querySelector<HTMLElement>(".page-shell");
     if (!pageShell) return;
 
+    // GSAP directly animates the CSS variables on the body.
+    // This is much faster than toggling classes and relying on CSS transitions,
+    // and correctly synchronizes the background and text colors.
+    gsap.to(document.body, {
+      "--bg": "#f4f3eb",
+      "--text": "#1a1a1a",
+      "--text-muted": "#6b6b6b",
+      "--border-light": "rgba(0, 0, 0, 0.12)",
+      scrollTrigger: {
+        trigger: pageShell,
+        start: "top 50%",
+        end: "top 10%",
+        scrub: true,
+      }
+    });
+
+    // We still need the class for the noise overlay mix-blend-mode switch
     ScrollTrigger.create({
       trigger: pageShell,
-      start: "top 30%", // When the page-shell covers 70% of the screen
+      start: "top 50%",
       end: "bottom bottom",
-      onEnter: () => document.body.classList.add("theme-light"),
-      onLeaveBack: () => document.body.classList.remove("theme-light"),
+      onEnter: () => document.body.classList.add("theme-transitioning"),
+      onLeaveBack: () => document.body.classList.remove("theme-transitioning"),
     });
 
     ScrollTrigger.create({

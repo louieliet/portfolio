@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useMemo, useEffect } from 'react';
+import { useRef, useMemo, useEffect, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { EffectComposer, Noise, Vignette } from '@react-three/postprocessing';
@@ -148,7 +148,6 @@ function ShaderMesh() {
   // Guardamos posiciones de ratón para interpolación suave (lerp)
   const targetMouse = useRef(new THREE.Vector2(0, 0));
   const currentMouse = useRef(new THREE.Vector2(0, 0));
-  const isPaused = useRef(false);
 
   const uniforms = useMemo(
     () => ({
@@ -172,21 +171,8 @@ function ShaderMesh() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  useEffect(() => {
-    const syncPausedState = () => {
-      isPaused.current = document.body.classList.contains('hero-background-paused');
-    };
-
-    syncPausedState();
-
-    const observer = new MutationObserver(syncPausedState);
-    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-
-    return () => observer.disconnect();
-  }, []);
-
   useFrame(({ clock }) => {
-    if (!materialRef.current || isPaused.current) return;
+    if (!materialRef.current) return;
 
     materialRef.current.uniforms.uTime.value = clock.getElapsedTime();
 
@@ -211,12 +197,32 @@ function ShaderMesh() {
 }
 
 export function HeroBackground() {
+  // frameloop="never" detiene el render loop completo (shader + postprocesado),
+  // no solo los uniforms: sin esto el GPU sigue dibujando fullscreen passes
+  // a 60fps aunque el hero esté oculto, robando frames al scroll.
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    const syncPausedState = () => {
+      setPaused(document.body.classList.contains('hero-background-paused'));
+    };
+
+    syncPausedState();
+
+    const observer = new MutationObserver(syncPausedState);
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     // Z-Index 0 y pointer-events-none aseguran que no bloquee selecciones de texto
     <div className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
       <Canvas
         orthographic
         camera={{ position: [0, 0, 1], near: 0, far: 2 }}
+        frameloop={paused ? 'never' : 'always'}
+        dpr={[1, 1.5]}
         gl={{
           antialias: false,
           alpha: false,

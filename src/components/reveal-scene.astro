@@ -47,24 +47,23 @@
 
     // Phase 1 (0 → 1.6): Clip expands + texts split + image scales in
     tl.fromTo(".image-mask",
-      { clipPath: "inset(38% 46% 38% 46%)" },   // Tighter start = more dramatic punch
-      { clipPath: "inset(0% 0% 0% 0%)", duration: 1.6, ease: "power2.inOut" },
+      { clipPath: "inset(38% 46% 38% 46%)" },
+      { clipPath: "inset(0% 0% 0% 0%)", duration: 1.6, ease: "power3.inOut" },
       0
     )
     .fromTo(".bg-image-liquid",
       { scale: 1.6 },
-      { scale: 1, duration: 1.6, ease: "power2.inOut" },
+      { scale: 1, duration: 1.6, ease: "power3.inOut" },
       0
     )
-    // More extreme horizontal spread for hard editorial collision
     .fromTo(".text-left",
       { x: "0vw" },
-      { x: "-38vw", duration: 1.6, ease: "power2.inOut" },
+      { x: "-38vw", duration: 1.6, ease: "power3.inOut" },
       0
     )
     .fromTo(".text-right",
       { x: "0vw" },
-      { x: "38vw", duration: 1.6, ease: "power2.inOut" },
+      { x: "38vw", duration: 1.6, ease: "power3.inOut" },
       0
     )
 
@@ -75,16 +74,16 @@
       1.6
     );
 
-    // ── Parallax & Blur out on scroll into Track Record ─────────────────────
+    // ── Lightweight parallax out on scroll into Track Record ────────────────
     gsap.to(".pin-container", {
       y: 100,
       opacity: 0,
-      filter: "blur(8px)",
-      ease: "none",
+      scale: 0.985,
+      ease: "power2.inOut",
       scrollTrigger: {
         trigger: ".page-shell",
         start: "top bottom",
-        end: "top 10%",
+        end: "top 20%",
         scrub: true,
       }
     });
