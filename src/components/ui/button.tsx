@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 interface ButtonProps {
   href?: string;
   type?: 'button' | 'submit' | 'reset';
-  variant?: 'primary' | 'secondary';
+  variant?: 'primary' | 'secondary' | 'inverted';
   size?: 'default' | 'micro';
   icon?: 'arrow-up-right' | 'arrow-down';
   className?: string;
@@ -47,6 +47,7 @@ export default function Button({
   const classes = [
     'btn',
     variant === 'secondary' ? 'btn-secondary' : '',
+    variant === 'inverted' ? 'btn-inverted' : '',
     size === 'micro' ? 'btn-micro' : '',
     className,
   ].filter(Boolean).join(' ');

@@ -648,6 +648,22 @@
     color: var(--text);
   }
 
+  /* Inverted */
+  .btn-inverted {
+    background: var(--bg);
+    color: var(--text);
+    box-shadow: inset 0 0 0 1px var(--border-light);
+  }
+
+  .btn-inverted::before {
+    background: var(--text);
+  }
+
+  .btn-inverted .btn-icon {
+    background: var(--text);
+    color: var(--bg);
+  }
+
   /* Micro */
   .btn-micro {
     gap: 0.5rem;
@@ -673,14 +689,24 @@
       transform-origin: left;
     }
 
-    .btn:not(.btn-secondary):hover {
+    .btn:not(.btn-secondary):not(.btn-inverted):hover {
       color: var(--text);
       box-shadow: inset 0 0 0 1px var(--text);
     }
 
-    .btn:not(.btn-secondary):hover .btn-icon {
+    .btn:not(.btn-secondary):not(.btn-inverted):hover .btn-icon {
       background: var(--text);
       color: var(--bg);
+    }
+
+    .btn-inverted:hover {
+      color: var(--bg);
+      box-shadow: none;
+    }
+
+    .btn-inverted:hover .btn-icon {
+      background: var(--bg);
+      color: var(--text);
     }
 
     .btn:not(.btn-secondary):hover .btn-icon-inner {

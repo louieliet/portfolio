@@ -128,6 +128,7 @@ function LumenaTimeline({
                     target="_blank"
                     rel="noopener noreferrer"
                     size="micro"
+                    variant="inverted"
                   >
                     {job.appStoreUrl.includes("apps.apple.com") ? "App Store" : "Visit Site"}
                   </Button>

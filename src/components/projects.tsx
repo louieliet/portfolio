@@ -83,7 +83,7 @@ export default function Projects() {
           ))}
         </div>
 
-        <Button href="#contact" size="micro" className="mb-8">
+        <Button href="#contact" size="micro" className="mb-8" variant="inverted">
           Start a conversation
         </Button>
 
