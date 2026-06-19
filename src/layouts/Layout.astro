@@ -8,11 +8,13 @@ import Header from '../components/Header.astro';
 interface Props {
   title?: string;
   description?: string;
+  theme?: "light" | "dark";
 }
 
 const {
   title = "Emiliano Montes | Frontend and Mobile Engineer",
   description = "Portfolio of Emiliano Montes, a Frontend and Mobile Engineer building scalable web and mobile products with strong UX foundations.",
+  theme = "dark",
 } = Astro.props;
 ---
 
@@ -25,7 +27,7 @@ const {
     <title>{title}</title>
     <meta name="description" content={description} />
   </head>
-  <body>
+  <body class={theme === "light" ? "theme-light" : undefined}>
     <!-- Camaleonic Header -->
     <Header />
 

@@ -1,152 +1,107 @@
-import { useEffect, useRef, useState } from "react";
 import { projects } from "@/lib/data";
 import Image from "@/components/ui/image";
 import Button from "@/components/ui/button";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 
+// Editorial zig-zag list. Each project is a large image-dominant row with a
+// proof point (metric) for credibility. The title and an explicit CTA both link
+// to the case study; the external "Live" link is secondary. Static by design:
+// no sticky sidebar, no scroll-active state, no parallax.
 export default function Projects() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  // Derive the active project to update the dynamic metadata sidebar
-  const activeProject = projects[activeIndex] || projects[0];
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    gsap.registerPlugin(ScrollTrigger);
-
-    const ctx = gsap.context(() => {
-      const sections = gsap.utils.toArray<HTMLElement>(".lumena-viewer-section");
-
-      sections.forEach((section, i) => {
-        ScrollTrigger.create({
-          trigger: section,
-          start: "top center",
-          end: "bottom center",
-          onEnter: () => setActiveIndex(i),
-          onEnterBack: () => setActiveIndex(i),
-        });
-
-        // Optional subtle parallax on the image
-        const img = section.querySelector(".lumena-viewer-image-wrapper img");
-        if (img) {
-          gsap.fromTo(
-            img,
-            { yPercent: -15, scale: 1.1 },
-            {
-              yPercent: 15,
-              scale: 1,
-              ease: "none",
-              scrollTrigger: {
-                trigger: section,
-                start: "top bottom",
-                end: "bottom top",
-                scrub: true,
-              },
-            }
-          );
-        }
-      });
-    }, containerRef);
-
-    return () => ctx.revert();
-  }, []);
-
-  const scrollToProject = (index: number) => {
-    const sections = document.querySelectorAll(".lumena-viewer-section");
-    const target = sections[index];
-    if (target) {
-      target.scrollIntoView({ behavior: "smooth" });
-    }
-  };
+  const total = String(projects.length).padStart(2, "0");
 
   return (
-    <section id="projects" className="lumena-layout font-sans" ref={containerRef}>
-      {/* ── Left: Sticky Index & Metadata ────────────────────────────── */}
-      <div className="lumena-sidebar">
-        <h2 className="lumena-sidebar-header font-display">Selected Works</h2>
+    <section id="projects" className="works font-sans">
+      <header className="works-header">
+        <div className="section-mark">Selected Works</div>
+        <h2 className="works-title font-display">Work that shipped.</h2>
+        <p className="works-intro">
+          Products, games, and platforms taken from idea to something real,
+          played, or used.
+        </p>
+      </header>
 
-        <div className="lumena-index-list">
-          {projects.map((project, i) => (
-            <div
-              key={project.id}
-              className={`lumena-index-item ${i === activeIndex ? "is-active" : ""}`}
-              onClick={() => scrollToProject(i)}
-              role="button"
-              tabIndex={0}
-            >
-              <span>{project.name}</span>
-              <span className="lumena-index-item-number">({String(i + 1).padStart(2, "0")})</span>
-            </div>
-          ))}
-        </div>
+      {projects.map((project, i) => {
+        const reversed = i % 2 === 1 && !project.highlight;
 
-        <Button href="#contact" size="section-cta" className="mb-8" variant="inverted">
-          Start a conversation
-        </Button>
-
-        {/* Dynamic Metadata based on active project */}
-        <div className="lumena-metadata mobile-hidden">
-          <div className="lumena-metadata-row">
-            <span className="lumena-metadata-label font-mono uppercase">Role</span>
-            <span>{activeProject.role}</span>
-          </div>
-          <div className="lumena-metadata-row">
-            <span className="lumena-metadata-label font-mono uppercase">Stack</span>
-            <span>{activeProject.stack.join(", ")}</span>
-          </div>
-          <div className="lumena-metadata-row" style={{ borderBottom: 'none' }}>
-            <span className="lumena-metadata-label font-mono uppercase">Year</span>
-            <span>{activeProject.year}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Right: Scrolling Content Sections ──────────────────────────── */}
-      <div className="lumena-content">
-        {projects.map((project, i) => (
-          <article key={project.id} className="lumena-viewer-section">
-            <div className="lumena-viewer-image-wrapper">
+        return (
+          <article
+            key={project.id}
+            className={`works-row${reversed ? " is-reversed" : ""}${
+              project.highlight ? " is-highlight" : ""
+            }`}
+          >
+            <div className="works-media">
               {project.images?.[0] ? (
                 <Image
                   src={project.images[0]}
                   alt={`${project.name} cover`}
                   fill
-                  className="object-cover transition-transform duration-700 hover:scale-105"
-                  sizes="(max-width: 900px) 100vw, 70vw"
+                  className="object-cover"
+                  sizes="(max-width: 900px) 100vw, 50vw"
                 />
               ) : (
-                <div className="absolute inset-0" style={{ backgroundColor: 'var(--border-light)' }} />
+                <span
+                  className="absolute inset-0"
+                  style={{ backgroundColor: "var(--border-light)" }}
+                />
               )}
             </div>
 
-            <h3 className="lumena-viewer-title font-display">{project.name}</h3>
-            <h4 className="lumena-viewer-subtitle font-sans">{project.subtitle}</h4>
+            <div className="works-info">
+              <span className="works-index">
+                {String(i + 1).padStart(2, "0")} / {total}
+              </span>
 
-            <div className="lumena-viewer-body">
-              <div>
-                <h5 className="lumena-viewer-label font-display">About the Project</h5>
-                <p className="lumena-viewer-paragraph">{project.overview || project.description}</p>
-              </div>
+              <h3 className="works-name font-display">
+                <a
+                  href={`/projects/${project.id}`}
+                  className="works-stretch"
+                  aria-label={`View ${project.name} case study`}
+                >
+                  {project.name}
+                </a>
+              </h3>
 
-              {project.focus && (
-                <div>
-                  <h5 className="lumena-viewer-label font-display">Implementation Focus</h5>
-                  <p className="lumena-viewer-paragraph">{project.focus}</p>
+              <p className="works-subtitle">{project.subtitle}</p>
+              <p className="works-desc">{project.description}</p>
+
+              {project.metric && (
+                <div className="works-metric">
+                  <span className="works-metric-value font-display">
+                    {project.metric}
+                  </span>
+                  <span className="works-metric-label">{project.metricLabel}</span>
                 </div>
               )}
 
-              <div className="mt-8">
-                <Button href={`/projects/${project.id}`} variant="secondary" size="section-cta">
-                  View Full Case Study
+              <div className="works-cta">
+                <Button
+                  href={`/projects/${project.id}`}
+                  size="section-cta"
+                  variant="inverted"
+                >
+                  View case study
                 </Button>
+              </div>
+
+              <div className="works-foot">
+                <span className="works-tag">{project.category}</span>
+                <span>{project.year}</span>
+                {project.link && (
+                  <a
+                    href={project.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="works-live"
+                  >
+                    Live
+                  </a>
+                )}
               </div>
             </div>
           </article>
-        ))}
-      </div>
+        );
+      })}
     </section>
   );
 }

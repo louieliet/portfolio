@@ -3,9 +3,7 @@ import Image from "@/components/ui/image";
 import Button from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
 import ImageLightbox from "@/components/image-lightbox";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type ImageViewerState = {
@@ -21,8 +19,8 @@ type ImageViewerState = {
 //   stepSize = inactiveWidth + gap = (viewport * 0.38 - 10) + 20 = viewport * 0.38 + 10
 //   Mobile:  all cards = 76% (partial preview), gap-4 = 16px
 
-const ACTIVE_RATIO  = 0.62;
-const INACTIVE_RATIO = 0.38;
+const ACTIVE_RATIO  = 0.58;
+const INACTIVE_RATIO = 0.42;
 const GAP_DESKTOP   = 20; // gap-5
 const GAP_MOBILE    = 16; // gap-4
 
@@ -38,6 +36,8 @@ function ControlledGallery({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [stepSize, setStepSize] = useState(0);
   const [breakoutWidth, setBreakoutWidth] = useState<number | null>(null);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const reduceMotion = useReducedMotion();
   const rootRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -76,22 +76,24 @@ function ControlledGallery({
     setCurrentIndex((i) => Math.min(i, Math.max(assets.length - 1, 0)));
   }, [assets.length]);
 
-  const paginate = (dir: number) => {
-    setCurrentIndex((i) => {
-      const next = i + dir;
-      if (next < 0) return assets.length - 1;
-      if (next >= assets.length) return 0;
-      return next;
-    });
+  // Lock during the transition so rapid clicks don't queue jumpy paginations.
+  const goTo = (index: number) => {
+    if (isAnimating) return;
+    const next = (index + assets.length) % assets.length;
+    if (next === currentIndex) return;
+    setIsAnimating(true);
+    setCurrentIndex(next);
   };
+
+  const paginate = (dir: number) => goTo(currentIndex + dir);
 
   return (
     <div
       ref={rootRef}
-      className="mt-8 w-full"
+      className="relative mt-8 w-full"
       style={breakoutWidth ? { width: `${breakoutWidth}px` } : undefined}
     >
-      <div className="mb-4 flex items-center justify-between gap-4">
+      <div className="mb-4 flex items-center gap-4">
         <div className="font-mono text-xs uppercase tracking-[0.08em] opacity-50">
           {String(currentIndex + 1).padStart(2, "0")} / {String(assets.length).padStart(2, "0")}
         </div>
@@ -122,30 +124,37 @@ function ControlledGallery({
         <motion.div
           ref={trackRef}
           className="flex gap-4 md:gap-5"
-          animate={{ x: -currentIndex * stepSize }}
-          transition={{ type: "spring", stiffness: 110, damping: 24 }}
+          animate={{ transform: `translateX(${-currentIndex * stepSize}px)` }}
+          transition={
+            reduceMotion
+              ? { duration: 0 }
+              : { duration: 0.5, ease: [0.45, 0, 0.55, 1] }
+          }
+          onAnimationComplete={() => setIsAnimating(false)}
         >
           {assets.map((asset, assetIndex) => {
             const isActive = assetIndex === currentIndex;
 
+            // Width + opacity transition lives in CSS (synced to the track
+            // timing) instead of a Framer layout animation: it keeps the
+            // object-cover image crisp where layout-scale would distort it.
             return (
-              <motion.button
+              <button
                 type="button"
                 key={asset}
                 onClick={(event) => {
                   if (!isActive) {
-                    setCurrentIndex(assetIndex);
+                    goTo(assetIndex);
                     return;
                   }
                   onImageClick(assetIndex, event.currentTarget);
                 }}
-                className={`relative aspect-[4/3] shrink-0 overflow-hidden rounded-2xl bg-[var(--border-light)] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.08)] w-[76%] ${
+                style={{ opacity: isActive ? 1 : 0.6 }}
+                className={`relative aspect-[4/3] shrink-0 overflow-hidden rounded-2xl bg-[var(--border-light)] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.08)] w-[76%] motion-safe:transition-[width,opacity] motion-safe:duration-[500ms] motion-safe:ease-[cubic-bezier(0.45,0,0.55,1)] ${
                   isActive
-                    ? "md:w-[calc(62%-0.625rem)]"
-                    : "md:w-[calc(38%-0.625rem)]"
+                    ? "md:w-[calc(58%-0.625rem)]"
+                    : "md:w-[calc(42%-0.625rem)]"
                 }`}
-                animate={{ opacity: isActive ? 1 : 0.46 }}
-                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
                 aria-current={isActive ? "true" : undefined}
                 aria-label={
                   isActive
@@ -161,7 +170,7 @@ function ControlledGallery({
                   className="object-cover pointer-events-none"
                   sizes="(max-width: 768px) 76vw, 51ch"
                 />
-              </motion.button>
+              </button>
             );
           })}
         </motion.div>
@@ -190,27 +199,44 @@ function LumenaTimeline({
   // Derive active item for dynamic metadata in the sidebar
   const activeItem = items[activeIndex] || items[0];
 
+  // Active detection by live geometry: on every scroll/resize, pick the last
+  // section whose top has crossed the viewport center. Reading getBoundingClientRect
+  // live is immune to layout shifts (async images, font swap, gallery breakout)
+  // that would otherwise leave cached ScrollTrigger start positions stale.
   useEffect(() => {
     if (typeof window === "undefined") return;
+    const root = containerRef.current;
+    if (!root) return;
 
-    gsap.registerPlugin(ScrollTrigger);
+    let rafId = 0;
 
-    const ctx = gsap.context(() => {
-      const sections = gsap.utils.toArray<HTMLElement>(`.${idPrefix}-section`);
-
+    const update = () => {
+      rafId = 0;
+      const sections = root.querySelectorAll<HTMLElement>(`.${idPrefix}-section`);
+      if (!sections.length) return;
+      const line = window.innerHeight / 2;
+      let next = 0;
       sections.forEach((section, i) => {
-        ScrollTrigger.create({
-          trigger: section,
-          start: "top center",
-          end: "bottom center",
-          onEnter: () => setActiveIndex(i),
-          onEnterBack: () => setActiveIndex(i),
-        });
+        if (section.getBoundingClientRect().top <= line) next = i;
       });
-    }, containerRef);
+      setActiveIndex(next);
+    };
 
-    return () => ctx.revert();
-  }, [idPrefix]);
+    const schedule = () => {
+      if (rafId) return;
+      rafId = window.requestAnimationFrame(update);
+    };
+
+    schedule(); // initial sync
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+
+    return () => {
+      if (rafId) window.cancelAnimationFrame(rafId);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+    };
+  }, [idPrefix, items.length]);
 
   const scrollToItem = (index: number) => {
     const sections = document.querySelectorAll(`.${idPrefix}-section`);
@@ -309,6 +335,52 @@ function LumenaTimeline({
   );
 }
 
+// ─── Academic Editorial Grid ───────────────────────────────────────────────────
+// Flat 4-column index for text-only academic entries (no assets). Replaces the
+// heavy master-detail timeline: communicates breadth, not depth. Purely static,
+// no scroll state — the responsive 4/2/1 collapse and dividers live in CSS.
+function AcademicGrid({
+  title,
+  subtitle,
+  items,
+}: {
+  title: string;
+  subtitle: string;
+  items: ExperienceItem[];
+}) {
+  return (
+    <section className="academic-grid font-sans">
+      <div className="section-mark" style={{ marginBottom: "3rem" }}>
+        Labs
+      </div>
+
+      <div className="academic-grid-header">
+        <h2 className="academic-grid-title font-display">{title}</h2>
+        <p className="academic-grid-intro">{subtitle}</p>
+      </div>
+
+      <div className="academic-grid-list">
+        {items.map((item, i) => (
+          <article className="academic-grid-item" key={item.company}>
+            <span className="academic-grid-number">
+              ({String(i + 1).padStart(2, "0")})
+            </span>
+            <h3 className="academic-grid-item-title font-display">{item.company}</h3>
+            <div className="academic-grid-meta">
+              <span>{item.role}</span>
+              <span>{item.period}</span>
+            </div>
+            <p className="academic-grid-desc">{item.description}</p>
+            {item.stack.length > 0 && (
+              <div className="academic-grid-stack">{item.stack.join(" / ")}</div>
+            )}
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 // ─── Root Component ───────────────────────────────────────────────────────────
 export default function Experience() {
   const [viewer, setViewer] = useState<ImageViewerState | null>(null);
@@ -361,12 +433,10 @@ export default function Experience() {
       </div>
 
       <div id="aside">
-        <LumenaTimeline
-          idPrefix="acad"
+        <AcademicGrid
           title="Academic & Labs."
           subtitle="Exploring new interactions and foundational knowledge."
           items={academicExperience}
-          onAssetClick={openViewer}
         />
       </div>
 

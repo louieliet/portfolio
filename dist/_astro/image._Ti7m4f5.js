@@ -1,1 +1,0 @@
-import{j as h}from"./jsx-runtime.D_zvdyIk.js";const c={position:"absolute",height:"100%",width:"100%",inset:0};function r({src:o,alt:n,fill:t,width:s,height:a,className:d,sizes:g,priority:e,style:i}){return h.jsx("img",{src:o,alt:n,width:t?void 0:s,height:t?void 0:a,className:d,sizes:g,loading:e?"eager":"lazy",decoding:e?"sync":"async",style:t?{...c,...i}:i})}export{r as I};

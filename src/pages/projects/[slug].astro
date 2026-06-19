@@ -17,6 +17,7 @@ const { project } = Astro.props;
 <Layout
   title={`${project.name} | Projects`}
   description={project.description}
+  theme="light"
 >
   <ProjectPageClient project={project} client:load />
 </Layout>
