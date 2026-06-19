@@ -13,23 +13,21 @@ type ImageViewerState = {
 };
 
 // ─── Controlled Gallery Component ──────────────────────────────────────────────
-// Layout math:
-//   Desktop: active = 62% of viewport - gap/2, inactive = 38% - gap/2 (gap-5 = 20px)
-//   Active + gap + inactive = (62%-10) + 20 + (38%-10) = 100% ✓
-//   stepSize = inactiveWidth + gap = (viewport * 0.38 - 10) + 20 = viewport * 0.38 + 10
-//   Mobile:  all cards = 76% (partial preview), gap-4 = 16px
+// Layout math (uniform cards — clean horizontal slide, no resize):
+//   Desktop: every card = 60% of viewport (one prominent + a peek of the next)
+//   Mobile:  every card = 76% (partial preview)
+//   stepSize = cardWidth + gap
 
-const ACTIVE_RATIO  = 0.58;
-const INACTIVE_RATIO = 0.42;
+const CARD_RATIO_DESKTOP = 0.6;
 const GAP_DESKTOP   = 20; // gap-5
 const GAP_MOBILE    = 16; // gap-4
 
-function ControlledGallery({ 
-  assets, 
-  companyName, 
-  onImageClick 
-}: { 
-  assets: string[]; 
+function ControlledGallery({
+  assets,
+  companyName,
+  onImageClick,
+}: {
+  assets: string[];
   companyName: string;
   onImageClick: (index: number, trigger: HTMLButtonElement) => void;
 }) {
@@ -64,8 +62,7 @@ function ControlledGallery({
       if (isMobile) {
         setStepSize(w * 0.76 + GAP_MOBILE);
       } else {
-        // step = inactiveWidth + gap = (w * INACTIVE_RATIO - gap/2) + gap
-        setStepSize(w * INACTIVE_RATIO + GAP_DESKTOP / 2);
+        setStepSize(w * CARD_RATIO_DESKTOP + GAP_DESKTOP);
       }
     };
 
@@ -135,9 +132,9 @@ function ControlledGallery({
           {assets.map((asset, assetIndex) => {
             const isActive = assetIndex === currentIndex;
 
-            // Width + opacity transition lives in CSS (synced to the track
-            // timing) instead of a Framer layout animation: it keeps the
-            // object-cover image crisp where layout-scale would distort it.
+            // Uniform width: only the track translates. No resize means no
+            // perceived scale — just a clean horizontal slide. Opacity fades
+            // the non-active cards as a subtle focus cue.
             return (
               <button
                 type="button"
@@ -150,11 +147,7 @@ function ControlledGallery({
                   onImageClick(assetIndex, event.currentTarget);
                 }}
                 style={{ opacity: isActive ? 1 : 0.6 }}
-                className={`relative aspect-[4/3] shrink-0 overflow-hidden rounded-2xl bg-[var(--border-light)] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.08)] w-[76%] motion-safe:transition-[width,opacity] motion-safe:duration-[500ms] motion-safe:ease-[cubic-bezier(0.45,0,0.55,1)] ${
-                  isActive
-                    ? "md:w-[calc(58%-0.625rem)]"
-                    : "md:w-[calc(42%-0.625rem)]"
-                }`}
+                className="relative aspect-[4/3] shrink-0 overflow-hidden rounded-2xl bg-[var(--border-light)] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.08)] w-[76%] md:w-[60%] motion-safe:transition-opacity motion-safe:duration-[500ms] motion-safe:ease-[cubic-bezier(0.45,0,0.55,1)]"
                 aria-current={isActive ? "true" : undefined}
                 aria-label={
                   isActive
@@ -175,6 +168,42 @@ function ControlledGallery({
           })}
         </motion.div>
       </div>
+    </div>
+  );
+}
+
+// ─── Static Phone Gallery ───────────────────────────────────────────────────────
+// For portrait (mobile app) screenshots that fit at once. No carousel chrome:
+// a fixed grid of phones, each opening the lightbox on click.
+function PhoneGallery({
+  assets,
+  companyName,
+  onImageClick,
+}: {
+  assets: string[];
+  companyName: string;
+  onImageClick: (index: number, trigger: HTMLButtonElement) => void;
+}) {
+  return (
+    <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-5">
+      {assets.map((asset, i) => (
+        <button
+          type="button"
+          key={asset}
+          onClick={(event) => onImageClick(i, event.currentTarget)}
+          className="relative aspect-[9/16] overflow-hidden rounded-2xl bg-[var(--border-light)] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.08)] motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-[cubic-bezier(0.45,0,0.55,1)] hover:scale-[1.02] active:scale-[0.99]"
+          aria-label={`Open ${companyName} screenshot ${i + 1}`}
+        >
+          <Image
+            src={asset}
+            alt={`${companyName} screenshot ${i + 1}`}
+            fill
+            draggable={false}
+            className="object-cover pointer-events-none"
+            sizes="(max-width: 768px) 45vw, 30vw"
+          />
+        </button>
+      ))}
     </div>
   );
 }
@@ -321,11 +350,19 @@ function LumenaTimeline({
             <div className="lumena-viewer-body relative" style={{ maxWidth: 'none', width: '100%' }}>
               {/* Assets Carousel */}
               {job.assets && job.assets.length > 0 && (
-                <ControlledGallery 
-                  assets={job.assets} 
-                  companyName={job.company} 
-                  onImageClick={(assetIndex, trigger) => onAssetClick(job, assetIndex, trigger)} 
-                />
+                job.assetAspect === "9/16" ? (
+                  <PhoneGallery
+                    assets={job.assets}
+                    companyName={job.company}
+                    onImageClick={(assetIndex, trigger) => onAssetClick(job, assetIndex, trigger)}
+                  />
+                ) : (
+                  <ControlledGallery
+                    assets={job.assets}
+                    companyName={job.company}
+                    onImageClick={(assetIndex, trigger) => onAssetClick(job, assetIndex, trigger)}
+                  />
+                )
               )}
             </div>
           </article>

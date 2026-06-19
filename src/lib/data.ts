@@ -6,6 +6,7 @@ export interface ExperienceItem {
   description: string;
   stack: string[];
   assets?: string[];
+  assetAspect?: "4/3" | "9/16";
   appStoreUrl?: string;
   highlight?: boolean;
 }
@@ -109,6 +110,7 @@ export const experience: ExperienceItem[] = [
     company: "Vyvo Tech",
     role: "Frontend Lead Engineer",
     period: "Oct 2025 - Dec 2025",
+    assetAspect: "9/16",
     description: "Led frontend development for mobile applications using React Native and Expo. Defined frontend architecture, supervised code quality standards, managed EAS build and deployment processes, and mentored developers to align implementation with product strategy.",
     stack: ["React Native", "TypeScript", "Expo", "EAS", "Figma"],
     assets: [
