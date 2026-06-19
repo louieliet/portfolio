@@ -1,0 +1,77 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Hero from '../components/hero.astro';
+import RevealScene from '../components/reveal-scene.astro';
+import Experience from '../components/experience';
+import Projects from '../components/projects';
+import About from '../components/about.astro';
+import Contact from '../components/contact.astro';
+---
+
+<Layout>
+  <!-- Full-bleed Sticky Hero -->
+  <Hero />
+
+  <!-- Scrollytelling Scene (Outside page-shell for full bleed clipping) -->
+  <RevealScene />
+
+  <!-- Constrained Content sliding over the Hero/Reveal -->
+  <main class="page-shell relative z-10 min-h-screen">
+    <Experience client:load />
+    <Projects />
+    <About />
+    <Contact />
+  </main>
+</Layout>
+
+<script>
+  import { gsap } from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  function initThemeToggle() {
+    const pageShell = document.querySelector<HTMLElement>(".page-shell");
+    if (!pageShell) return;
+
+    // GSAP directly animates the CSS variables on the body.
+    // This is much faster than toggling classes and relying on CSS transitions,
+    // and correctly synchronizes the background and text colors.
+    gsap.to(document.body, {
+      "--bg": "#f4f3eb",
+      "--text": "#1a1a1a",
+      "--text-muted": "#6b6b6b",
+      "--border-light": "rgba(0, 0, 0, 0.12)",
+      scrollTrigger: {
+        trigger: pageShell,
+        start: "top 50%",
+        end: "top 10%",
+        scrub: true,
+      }
+    });
+
+    // We still need the class for the noise overlay mix-blend-mode switch
+    ScrollTrigger.create({
+      trigger: pageShell,
+      start: "top 50%",
+      end: "bottom bottom",
+      onEnter: () => document.body.classList.add("theme-transitioning"),
+      onLeaveBack: () => document.body.classList.remove("theme-transitioning"),
+    });
+
+    ScrollTrigger.create({
+      trigger: pageShell,
+      start: "top bottom",
+      end: "bottom bottom",
+      onEnter: () => document.body.classList.add("hero-background-paused"),
+      onLeaveBack: () => document.body.classList.remove("hero-background-paused"),
+    });
+  }
+
+  document.addEventListener("astro:page-load", initThemeToggle);
+  if (document.readyState === "complete") {
+    initThemeToggle();
+  } else {
+    window.addEventListener("load", initThemeToggle);
+  }
+</script>

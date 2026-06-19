@@ -1,0 +1,86 @@
+---
+import '../styles/globals.css';
+import { AppInit } from '../components/app-init';
+import { ScrollProgress } from '../components/scroll-progress';
+import ScrollRestoration from '../components/scroll-restoration';
+import Header from '../components/Header.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  theme?: "light" | "dark";
+}
+
+const {
+  title = "Emiliano Montes | Frontend and Mobile Engineer",
+  description = "Portfolio of Emiliano Montes, a Frontend and Mobile Engineer building scalable web and mobile products with strong UX foundations.",
+  theme = "dark",
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en" class="lenis lenis-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICA8dGV4dCB4PSI1MCIgeT0iNzgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iODIiPvCfqrQ8L3RleHQ+Cjwvc3ZnPgo=" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+  </head>
+  <body class={theme === "light" ? "theme-light" : undefined}>
+    <!-- Camaleonic Header -->
+    <Header />
+
+    <!-- React Islands for Global Logic -->
+    <AppInit client:load />
+    <ScrollProgress client:load />
+    <ScrollRestoration client:load />
+
+    <!-- Main Content Slot -->
+    <slot />
+
+    <!-- SVG Filter for Liquid Texture injected at bottom of body -->
+    <svg width="0" height="0" aria-hidden="true" style="position: absolute; pointer-events: none;">
+      <filter id="liquid-filter">
+        <!-- Reduced numOctaves to 2 for massive CPU performance gain at initial load -->
+        <feTurbulence type="fractalNoise" baseFrequency="0.015 0.02" numOctaves="2" result="noise" />
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="30" xChannelSelector="R" yChannelSelector="B" />
+      </filter>
+    </svg>
+
+    <script>
+      import { gsap } from "gsap";
+      
+      // Liquid breathing effect (SVG Filter animation) optimized
+      document.addEventListener("astro:page-load", () => {
+        const filter = document.querySelector("#liquid-filter feTurbulence");
+        if (filter) {
+          const liquidTween = gsap.to(filter, {
+            attr: { baseFrequency: "0.01 0.03" },
+            duration: 8,
+            ease: "sine.inOut",
+            yoyo: true,
+            repeat: -1,
+            paused: true
+          });
+
+          const filteredElements = document.querySelectorAll(".hero-section, .bg-image-liquid");
+          if ("IntersectionObserver" in window && filteredElements.length > 0) {
+            const observer = new IntersectionObserver((entries) => {
+              const isVisible = entries.some(entry => entry.isIntersecting);
+              if (isVisible) {
+                requestAnimationFrame(() => liquidTween.resume());
+              } else {
+                liquidTween.pause();
+              }
+            }, { threshold: 0.01 });
+
+            filteredElements.forEach(el => observer.observe(el));
+          } else {
+            liquidTween.resume();
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
