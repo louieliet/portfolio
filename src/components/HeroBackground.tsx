@@ -148,6 +148,7 @@ function ShaderMesh() {
   // Guardamos posiciones de ratón para interpolación suave (lerp)
   const targetMouse = useRef(new THREE.Vector2(0, 0));
   const currentMouse = useRef(new THREE.Vector2(0, 0));
+  const firstFrameSeen = useRef(false);
 
   const uniforms = useMemo(
     () => ({
@@ -173,6 +174,13 @@ function ShaderMesh() {
 
   useFrame(({ clock }) => {
     if (!materialRef.current) return;
+
+    if (!firstFrameSeen.current) {
+      firstFrameSeen.current = true;
+      // The first draw is submitted after this callback. Release the preloader on
+      // the next animation frame, once that draw is in the drawing buffer.
+      requestAnimationFrame(() => window.dispatchEvent(new CustomEvent('hero:ready')));
+    }
 
     materialRef.current.uniforms.uTime.value = clock.getElapsedTime();
 

@@ -1,0 +1,177 @@
+---
+// Three floating objects over the manifesto (Ilya's basketball / glasses / wheel
+// idea), built procedurally from three.js primitives with a generated matcap:
+// a game controller, a phone and the favicon's potted plant. No model files,
+// no licensing. three.js is imported lazily when the chapter approaches.
+// Desktop + fine pointer only; hidden under 900px and with reduced motion.
+---
+
+<canvas class="floaters" data-floaters aria-hidden="true"></canvas>
+
+<script>
+  type ThreeNS = typeof import("three");
+
+  // Warm clay matcap drawn on a canvas: soft top-left light, dark rim.
+  function makeMatcap(THREE: ThreeNS) {
+    const c = document.createElement("canvas");
+    c.width = c.height = 256;
+    const ctx = c.getContext("2d")!;
+    const g = ctx.createRadialGradient(96, 88, 10, 128, 128, 128);
+    g.addColorStop(0, "#f6f4ec");
+    g.addColorStop(0.45, "#c9c6bc");
+    g.addColorStop(0.85, "#6b6963");
+    g.addColorStop(1, "#2a2926");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 256, 256);
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+  }
+
+  function buildController(THREE: ThreeNS, mat: import("three").Material) {
+    const g = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.42, 1.5, 6, 16), mat);
+    body.rotation.z = Math.PI / 2;
+    body.scale.set(1, 1, 0.6);
+    g.add(body);
+    for (const sx of [-1, 1]) {
+      const grip = new THREE.Mesh(new THREE.CapsuleGeometry(0.3, 0.7, 6, 16), mat);
+      grip.position.set(sx * 0.85, -0.45, 0.05);
+      grip.rotation.z = sx * 0.35;
+      g.add(grip);
+    }
+    const dpad = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.1, 24), mat);
+    dpad.rotation.x = Math.PI / 2; dpad.position.set(-0.7, 0.1, 0.3); g.add(dpad);
+    const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.2, 0.18, 24), mat);
+    stick.rotation.x = Math.PI / 2; stick.position.set(-0.25, -0.2, 0.32); g.add(stick);
+    const offsets = [[0.55, 0.3], [0.85, 0.08], [0.55, -0.14], [0.25, 0.08]];
+    offsets.forEach(([x, y]) => {
+      const b = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.08, 16), mat);
+      b.rotation.x = Math.PI / 2; b.position.set(x, y, 0.3); g.add(b);
+    });
+    return g;
+  }
+
+  async function buildPhone(THREE: ThreeNS, mat: import("three").Material) {
+    const { RoundedBoxGeometry } = await import("three/examples/jsm/geometries/RoundedBoxGeometry.js");
+    const g = new THREE.Group();
+    const body = new THREE.Mesh(new RoundedBoxGeometry(1.1, 2.2, 0.14, 4, 0.16), mat);
+    g.add(body);
+    const screen = new THREE.Mesh(new RoundedBoxGeometry(0.96, 2.04, 0.02, 3, 0.1), new THREE.MeshMatcapMaterial({ matcap: (mat as any).matcap, color: 0x2b2a27 }));
+    screen.position.z = 0.075;
+    g.add(screen);
+    const island = new THREE.Mesh(new THREE.CapsuleGeometry(0.04, 0.16, 4, 8), mat);
+    island.rotation.z = Math.PI / 2; island.position.set(0, 0.88, 0.1); g.add(island);
+    return g;
+  }
+
+  function buildPlant(THREE: ThreeNS, mat: import("three").Material) {
+    const g = new THREE.Group();
+    const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.4, 0.8, 24), mat);
+    pot.position.y = -0.7; g.add(pot);
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.07, 10, 32), mat);
+    rim.rotation.x = Math.PI / 2; rim.position.y = -0.3; g.add(rim);
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 1.1, 8), mat);
+    stem.position.y = 0.2; g.add(stem);
+    const leafGeo = new THREE.SphereGeometry(0.34, 10, 8);
+    [[0, 0.95, 0], [-0.42, 0.55, 0.15], [0.42, 0.6, -0.1], [-0.2, 0.3, -0.35], [0.22, 0.25, 0.35]].forEach(([x, y, z], i) => {
+      const leaf = new THREE.Mesh(leafGeo, mat);
+      leaf.position.set(x, y, z);
+      leaf.scale.set(1.2, 0.55, 0.9);
+      leaf.rotation.z = (i - 2) * 0.5;
+      g.add(leaf);
+    });
+    return g;
+  }
+
+  async function initFloaters() {
+    const canvas = document.querySelector<HTMLCanvasElement>("[data-floaters]");
+    const section = canvas?.closest<HTMLElement>("section");
+    if (!canvas || !section) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!window.matchMedia("(min-width: 901px) and (hover: hover)").matches) return;
+
+    // Lazy: wait until the chapter is within one viewport, then load three.js.
+    await new Promise<void>((resolve) => {
+      const io = new IntersectionObserver((entries) => {
+        if (entries.some((e) => e.isIntersecting)) { io.disconnect(); resolve(); }
+      }, { rootMargin: "100% 0px" });
+      io.observe(section);
+    });
+
+    const THREE = await import("three");
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: "low-power" });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    const scene = new THREE.Scene();
+    // Orthographic camera in section pixels: 1 unit = 1px, origin top-left.
+    const camera = new THREE.OrthographicCamera(0, 1, 0, -1, -2000, 2000);
+    camera.position.z = 1000;
+
+    const matcap = makeMatcap(THREE);
+    const mat = new THREE.MeshMatcapMaterial({ matcap });
+
+    // [object, anchor as fraction of section width/height, size px, rotation speed]
+    const specs: { obj: import("three").Group; ax: number; ay: number; size: number; spin: number; phase: number }[] = [
+      // Anchors keep the objects in the margins: brushing the statement, never covering a word.
+      { obj: buildController(THREE, mat), ax: 0.95, ay: 0.1, size: 105, spin: 0.25, phase: 0 },
+      { obj: await buildPhone(THREE, mat), ax: 0.3, ay: 0.5, size: 78, spin: 0.18, phase: 2 },
+      { obj: buildPlant(THREE, mat), ax: 0.955, ay: 0.63, size: 82, spin: 0.2, phase: 4 },
+    ];
+    specs.forEach((s) => {
+      s.obj.scale.setScalar(s.size);
+      s.obj.rotation.set(0.3, -0.4, 0.1);
+      scene.add(s.obj);
+    });
+
+    let w = 0, h = 0;
+    const resize = () => {
+      w = section.clientWidth; h = section.clientHeight;
+      renderer.setSize(w, h, false);
+      camera.left = 0; camera.right = w; camera.top = 0; camera.bottom = -h;
+      camera.updateProjectionMatrix();
+    };
+    resize();
+    window.addEventListener("resize", resize);
+
+    const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
+    window.addEventListener("pointermove", (e) => {
+      pointer.tx = (e.clientX / window.innerWidth - 0.5) * 2;
+      pointer.ty = (e.clientY / window.innerHeight - 0.5) * 2;
+    }, { passive: true });
+
+    let visible = false;
+    new IntersectionObserver((entries) => { visible = entries.some((e) => e.isIntersecting); }, { threshold: 0 }).observe(section);
+
+    (window as any).__floatersReady = true;
+    const tick = (now: number) => {
+      requestAnimationFrame(tick);
+      if (!visible) return;
+      const t = now / 1000;
+      pointer.x += (pointer.tx - pointer.x) * 0.05;
+      pointer.y += (pointer.ty - pointer.y) * 0.05;
+      // scroll parallax: objects drift against the page as the chapter crosses the viewport
+      const rect = section.getBoundingClientRect();
+      const progress = (window.innerHeight - rect.top) / (window.innerHeight + rect.height);
+      specs.forEach((s, i) => {
+        const bob = Math.sin(t * 0.8 + s.phase) * 10;
+        const par = (progress - 0.5) * (60 + i * 30);
+        s.obj.position.set(
+          s.ax * w + pointer.x * (18 + i * 8),
+          -(s.ay * h) + bob - par + pointer.y * (12 + i * 6),
+          0
+        );
+        s.obj.rotation.y = -0.4 + Math.sin(t * s.spin + s.phase) * 0.5 + pointer.x * 0.25;
+        s.obj.rotation.x = 0.3 + Math.cos(t * s.spin * 0.7 + s.phase) * 0.25 + pointer.y * 0.2;
+      });
+      renderer.render(scene, camera);
+    };
+    requestAnimationFrame(tick);
+  }
+
+  document.addEventListener("astro:page-load", initFloaters);
+  if (document.readyState === "complete") {
+    initFloaters();
+  } else {
+    window.addEventListener("load", initFloaters);
+  }
+</script>

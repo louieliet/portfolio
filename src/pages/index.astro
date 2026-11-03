@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Hero from '../components/hero.astro';
+import Preloader from '../components/preloader.astro';
 import RevealScene from '../components/reveal-scene.astro';
 import Experience from '../components/experience';
 import Projects from '../components/projects';
@@ -9,6 +10,9 @@ import Contact from '../components/contact.astro';
 ---
 
 <Layout>
+  <!-- Curtain: counts while fonts + hero WebGL get ready, then fires app:ready -->
+  <Preloader />
+
   <!-- Full-bleed Sticky Hero -->
   <Hero />
 
@@ -17,8 +21,8 @@ import Contact from '../components/contact.astro';
 
   <!-- Constrained Content sliding over the Hero/Reveal -->
   <main class="page-shell relative z-10 min-h-screen">
+    <Projects client:load />
     <Experience client:load />
-    <Projects />
     <About />
     <Contact />
   </main>

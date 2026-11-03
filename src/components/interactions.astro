@@ -1,0 +1,124 @@
+---
+// Global pointer interactions: custom cursor (dot + label on [data-cursor])
+// and magnetic pull on [data-magnetic]. Fine pointers only, reduced-motion safe.
+// Dot and label are separate fixed elements so the dot's mix-blend-mode
+// `difference` composites against the page instead of an empty parent.
+---
+
+<div class="cursor-dot" aria-hidden="true"></div>
+<div class="cursor-label" aria-hidden="true"></div>
+<div class="page-curtain" aria-hidden="true"></div>
+
+<script>
+  import { gsap } from "gsap";
+
+  // Exit transition: internal case-study links raise a curtain, then navigate.
+  // Pages morph instead of cutting. bfcache restores reset the curtain.
+  function initPageCurtain() {
+    const curtain = document.querySelector<HTMLElement>(".page-curtain");
+    if (!curtain) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    // Cross-document View Transitions run from the outgoing page, and `pageswap` only exists where
+    // they do (Chromium 126+, Safari 18.2+). Case links then morph natively instead of the curtain.
+    const nativeVT = "onpageswap" in window;
+
+    document.addEventListener("click", (e) => {
+      const a = (e.target as HTMLElement | null)?.closest<HTMLAnchorElement>('a[href^="/projects/"], a[href="/"]');
+      if (!a || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || a.target === "_blank") return;
+      if (nativeVT && a.pathname.startsWith("/projects/")) return;
+      e.preventDefault();
+      // dither-bg reads this class and cuts no image holes while the curtain covers the page.
+      document.documentElement.classList.add("is-leaving");
+      gsap.to(curtain, { yPercent: -100, duration: 0.7, ease: "expo.inOut", onComplete: () => { window.location.href = a.href; } });
+    });
+    window.addEventListener("pageshow", () => {
+      document.documentElement.classList.remove("is-leaving");
+      gsap.set(curtain, { yPercent: 0 });
+    });
+  }
+
+  function initInteractions() {
+    initPageCurtain();
+    const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!fine || reduce) return;
+
+    const dot = document.querySelector<HTMLElement>(".cursor-dot");
+    const label = document.querySelector<HTMLElement>(".cursor-label");
+    if (!dot || !label) return;
+
+    const body = document.body;
+    body.classList.add("has-cursor", "cursor-out");
+
+    // quickTo reuses one tween per axis instead of allocating on every move.
+    const dotX = gsap.quickTo(dot, "x", { duration: 0.18, ease: "power3" });
+    const dotY = gsap.quickTo(dot, "y", { duration: 0.18, ease: "power3" });
+    const labelX = gsap.quickTo(label, "x", { duration: 0.42, ease: "power3" });
+    const labelY = gsap.quickTo(label, "y", { duration: 0.42, ease: "power3" });
+
+    const onMove = (e: PointerEvent) => {
+      body.classList.remove("cursor-out");
+      dotX(e.clientX); dotY(e.clientY);
+      labelX(e.clientX); labelY(e.clientY);
+    };
+
+    // Event delegation: one listener handles every current and future target.
+    const onOver = (e: Event) => {
+      const t = e.target as HTMLElement | null;
+      if (!t) return;
+      const labelled = t.closest<HTMLElement>("[data-cursor]");
+      if (labelled) {
+        label.textContent = labelled.dataset.cursor || "";
+        body.classList.add("cursor-labelled");
+        return;
+      }
+      if (t.closest("a, button, [role='button'], input, textarea, select")) {
+        body.classList.add("cursor-hover");
+      }
+    };
+
+    const onOut = (e: Event) => {
+      const t = e.target as HTMLElement | null;
+      const related = (e as MouseEvent).relatedTarget as HTMLElement | null;
+      if (t?.closest("[data-cursor]") && !related?.closest("[data-cursor]")) {
+        body.classList.remove("cursor-labelled");
+      }
+      if (t?.closest("a, button, [role='button'], input, textarea, select") &&
+          !related?.closest("a, button, [role='button'], input, textarea, select")) {
+        body.classList.remove("cursor-hover");
+      }
+    };
+
+    const onLeave = () => body.classList.add("cursor-out");
+
+    window.addEventListener("pointermove", onMove, { passive: true });
+    document.addEventListener("mouseover", onOver);
+    document.addEventListener("mouseout", onOut);
+    document.documentElement.addEventListener("mouseleave", onLeave);
+
+    // ── Magnetic pull ───────────────────────────────────────────────────────
+    // Each target gets its own quickTo pair; the pull is a fraction of the
+    // pointer offset from the element center, released with a soft elastic.
+    document.querySelectorAll<HTMLElement>("[data-magnetic]").forEach((el) => {
+      const strength = parseFloat(el.dataset.magnetic || "0.35");
+      const x = gsap.quickTo(el, "x", { duration: 0.5, ease: "power3" });
+      const y = gsap.quickTo(el, "y", { duration: 0.5, ease: "power3" });
+
+      el.addEventListener("pointermove", (e) => {
+        const r = el.getBoundingClientRect();
+        x((e.clientX - (r.left + r.width / 2)) * strength);
+        y((e.clientY - (r.top + r.height / 2)) * strength);
+      });
+      el.addEventListener("pointerleave", () => {
+        gsap.to(el, { x: 0, y: 0, duration: 0.8, ease: "elastic.out(1, 0.45)" });
+      });
+    });
+  }
+
+  document.addEventListener("astro:page-load", initInteractions);
+  if (document.readyState === "complete") {
+    initInteractions();
+  } else {
+    window.addEventListener("load", initInteractions);
+  }
+</script>

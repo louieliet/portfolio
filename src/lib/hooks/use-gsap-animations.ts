@@ -118,12 +118,23 @@ export function useGSAPAnimations() {
       }
     });
 
-    const refreshId = window.setTimeout(() => {
+    // This island hydrates before the Astro <script>s that pin CODE BEAUTY run
+    // on `load`, so triggers created here would refresh first and miss that
+    // pin's spacer. Re-sort by position and refresh once everything exists:
+    // after load, and again when the preloader releases the page.
+    const resync = () => {
+      ScrollTrigger.sort();
       ScrollTrigger.refresh();
-    }, 100);
+    };
+    const timers = [window.setTimeout(resync, 100)];
+    const onLoad = () => timers.push(window.setTimeout(resync, 50));
+    window.addEventListener("load", onLoad);
+    window.addEventListener("app:ready", onLoad);
 
     return () => {
-      window.clearTimeout(refreshId);
+      timers.forEach((t) => window.clearTimeout(t));
+      window.removeEventListener("load", onLoad);
+      window.removeEventListener("app:ready", onLoad);
       ctx.revert();
     };
   }, []);

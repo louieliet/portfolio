@@ -10,6 +10,7 @@ type ImageProps = {
   sizes?: string;
   priority?: boolean;
   style?: CSSProperties;
+  draggable?: boolean;
 };
 
 const fillStyle: CSSProperties = {
@@ -29,6 +30,7 @@ export default function Image({
   sizes,
   priority,
   style,
+  draggable,
 }: ImageProps) {
   return (
     <img
@@ -38,6 +40,7 @@ export default function Image({
       height={fill ? undefined : height}
       className={className}
       sizes={sizes}
+      draggable={draggable}
       loading={priority ? "eager" : "lazy"}
       decoding={priority ? "sync" : "async"}
       style={fill ? { ...fillStyle, ...style } : style}

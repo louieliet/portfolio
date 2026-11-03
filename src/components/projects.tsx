@@ -1,107 +1,127 @@
+import { useEffect, useRef, useState } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { projects } from "@/lib/data";
 import Image from "@/components/ui/image";
-import Button from "@/components/ui/button";
+import { useReducedMotion } from "@/lib/hooks/use-reduced-motion";
 
-// Editorial zig-zag list. Each project is a large image-dominant row with a
-// proof point (metric) for credibility. The title and an explicit CTA both link
-// to the case study; the external "Live" link is secondary. Static by design:
-// no sticky sidebar, no scroll-active state, no parallax.
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
+
+// Cases (Joffrey model): a centered column of case images at alternating
+// widths, a sticky "Cases" label bottom-left and a sticky index bottom-right
+// whose active name follows the image crossing the viewport center. Natural
+// scroll, no pin. Active detection reads live geometry (rAF) so it is immune
+// to ScrollTrigger refresh order.
 export default function Projects() {
-  const total = String(projects.length).padStart(2, "0");
+  const stackRef = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState(0);
+  const reduce = useReducedMotion();
+
+  useEffect(() => {
+    const stack = stackRef.current;
+    if (!stack) return;
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const line = window.innerHeight * 0.55;
+      const nodes = stack.querySelectorAll<HTMLElement>(".case");
+      let next = 0;
+      nodes.forEach((n, i) => {
+        if (n.getBoundingClientRect().top <= line) next = i;
+      });
+      setActive(next);
+    };
+    const schedule = () => {
+      if (!raf) raf = window.requestAnimationFrame(update);
+    };
+    schedule();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    return () => {
+      if (raf) window.cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (reduce) return;
+    const stack = stackRef.current;
+    if (!stack) return;
+    const ctx = gsap.context(() => {
+      gsap.utils.toArray<HTMLElement>(".case", stack).forEach((el) => {
+        gsap.fromTo(
+          el,
+          { y: 48, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 1.3,
+            ease: "expo.out",
+            // Created from React before the Astro CODE BEAUTY pin exists; refresh after it.
+            scrollTrigger: { trigger: el, start: "top 92%", once: true, refreshPriority: -1 },
+          }
+        );
+      });
+    }, stack);
+    return () => ctx.revert();
+  }, [reduce]);
+
+  const scrollTo = (i: number) => {
+    stackRef.current?.querySelectorAll<HTMLElement>(".case")[i]?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
 
   return (
-    <section id="projects" className="works font-sans">
-      <header className="works-header">
-        <div className="section-mark">Selected Works</div>
-        <h2 className="works-title font-display">Work that shipped.</h2>
-        <p className="works-intro">
-          Products, games, and platforms taken from idea to something real,
-          played, or used.
-        </p>
-      </header>
+    <section id="projects" className="cases font-sans" aria-label="Selected cases">
+      <div className="cases-side">
+        <div className="cases-sticky">
+          <h2 className="chapter-title cases-label">Cases</h2>
+        </div>
+      </div>
 
-      {projects.map((project, i) => {
-        const reversed = i % 2 === 1 && !project.highlight;
-
-        return (
-          <article
+      <div className="cases-stack" ref={stackRef}>
+        {projects.map((project, i) => (
+          <a
             key={project.id}
-            className={`works-row${reversed ? " is-reversed" : ""}${
-              project.highlight ? " is-highlight" : ""
-            }`}
+            href={`/projects/${project.id}`}
+            className="case"
+            data-cursor="View"
+            aria-label={`View ${project.name} case study`}
           >
-            <div className="works-media">
+            <div className="case-media" style={{ viewTransitionName: `case-${project.id}` }}>
               {project.images?.[0] ? (
-                <Image
-                  src={project.images[0]}
-                  alt={`${project.name} cover`}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 900px) 100vw, 50vw"
-                />
+                <Image src={project.images[0]} alt={`${project.name} cover`} fill sizes="(max-width: 900px) 92vw, 46vw" />
               ) : (
-                <span
-                  className="absolute inset-0"
-                  style={{ backgroundColor: "var(--border-light)" }}
-                />
-              )}
-            </div>
-
-            <div className="works-info">
-              <span className="works-index">
-                {String(i + 1).padStart(2, "0")} / {total}
-              </span>
-
-              <h3 className="works-name font-display">
-                <a
-                  href={`/projects/${project.id}`}
-                  className="works-stretch"
-                  aria-label={`View ${project.name} case study`}
-                >
-                  {project.name}
-                </a>
-              </h3>
-
-              <p className="works-subtitle">{project.subtitle}</p>
-              <p className="works-desc">{project.description}</p>
-
-              {project.metric && (
-                <div className="works-metric">
-                  <span className="works-metric-value font-display">
-                    {project.metric}
-                  </span>
-                  <span className="works-metric-label">{project.metricLabel}</span>
+                <div className="case-placeholder">
+                  <span className="case-placeholder-name">{project.name}</span>
+                  <span className="case-placeholder-note">Images coming soon</span>
                 </div>
               )}
-
-              <div className="works-cta">
-                <Button
-                  href={`/projects/${project.id}`}
-                  size="section-cta"
-                  variant="inverted"
-                >
-                  View case study
-                </Button>
-              </div>
-
-              <div className="works-foot">
-                <span className="works-tag">{project.category}</span>
-                <span>{project.year}</span>
-                {project.link && (
-                  <a
-                    href={project.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="works-live"
-                  >
-                    Live
-                  </a>
-                )}
-              </div>
             </div>
-          </article>
-        );
-      })}
+            <div className="case-caption">
+              <span>{String(i + 1).padStart(2, "0")} {project.name}</span>
+              <span className="case-tags">
+                <span className="tag">{project.category}</span>
+                <span className="tag">{project.year}</span>
+              </span>
+            </div>
+          </a>
+        ))}
+      </div>
+
+      <div className="cases-side is-right">
+        <div className="cases-sticky">
+          <ol className="cases-index" aria-label="Case index">
+            {projects.map((project, i) => (
+              <li key={project.id} className={i === active ? "is-active" : undefined}>
+                <button type="button" onClick={() => scrollTo(i)}>{project.name}</button>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
     </section>
   );
 }

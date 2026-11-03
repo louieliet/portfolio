@@ -41,7 +41,7 @@ import { HeroBackground } from './HeroBackground';
     <div class="hero-anim-bottom flex flex-col items-start md:items-end gap-6 mb-2 md:mb-6 flex-shrink-0">
       <p class="font-sans text-sm md:text-base leading-relaxed max-w-[25ch] text-left md:text-right text-white/60">
         Based in CDMX.<br/>
-        Passionate about Architecture & UI.
+        Where UX/UI meets motion and code.
       </p>
       
       <div class="flex items-center gap-4 text-[10px] uppercase tracking-[0.25em] font-mono text-white/40">
@@ -72,6 +72,12 @@ import { HeroBackground } from './HeroBackground';
   gsap.registerPlugin(ScrollTrigger);
 
   function initHeroAnimations() {
+    // Reduced motion: skip GSAP entirely. Content renders in its natural (visible)
+    // state and the parallax scrub never registers.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return () => {};
+    }
+
     const ctx = gsap.context(() => {
       // ── Content entrance ───────────────────────────────────────────────────
       const tl = gsap.timeline({ delay: 0.1 });
