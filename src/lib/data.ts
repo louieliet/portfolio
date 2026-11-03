@@ -198,7 +198,7 @@ export const projects = [
     year: "2026",
     link: "https://www.iluk.ai/",
     linkLabel: "Visit iLuk.ai",
-    images: ["/projects/iluk-landing/hero.webp"],
+    images: ["/projects/iluk-cover.webp"],
     badge: { label: "Status", text: "Live at iluk.ai" },
     category: "Web",
     sections: [
