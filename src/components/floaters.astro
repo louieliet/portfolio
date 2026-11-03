@@ -66,7 +66,12 @@
   }
 
   function buildPlant(THREE: ThreeNS, mat: import("three").Material) {
+    // Pivot sits at the pot bottom (model y -1.1). The plant is lifted into it,
+    // so rotating the pivot sways the plant around its base.
+    const pivot = new THREE.Group();
     const g = new THREE.Group();
+    g.position.y = 1.1;
+    pivot.add(g);
     const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.4, 0.8, 24), mat);
     pot.position.y = -0.7; g.add(pot);
     const rim = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.07, 10, 32), mat);
@@ -81,8 +86,20 @@
       leaf.rotation.z = (i - 2) * 0.5;
       g.add(leaf);
     });
-    return g;
+    return pivot;
   }
+
+  // Per-object motion channel: amplitude, two incommensurate frequencies (rad/s), phase.
+  type Wave = { a: number; f: [number, number]; p: number };
+  type Spring = { x: number; v: number };
+  const wave = (t: number, w: Wave) =>
+    w.a * 0.5 * (Math.sin(t * w.f[0] + w.p) + Math.sin(t * w.f[1] + w.p * 1.6));
+
+  // Damped spring toward target, semi-implicit Euler. Stable for dt <= 1/30.
+  const spring = (s: Spring, target: number, k: number, c: number, dt: number) => {
+    s.v += (-k * (s.x - target) - c * s.v) * dt;
+    s.x += s.v * dt;
+  };
 
   async function initFloaters() {
     const canvas = document.querySelector<HTMLCanvasElement>("[data-floaters]");
@@ -110,16 +127,38 @@
     const matcap = makeMatcap(THREE);
     const mat = new THREE.MeshMatcapMaterial({ matcap });
 
-    // [object, anchor as fraction of section width/height, size px, rotation speed]
-    const specs: { obj: import("three").Group; ax: number; ay: number; size: number; spin: number; phase: number }[] = [
-      // Anchors keep the objects in the margins: brushing the statement, never covering a word.
-      { obj: buildController(THREE, mat), ax: 0.95, ay: 0.1, size: 105, spin: 0.25, phase: 0 },
-      { obj: await buildPhone(THREE, mat), ax: 0.3, ay: 0.5, size: 78, spin: 0.18, phase: 2 },
-      { obj: buildPlant(THREE, mat), ax: 0.955, ay: 0.63, size: 82, spin: 0.2, phase: 4 },
+    // Each object has its own personality: bob, rotation waves, parallax depth, pointer spring.
+    // Anchors keep the objects in the margins: brushing the statement, never covering a word.
+    // pivotY: rotation pivot in model units from the anchor (plant: pot bottom).
+    // tilt: roll per unit of pointer spring x (breeze). pull: px per unit of spring x/y.
+    const specs: {
+      obj: import("three").Group; ax: number; ay: number; size: number; pivotY: number;
+      base: [number, number, number]; bob: Wave; rx: Wave; ry: Wave; rz: Wave;
+      par: number; pull: [number, number]; tilt: number; k: number; c: number;
+      sx: Spring; sy: Spring;
+    }[] = [
+      // Restless: quick short bob, roll wobble like it is held in hands, stiff snappy pointer.
+      { obj: buildController(THREE, mat), ax: 0.95, ay: 0.1, size: 105, pivotY: 0,
+        base: [0.25, -0.4, 0], bob: { a: 5, f: [1.31, 2.17], p: 0 },
+        rx: { a: 0.2, f: [0.61, 0.97], p: 1 }, ry: { a: 0.5, f: [0.31, 0.53], p: 0 },
+        rz: { a: 0.07, f: [1.07, 1.73], p: 2 },
+        par: 60, pull: [16, 10], tilt: 0, k: 120, c: 11, sx: { x: 0, v: 0 }, sy: { x: 0, v: 0 } },
+      // Heavy and calm: slow wide float, mostly a slow yaw, soft well-damped pointer.
+      { obj: await buildPhone(THREE, mat), ax: 0.3, ay: 0.5, size: 78, pivotY: 0,
+        base: [0.12, -0.4, 0.05], bob: { a: 14, f: [0.37, 0.53], p: 2 },
+        rx: { a: 0.06, f: [0.19, 0.27], p: 0.5 }, ry: { a: 0.85, f: [0.22, 0.31], p: 2 },
+        rz: { a: 0.03, f: [0.17, 0.41], p: 1 },
+        par: 90, pull: [26, 8], tilt: 0, k: 14, c: 7.5, sx: { x: 0, v: 0 }, sy: { x: 0, v: 0 } },
+      // Rooted: almost no bob, wind sway around the pot, breeze push with a gentle overshoot.
+      { obj: buildPlant(THREE, mat), ax: 0.955, ay: 0.63, size: 82, pivotY: -1.1,
+        base: [0.3, -0.35, 0], bob: { a: 1.5, f: [0.91, 1.37], p: 4 },
+        rx: { a: 0.04, f: [0.29, 0.53], p: 0 }, ry: { a: 0.5, f: [0.23, 0.37], p: 1 },
+        rz: { a: 0.08, f: [0.42, 0.67], p: 3 },
+        par: 40, pull: [10, 4], tilt: 0.22, k: 40, c: 5, sx: { x: 0, v: 0 }, sy: { x: 0, v: 0 } },
     ];
     specs.forEach((s) => {
       s.obj.scale.setScalar(s.size);
-      s.obj.rotation.set(0.3, -0.4, 0.1);
+      s.obj.rotation.set(s.base[0], s.base[1], s.base[2]);
       scene.add(s.obj);
     });
 
@@ -133,7 +172,8 @@
     resize();
     window.addEventListener("resize", resize);
 
-    const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
+    // Shared raw pointer target. Each object follows it through its own spring.
+    const pointer = { tx: 0, ty: 0 };
     window.addEventListener("pointermove", (e) => {
       pointer.tx = (e.clientX / window.innerWidth - 0.5) * 2;
       pointer.ty = (e.clientY / window.innerHeight - 0.5) * 2;
@@ -143,25 +183,32 @@
     new IntersectionObserver((entries) => { visible = entries.some((e) => e.isIntersecting); }, { threshold: 0 }).observe(section);
 
     (window as any).__floatersReady = true;
+    let last = -1;
     const tick = (now: number) => {
       requestAnimationFrame(tick);
+      // Clamp dt so a tab switch does not kick the springs.
+      const dt = last < 0 ? 1 / 60 : Math.min((now - last) / 1000, 1 / 30);
+      last = now;
       if (!visible) return;
       const t = now / 1000;
-      pointer.x += (pointer.tx - pointer.x) * 0.05;
-      pointer.y += (pointer.ty - pointer.y) * 0.05;
       // scroll parallax: objects drift against the page as the chapter crosses the viewport
       const rect = section.getBoundingClientRect();
       const progress = (window.innerHeight - rect.top) / (window.innerHeight + rect.height);
-      specs.forEach((s, i) => {
-        const bob = Math.sin(t * 0.8 + s.phase) * 10;
-        const par = (progress - 0.5) * (60 + i * 30);
+      specs.forEach((s) => {
+        spring(s.sx, pointer.tx, s.k, s.c, dt);
+        spring(s.sy, pointer.ty, s.k, s.c, dt);
+        const px = s.sx.x, py = s.sy.x;
+        const par = (progress - 0.5) * s.par;
         s.obj.position.set(
-          s.ax * w + pointer.x * (18 + i * 8),
-          -(s.ay * h) + bob - par + pointer.y * (12 + i * 6),
+          s.ax * w + px * s.pull[0],
+          -(s.ay * h) + s.pivotY * s.size + wave(t, s.bob) - par + py * s.pull[1],
           0
         );
-        s.obj.rotation.y = -0.4 + Math.sin(t * s.spin + s.phase) * 0.5 + pointer.x * 0.25;
-        s.obj.rotation.x = 0.3 + Math.cos(t * s.spin * 0.7 + s.phase) * 0.25 + pointer.y * 0.2;
+        s.obj.rotation.set(
+          s.base[0] + wave(t, s.rx),
+          s.base[1] + wave(t, s.ry),
+          s.base[2] + wave(t, s.rz) - px * s.tilt
+        );
       });
       renderer.render(scene, camera);
     };
