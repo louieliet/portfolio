@@ -19,6 +19,16 @@ export function useLenis() {
 
     setLenisInstance(lenis);
 
+    // Preloader hold: `html.is-loading` is set before this island hydrates.
+    // Stop Lenis so wheel/touch can't move the page behind the curtain, then
+    // start on `app:ready` (fired by preloader.astro, or immediately when the
+    // preloader is skipped).
+    const onReady = () => lenis.start();
+    if (document.documentElement.classList.contains("is-loading")) {
+      lenis.stop();
+      window.addEventListener("app:ready", onReady, { once: true });
+    }
+
     // Sync ScrollTrigger on every Lenis scroll event so pinned elements
     // track the virtual scroll position, not the native scrollTop.
     lenis.on("scroll", ScrollTrigger.update);
@@ -34,6 +44,7 @@ export function useLenis() {
     gsap.ticker.add(tickerFn);
 
     return () => {
+      window.removeEventListener("app:ready", onReady);
       gsap.ticker.remove(tickerFn);
       lenis.off("scroll", ScrollTrigger.update);
       setLenisInstance(null);

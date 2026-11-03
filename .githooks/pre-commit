@@ -1,0 +1,3 @@
+#!/bin/sh
+# Gate: CODE BEAUTY scene + handoffs frozen (see scripts/check-code-beauty.mjs)
+npm test --silent

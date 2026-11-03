@@ -1,4 +1,11 @@
 // Types
+export interface ProjectSection {
+  id: string; // slug, used as anchor
+  title: string;
+  body: string[]; // paragraphs
+  media?: { kind: "full" | "screens"; images: string[] }; // full = one landscape image; screens = row of 1-4 portrait phone screens. A .mp4 entry is a looping clip with its .webp sibling as poster.
+}
+
 export interface ExperienceItem {
   company: string;
   role: string;
@@ -23,8 +30,15 @@ export interface ProjectItem {
   year: string;
   highlight?: boolean;
   link?: string;
+  linkLabel?: string;
   images?: string[];
+  imageAspect?: "9/16";
+  badge?: { label: string; text: string };
   category: "Web" | "Mobile" | "Gaming";
+  sections?: ProjectSection[];
+  team?: string[];
+  // Animated mascot beside the title. Sources ordered like CastClip: HEVC alpha .mov for Safari, VP9 alpha .webm, still poster.
+  mascot?: { mov: string; webm: string; poster: string };
 }
 
 export const personalInfo = {
@@ -37,23 +51,23 @@ export const personalInfo = {
   github: "https://github.com/louieliet",
   phone: "+52 735 135 1245",
   about: {
-    history: "I am an Animation and Video Game Engineer from Universidad Panamericana, currently pursuing a postgraduate specialization in Interactive Design and a diploma in Data Science. My work sits at the intersection of frontend engineering, mobile development, product design, and data-informed thinking.\n\nI build scalable web and mobile experiences that balance usability, visual clarity, and technical execution. My background in React, Next.js, React Native, SwiftUI, backend integrations, and game development gives me a broad perspective on how products are imagined, implemented, and improved.\n\nI am especially interested in frontend systems, mobile applications, interaction design, backend integrations, cloud computing, and big data. My goal is to contribute to products that create value by connecting design, code, and data into intuitive, maintainable, and high-performance digital experiences.",
+    history: "Product designer and engineer based in Mexico City. I graduated in Animation and Video Game Engineering from Universidad Panamericana, where I also completed a postgraduate specialization in Interactive Design and a diploma in Data Science. At Feeble I design and build web and native iOS products end to end.\n\nI build scalable web and mobile experiences that balance usability, visual clarity, and technical execution. My background in React, Next.js, React Native, SwiftUI, backend integrations, and game development gives me a broad perspective on how products are imagined, implemented, and improved.\n\nI am especially interested in frontend systems, mobile applications, interaction design, backend integrations, cloud computing, and big data. My goal is to contribute to products that create value by connecting design, code, and data into intuitive, maintainable, and high-performance digital experiences.",
     approach: [
       {
-        title: "Research",
-        description: "Understand the user, don't assume. User interviews, analytics, journey mapping."
+        title: "Understand",
+        description: "Who it's for and what they need. Flows, constraints and the smallest thing worth building."
       },
       {
         title: "Design",
-        description: "Wireframes → Prototypes → High-fidelity. Figma, design systems, usability testing."
+        description: "Wireframes to high fidelity in Figma, built on a design system."
       },
       {
         title: "Build",
-        description: "Clean, performant, accessible code. React/React Native, TypeScript, SwiftUI."
+        description: "React, Next.js, React Native and SwiftUI. Accessible, performant code."
       },
       {
-        title: "Iterate",
-        description: "Measure, learn, improve. User feedback, A/B testing, continuous improvement."
+        title: "Refine",
+        description: "Motion, polish and iteration based on real use."
       }
     ],
     education: [
@@ -70,7 +84,7 @@ export const personalInfo = {
       {
         degree: "Data Science Diploma",
         institution: "Universidad Panamericana",
-        year: "2025 - Present"
+        year: "2025 - 2026"
       }
     ],
     interests: [
@@ -93,10 +107,19 @@ export const stack = {
 // Professional Experience (Companies)
 export const experience: ExperienceItem[] = [
   {
+    company: "Feeble.io",
+    role: "Fullstack Developer & UX/UI Designer",
+    period: "Jul 2026 - Present",
+    description: "Building products end to end: Next.js web, native iOS in SwiftUI, a Convex backend, and the UX in Figma.",
+    stack: ["Next.js", "TypeScript", "Swift", "SwiftUI", "Convex", "Figma"],
+    assets: ["/projects/feeble01.png"],
+    appStoreUrl: "https://feeble.io/"
+  },
+  {
     company: "iLuk.ai",
     role: "Frontend Engineer",
-    period: "Dec 2025 - Present",
-    description: "Develop and maintain scalable frontend systems for AI-driven digital platforms. Build high-performance UI components aligned with product vision and business goals, collaborating with multidisciplinary teams to deliver user-centered features with measurable impact.",
+    period: "Dec 2025 - Jul 2026",
+    description: "Built the frontend of an AI platform: scalable systems and high-performance UI components.",
     stack: ["Next.js", "React", "TypeScript", "Tailwind CSS"],
     assets: [
       "/projects/iluk01.png",
@@ -111,151 +134,57 @@ export const experience: ExperienceItem[] = [
     role: "Frontend Lead Engineer",
     period: "Oct 2025 - Dec 2025",
     assetAspect: "9/16",
-    description: "Led frontend development for mobile applications using React Native and Expo. Defined frontend architecture, supervised code quality standards, managed EAS build and deployment processes, and mentored developers to align implementation with product strategy.",
+    description: "Led mobile frontend in React Native: set the architecture, owned EAS releases, mentored the team.",
     stack: ["React Native", "TypeScript", "Expo", "EAS", "Figma"],
-    assets: [
-      "/projects/vyvo01.webp",
-      "/projects/vyvo02.webp",
-      "/projects/vyvo03.webp"
-    ],
+    assets: ["/projects/vyvo-onboarding.png"],
     appStoreUrl: "https://apps.apple.com/mx/app/vyvo-ai/id6749719082",
     highlight: true
   },
   {
-    company: "Pulse Studio",
-    role: "Web Designer",
-    period: "Apr 2025 - Aug 2025",
-    description: "Designed and developed SEO-optimized WordPress websites. Created UX/UI prototypes in Figma, ensured brand consistency, and delivered responsive digital experiences focused on performance.",
-    stack: ["WordPress", "Figma", "SEO", "Responsive Design"]
-  },
-  {
-    company: "Legaltec",
-    role: "Fullstack Developer",
-    period: "Mar 2025 - Aug 2025",
-    description: "Developed web applications using NextJS, TypeScript, and TailwindCSS. Built backend services using Firebase and NodeJS. Integrated APIs and contributed to scalable cloud-based architectures.",
-    stack: ["Next.js", "TypeScript", "Tailwind CSS", "Firebase", "NodeJS"]
-  },
-  {
-    company: "Luyoa",
-    role: "Frontend / Mobile Developer",
-    period: "Dec 2024 - Mar 2025",
-    description: "Developed web and mobile applications using React, Next.js, and React Native, with a focus on responsive interfaces and user experience. Implemented Apple Wallet solutions and mobile integrations while optimizing scalable and maintainable digital flows.",
-    stack: ["React", "Next.js", "React Native", "TypeScript", "Apple Wallet"]
-  },
-]
-
-// Academic & Lab Experience
-export const academicExperience: ExperienceItem[] = [
-  {
-    company: "UPocket, Universidad Panamericana",
+    company: "UPocket",
     role: "iOS Developer",
     period: "Jan 2025 - Aug 2025",
-    description: "Developed SwiftUI-based features for UPocket, an iOS application published on the App Store for Universidad Panamericana students. Led the campus space reservation module, connected mobile views to REST APIs, and implemented reusable UI patterns, loading states, user interactions, and error-aware flows.",
-    stack: ["Swift", "SwiftUI", "REST APIs", "iOS Development"]
+    description: "Shipped SwiftUI features for the Universidad Panamericana App Store app, including the campus space booking module.",
+    stack: ["Swift", "SwiftUI", "REST APIs"]
   },
   {
-    company: "Blank Canvas",
-    role: "Co-founder / iOS Developer",
-    period: "Aug 2023 - Present",
-    description: "Lead iOS development and product design, defining mobile flows, initial architecture, and user-centered interfaces. Develop SwiftUI features and coordinate UX, visual design, and technical architecture decisions for maintainable mobile experiences.",
-    stack: ["Swift", "SwiftUI", "Figma", "Mobile UX", "Product Design"]
+    company: "Luyoa / Chain Solutions",
+    role: "Frontend / Mobile Developer",
+    period: "Aug 2023 - Mar 2025",
+    description: "Web and mobile apps in React, Next.js and React Native for Luyoa, including Apple Wallet integrations, after a frontend internship building responsive React and Tailwind interfaces.",
+    stack: ["React", "Next.js", "React Native", "TypeScript", "Tailwind CSS", "Apple Wallet"],
+    assets: ["/projects/luyoa01.png"],
+    appStoreUrl: "https://luyoa.com/"
   },
-  {
-    company: "PCI Lab UP",
-    role: "Gameplay Development Leader",
-    period: "Jan 2024 - Present",
-    description: "Coordinator of design and implementation of game mechanics in Unity 3D. Led the Gameplay Development team to create the demo for the game Lotus, winner of the ILAN 2023 award, presented in Israel.",
-    stack: ["Unity 3D", "C#", "Game UX Design"]
-  }
-  ,
-  {
-    company: "Animation & Videogame Engineering Student Association",
-    role: "President",
-    period: "Jul 2023 - Jul 2024",
-    description: "Organized academic and professional development events and represented student interests before faculty and administration.",
-    stack: []
-  }
 ]
 
 export const projects = [
   {
-    id: "integra-ai",
-    name: "Integra AI",
-    subtitle: "B2B AI Consultancy Landing Page",
-    metric: "Live",
-    metricLabel: "Shipped to production, bilingual B2B site",
-    description: "Landing page for a B2B AI consultancy. Designed and built a conversion-focused website that communicates services, process, team credibility, and contact flows through a clean responsive interface, bilingual navigation, animated hero, and production-oriented messaging.",
-    overview: "Integra AI is a B2B landing page for an AI consultancy focused on agents, CRM/ERP integrations, MLOps, and AI strategy. The site turns a complex technical offer into a clear commercial experience, guiding visitors from business pain points to services, process, team credibility, proof points, and contact.",
-    focus: "My focus was shaping the UX narrative and frontend execution: building a sharp hero, service structure, process section, team storytelling, responsive layouts, animated canvas ribbon, bilingual navigation, and contact flow. The goal was to make enterprise AI feel concrete, understandable, and conversion-ready.",
-    role: "Frontend Engineer & UX/UI Designer",
-    stack: ["Astro", "Tailwind CSS", "JavaScript", "Canvas", "Responsive Design", "SEO"],
+    id: "luma",
+    name: "Luma",
+    subtitle: "Personal Organizer for iPhone",
+    description: "A softer way to organize your day. Luma brings reminders, notes, habits, and to-dos into one calm iPhone app, with real alarms that ring through silent mode and Focus.",
+    overview: "Luma replaces four apps with one. Reminders arrive as notifications or, when urgent, as real iPhone alarms. To-dos live in Today, Tomorrow, This week, or Someday. Notes save as you type, and habits keep streaks that skip days off. It works offline and syncs when back online.",
+    focus: "As co-founder, I share product design and development with Iñaki Sigüenza, from the flows and interface to the Swift app and its Convex backend. Fernanda Rosas leads illustration and animation.",
+    role: "Co-founder, Product Designer & iOS Developer",
+    team: ["Emiliano Montes", "Iñaki Sigüenza", "Fernanda Rosas"],
+    stack: ["Swift", "Convex"],
     year: "2026",
-    link: "https://integra-group.ai/",
-    images: [
-      "/projects/integra-cover.png",
-      "/projects/integra01.png",
-      "/projects/integra02.png",
-      "/projects/integra03.png",
-      "/projects/integra04.png",
-    ],
-    category: "Web"
-  },
-  {
-    id: "lotus",
-    name: "Lotus",
-    subtitle: "Serious Game",
-    metric: "ILAN 2023",
-    metricLabel: "Award winner, presented in Israel",
-    description: "Educational video game in Unity 3D that teaches emotional intelligence through gameplay. Winner of the ILAN 2023 Award (Israel-Mexico). Presented in Israel.",
-    overview: "Lotus is a serious game designed to teach emotional intelligence through interactive play. The project combines narrative, exploration, and guided decision-making to help players recognize emotions and practice healthier responses in a safe digital environment.",
-    focus: "The work centered on translating learning goals into game mechanics, UX flows, and Unity systems. I contributed to the gameplay structure, interface decisions, and interaction design so the experience could feel approachable while still supporting the educational purpose.",
-    role: "UX Designer & Gameplay Developer",
-    stack: ["Unity 3D", "C#", "Figma", "Game UX Design"],
-    year: "2023-2025",
-    highlight: true,
-    images: [
-      "/projects/lotuscover.png",
-      "/projects/lotus01.png",
-      "/projects/lotus02.png",
-      "/projects/lotus03.png",
-      "/projects/lotus04.png",
-      "/projects/lotus06.png",
-      "/projects/lotus07.png",
-      "/projects/lotus08.png",
-    ],
-    category: "Gaming"
-  },
-  {
-    id: "nba-insights",
-    name: "NBA Insights",
-    subtitle: "Big Data + ML Platform",
-    metric: "600K+",
-    metricLabel: "NBA games training the win predictor",
-    description: "Big Data project for class where a Hadoop cluster was modernized into a BigQuery-based architecture with a frontend-consumable ML model. The app lets users explore player and team statistics, plus a Victory Predictor trained on 600K+ NBA games to estimate whether a team won from player stats.",
-    overview: "NBA Insights is a data product that turns a large basketball dataset into an explorable web experience. The project modernizes a Hadoop-based workflow into BigQuery and exposes team, player, and prediction data through a frontend interface.",
-    focus: "The main focus was connecting the data layer with a usable product surface: preparing BigQuery outputs, working with BigQuery ML, and designing a React interface that made statistics and win predictions easier to understand.",
-    role: "Data + Frontend Builder",
-    stack: ["BigQuery", "BigQuery ML", "Hadoop", "React", "Data Viz"],
-    year: "2025",
-    link: "https://nba-insights-web-six.vercel.app/",
-    images: ["/projects/nba01.png", "/projects/nba02.png", "/projects/nba03.png", "/projects/nba04.png", "/projects/nba05.png", "/projects/nba06.png"],
-    category: "Web"
-  },
-  {
-    id: "sat-redesign",
-    name: "SAT Redesign",
-    subtitle: "UX Redesign",
-    metric: "2 flows",
-    metricLabel: "Gov services rebuilt from journeys + interviews",
-    description: "User experience design project focused on redesigning the flows for getting an RFC and scheduling an appointment. The work was informed by UX research, including user journeys and interviews, to reduce friction and improve clarity across the process.",
-    overview: "SAT Redesign is a UX case study focused on reducing friction in two high-stress government service flows: getting an RFC and scheduling an appointment. The redesign was grounded in user journeys, interviews, and pain-point mapping.",
-    focus: "The work focused on simplifying decision points, clarifying next steps, and restructuring the experience around user intent instead of institutional complexity. The output prioritized clearer information architecture, lower cognitive load, and more predictable flows.",
-    role: "UX Designer",
-    stack: ["UX Research", "User Journeys", "Interviews", "Wireframing", "Prototyping"],
-    year: "2025",
-    link: "https://sat-ux-redesign.vercel.app/",
-    images: ["/projects/sat01.png", "/projects/sat02.png", "/projects/sat03.png", "/projects/sat04.png", "/projects/sat05.png", "/projects/sat06.png", "/projects/sat07.png", "/projects/sat08.png", "/projects/sat09.png"],
-    category: "Web"
+    link: "https://www.lumaproductivity.app/",
+    linkLabel: "Visit Luma",
+    images: ["/projects/luma-cover.svg"],
+    imageAspect: "9/16",
+    mascot: { mov: "/projects/luma/odi-flower.mov", webm: "/projects/luma/odi-flower.webm", poster: "/projects/luma/odi-flower-still.webp" },
+    badge: { label: "Status", text: "Private beta, join the waitlist" },
+    category: "Mobile",
+    sections: [
+      { id: "why-luma", title: "Why Luma", body: ["Most days end up split across four apps: reminders in one, notes in another, habits and to-dos somewhere else. Luma puts all of it in one calm iPhone app."], media: { kind: "screens", images: ["/projects/luma/day-home.mp4"] } },
+      { id: "reminders", title: "Reminders that ring", body: ["Reminders arrive as notifications, or as real iPhone alarms when they are urgent. Alarms ring through silent mode and Focus, so the important ones never get buried."], media: { kind: "screens", images: ["/projects/luma/day-reminder.mp4", "/projects/luma/urgent-alarm.webp"] } },
+      { id: "the-day", title: "A day in four lists", body: ["To-dos live in Today, Tomorrow, This week or Someday. Notes save as you type.", "Habits keep streaks that skip your days off, so a planned rest day never breaks a streak."], media: { kind: "screens", images: ["/projects/luma/feat-tasks.mp4", "/projects/luma/feat-notes.mp4", "/projects/luma/day-habit.mp4"] } },
+      { id: "offline", title: "Built to work offline", body: ["Luma works offline and syncs when you are back online. The app is native Swift, and Convex runs the backend and sync."], media: { kind: "screens", images: ["/projects/luma/det-offline.mp4"] } },
+      { id: "team", title: "The team", body: ["I co-founded Luma with Iñaki Sigüenza. We share product design and development, from the flows and interface to the Swift app and the Convex backend. Fernanda Rosas leads illustration and animation."], media: { kind: "screens", images: ["/projects/luma/team-emi.mp4", "/projects/luma/team-inaki.mp4", "/projects/luma/team-fer.mp4"] } },
+      { id: "status", title: "Where it is now", body: ["Luma is in private beta. The waitlist is open at lumaproductivity.app."] }
+    ]
   },
   {
     id: "neura-path",
@@ -263,14 +192,22 @@ export const projects = [
     subtitle: "STEM Career Recommender",
     metric: "1st place",
     metricLabel: "Swift Changemakers Hackathon 2025, Bosch Challenge",
-    description: "Winner – National Swift Changemakers Hackathon 2025 (Bosch Challenge). Built an iOS vocational guidance app focused on promoting STEM careers through a gender-bias-free test, interactive flows, and a recommendation model using 16 personalities, multiple intelligences, and NLP.",
+    description: "Built an iOS vocational guidance app focused on promoting STEM careers through a gender-bias-free test, interactive flows, and a recommendation model using 16 personalities, multiple intelligences, and NLP.",
     overview: "NeuraPath helps students discover STEM career paths through a mobile experience that combines personality signals, learning preferences, and lightweight game interactions. The app was built during the National Swift Changemakers Hackathon 2025 for the Bosch Challenge.",
     focus: "The focus was product design and iOS execution: shaping the recommendation flow, designing fast and engaging interactions, and building the SwiftUI experience that connects assessment, career matching, and university enrollment actions.",
     role: "Product Designer & iOS Builder",
     stack: ["SwiftUI", "NLP", "ML", "Forms", "Career Matching"],
     year: "2025",
     images: ["/projects/neurapathcover.png", "/projects/neurapath01.png", "/projects/neurapath02.png", "/projects/neurapath03.png", "/projects/neurapath04.png", "/projects/neurapath05.png", "/projects/neurapath06.png", "/projects/neurapath07.png"],
-    category: "Mobile"
+    badge: { label: "Award", text: "1st place, National Swift Changemakers Hackathon 2025 (Bosch Challenge)" },
+    category: "Mobile",
+    sections: [
+      { id: "challenge", title: "The challenge", body: ["The Bosch Challenge at the National Swift Changemakers Hackathon 2025 asked for technology with social impact. We chose vocational guidance: many students choose a career before they know which STEM paths fit them, and we wanted a test that never steers anyone by gender."] },
+      { id: "the-test", title: "A test without bias", body: ["The assessment combines 16 personality types and multiple intelligences, written so no question or result is framed by gender. NLP reads open answers to add context to the match."], media: { kind: "screens", images: ["/projects/neurapath01.png", "/projects/neurapath02.png", "/projects/neurapath03.png"] } },
+      { id: "next-step", title: "From result to enrollment", body: ["The flow connects the assessment, the career match and university enrollment actions, so a result leads to a next step instead of a dead end."], media: { kind: "screens", images: ["/projects/neurapath04.png", "/projects/neurapath05.png", "/projects/neurapath06.png"] } },
+      { id: "build", title: "How I built it", body: ["I designed the flows and built the app in SwiftUI, keeping interactions short and game-like so the test feels fast."], media: { kind: "screens", images: ["/projects/neurapath07.png"] } },
+      { id: "outcome", title: "Outcome", body: ["NeuraPath won 1st place in the Bosch Challenge."] }
+    ]
   },
   {
     id: "wellty",
@@ -285,45 +222,15 @@ export const projects = [
     stack: ["SwiftUI", "iOS", "Wellness UX", "Gamification", "Local Persistence"],
     year: "2025",
     images: ["/projects/welltycover.png", "/projects/wellty01.png", "/projects/wellty02.png", "/projects/wellty03.png", "/projects/wellty04.png", "/projects/wellty05.png", "/projects/wellty06.png", "/projects/wellty07.png", "/projects/wellty09.png", "/projects/wellty10.png", "/projects/wellty11.png", "/projects/wellty12.png", "/projects/wellty13.png"],
-    category: "Mobile"
-  },
-  {
-    id: "hus",
-    name: "Hus Website",
-    subtitle: "Corporate Website",
-    metric: "Live",
-    metricLabel: "Corporate site shipped end-to-end",
-    description: "Corporate website developed in Next.js and Tailwind CSS. Led design and frontend implementation.",
-    overview: "Hus Website is a corporate web project built to present the brand, services, and business context through a clean responsive experience. The site was developed with Next.js and Tailwind CSS for a production-oriented frontend workflow.",
-    focus: "The focus was owning the design-to-code path: shaping the visual direction, implementing reusable frontend sections, and making sure the site worked across responsive breakpoints with a clear, professional presentation.",
-    role: "Design & Frontend Lead",
-    stack: ["Next.js", "Tailwind CSS", "React"],
-    year: "2023-2024",
-    link: "https://hus-demo.vercel.app/",
-    images: ["/projects/huscover.png"],
-    category: "Web"
-  },
-  {
-    id: "meraki",
-    name: "Project Meraki",
-    subtitle: "Unity 2D Game",
-    metric: "Playable",
-    metricLabel: "Shipped on itch.io, led the programming team",
-    description: "Video game developed in Unity 2D. Led the programming team.",
-    overview: "Project Meraki is a Unity 2D game built around a polished playable experience, with core systems for movement, interaction, and level progression. The project required close coordination between gameplay design, programming, and asset integration.",
-    focus: "My focus was leading the programming side: organizing implementation tasks, building gameplay systems in C#, and keeping the technical work aligned with the team's creative direction and production needs.",
-    role: "Programming Team Leader",
-    stack: ["Unity 2D", "C#"],
-    year: "2024-2025",
-    link: "https://louieliet.itch.io/mechapaws",
-    images: [
-      "/projects/merakicover.png",
-      "/projects/meraki01.png",
-      "/projects/meraki02.png",
-      "/projects/meraki03.png",
-      "/projects/meraki04.png",
-    ],
-    category: "Gaming"
+    category: "Mobile",
+    sections: [
+      { id: "problem", title: "The problem", body: ["Most wellness apps open on a dashboard full of metrics. That is a lot of numbers to face before doing anything."] },
+      { id: "identity", title: "Start with who you want to be", body: ["Wellty opens with one question: who do you want to be today? That intention turns into short, concrete habits."], media: { kind: "screens", images: ["/projects/wellty01.png", "/projects/wellty02.png", "/projects/wellty03.png"] } },
+      { id: "micro-actions", title: "Two-minute actions", body: ["Each habit is a micro-action of about two minutes. Finishing one gives XP and moves your progress across the seven dimensions of wellness."], media: { kind: "screens", images: ["/projects/wellty04.png", "/projects/wellty05.png", "/projects/wellty06.png"] } },
+      { id: "loop", title: "A loop that feels light", body: ["The goal was a behavior loop that feels light but still means something: choose an identity, act for two minutes, see the feedback."], media: { kind: "screens", images: ["/projects/wellty07.png", "/projects/wellty09.png", "/projects/wellty10.png"] } },
+      { id: "build", title: "How I built it", body: ["I designed the experience and built it in SwiftUI with local persistence."], media: { kind: "screens", images: ["/projects/wellty11.png", "/projects/wellty12.png", "/projects/wellty13.png"] } },
+      { id: "outcome", title: "Outcome", body: ["Wellty won 1st place at the iOS Lab Universidad Panamericana x Windsurf hackathon."] }
+    ]
   }
 ]
 

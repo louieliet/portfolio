@@ -1,0 +1,6 @@
+{
+  "reveal-scene.astro (whole file)": "ef15cb0e872fd6e4ea429b84e365c373921677dfb8b9d73253a3ff4cb3195bf1",
+  "globals.css: .scrollytelling-scene .. .bg-image-liquid": "5c88fa880269132ed14e84358a66e28383099b4236a024a8492ba1d875ea6a12",
+  "hero.astro: parallax-out handoff": "2ef4db2118f521f00464e02e1f5d19c7a1d5d0b1e8d1a075e7d9fa5d495a5426",
+  "index.astro: theme scrub handoff": "89a210675ffc5a307b5a3990c0d34a87c35a33945ed616e473c5f5ab82a6fdd6"
+}

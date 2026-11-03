@@ -1,27 +1,39 @@
 ---
-import { personalInfo } from '@/lib/data';
-import Button from '@/components/ui/button.astro';
-
-const initials = personalInfo.name
-  .split(' ')
-  .slice(0, 2)
-  .map((n) => n[0])
-  .join('');
+import { personalInfo, projects, experience } from '@/lib/data';
 ---
 
 <header class="site-header header-grid" aria-label="Site header">
-  <a class="brand" href="/" aria-label="{personalInfo.name} portfolio home">
-    <span class="brand-mark" aria-hidden="true">{initials}</span>
-    <span>{personalInfo.name.split(' ').slice(0, 2).join(' ')}</span>
+  <a class="brand" href="/" aria-label={`${personalInfo.name} portfolio home`}>
+    {personalInfo.name.split(' ').slice(0, 2).join(' ')}
   </a>
 
   <nav class="site-nav" aria-label="Primary navigation">
-    <a href="#projects">Work</a>
+    <a href="#projects">Work<sup>{projects.length}</sup></a>
+    <a href="#experience">Experience<sup>{experience.length}</sup></a>
     <a href="#about">About</a>
     <a href="#contact">Contact</a>
   </nav>
 
-  <div class="header-actions">
-    <Button href="#contact" size="micro">Hire me</Button>
+  <div class="header-meta">
+    <div>{personalInfo.role}</div>
+    <div class="site-clock" data-clock aria-label="Local time in Mexico City">CDMX --:--</div>
   </div>
 </header>
+
+<script>
+  // Local time in CDMX, refreshed every 30s. Deterministic: Intl does the tz math.
+  function initClock() {
+    const el = document.querySelector<HTMLElement>("[data-clock]");
+    if (!el) return;
+    const fmt = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "America/Mexico_City" });
+    const tick = () => { el.textContent = `CDMX ${fmt.format(new Date())}`; };
+    tick();
+    window.setInterval(tick, 30_000);
+  }
+  document.addEventListener("astro:page-load", initClock);
+  if (document.readyState === "complete") {
+    initClock();
+  } else {
+    window.addEventListener("load", initClock);
+  }
+</script>

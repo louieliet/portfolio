@@ -1,106 +1,106 @@
 ---
-import { personalInfo, stack } from '@/lib/data';
+import { personalInfo } from '@/lib/data';
+import Floaters from './floaters.astro';
 
-const stackSections = [
-  { title: "Design & UX", items: stack.design },
-  { title: "Frontend & Mobile", items: [...stack.frontend, ...stack.mobile] },
-  { title: "Systems & Data", items: [...stack.backend, ...stack.data, ...stack.gaming] },
-];
+// Dark chapter (Monolog): one giant statement that reveals word by word with
+// scroll; a short bio, portrait and the approach/education index beside it.
+const bio = personalInfo.about.history.split("\n\n")[0];
 ---
 
-<section id="about" class="asymmetric-scene">
-  {/* 40% Column - Manifesto (Sticky) */}
-  <div class="sticky-sidebar">
-    <span class="kicker">The Manifesto</span>
-    <h2 class="font-display uppercase tracking-tighter leading-[0.85] text-5xl md:text-[5.5rem] mb-6">
-      Design.<br />
-      Code.<br />
-      Data.<br />
-      <span class="opacity-30">Systems.</span>
-    </h2>
-    
-    <div class="w-44 md:w-72 aspect-[4/5] mt-12 mb-8 relative brutalist-border filter grayscale contrast-125">
-      <img
-        src="/projects/me.jpeg"
-        alt="Portrait"
-        class="w-full h-full object-cover opacity-80"
-        loading="lazy"
-      />
-      <div class="absolute inset-0 mix-blend-overlay" style="background-color: var(--border-light);"></div>
+<section id="about" class="manifesto font-sans">
+  <Floaters />
+  <aside class="manifesto-aside">
+    <div class="manifesto-portrait" data-clip-mask>
+      <img src="/projects/me.jpeg" alt="Portrait of Emiliano Montes" loading="lazy" />
     </div>
+    <p>{bio}</p>
+    <span class="mono">({personalInfo.location} · GMT-6)</span>
+  </aside>
+
+  <div class="manifesto-statement" data-words>
+    <p>Good interfaces are felt before they are understood.</p>
+    <span class="plus" aria-hidden="true">+</span>
+    <p>I design that feeling and build it myself, from the first wireframe to the last frame of motion in production.</p>
   </div>
 
-  {/* 60% Column - Content & Capabilities */}
-  <div class="brutalist-list pt-0">
-    <article class="brutalist-item border-none pb-12 md:pb-24">
-      <p class="text-xl md:text-3xl leading-relaxed opacity-80 font-medium max-w-2xl">
-        Building products isn't about writing syntax. It's about bridging the gap between complex technical architectures and human intuition. My background spanning game engines, mobile apps, and data systems allows me to engineer interfaces that don't just function—they resonate.
-      </p>
-    </article>
-
-    {/* Methodologies */}
-    <article class="brutalist-item">
-      <div class="item-meta flex justify-between mb-8">
-        <span>01</span>
-        <span>Approach</span>
+  <div class="manifesto-grid">
+    {personalInfo.about.approach.map((step, i) => (
+      <div>
+        <span class="mono">0{i + 1}</span>
+        <h3>{step.title}</h3>
+        <p>{step.description}</p>
       </div>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-16">
-        {personalInfo.about.approach.map((step) => (
-          <div class="group">
-            <h4 class="font-display text-2xl uppercase tracking-tighter mb-3 flex items-center gap-3">
-              <span class="inline-block w-2 h-2 rounded-full transition-colors duration-300 opacity-30 group-hover:opacity-100" style="background-color: var(--text);"></span>
-              {step.title}
-            </h4>
-            <p class="opacity-60 leading-relaxed">
-              {step.description}
-            </p>
-          </div>
-        ))}
-      </div>
-    </article>
-
-    {/* Technical Stack */}
-    <article class="brutalist-item">
-      <div class="item-meta flex justify-between mb-8">
-        <span>02</span>
-        <span>Capabilities</span>
-      </div>
-      
-      <div class="flex flex-col gap-12">
-        {stackSections.map((section) => (
-          <div class="border-l pl-6 md:pl-10 relative" style="border-color: var(--border-light);">
-            <div class="absolute -left-[5px] top-1.5 w-[9px] h-[9px] border" style="background-color: var(--bg); border-color: var(--text); opacity: 0.4;"></div>
-            <h4 class="font-mono text-sm uppercase tracking-widest opacity-40 mb-4">
-              [ {section.title} ]
-            </h4>
-            <p class="font-display text-xl md:text-3xl opacity-90 leading-tight max-w-2xl">
-              {section.items.join(" · ")}
-            </p>
-          </div>
-        ))}
-      </div>
-    </article>
-
-    {/* Education */}
-    <article class="brutalist-item">
-      <div class="item-meta flex justify-between mb-8">
-        <span>03</span>
-        <span>Education</span>
-      </div>
-      
-      <div class="flex flex-col gap-8">
-        {personalInfo.about.education.map((edu) => (
-          <div class="flex flex-col gap-3 border-b pb-6 last:border-0 last:pb-0" style="border-color: var(--border-light);">
-            <h4 class="font-display text-xl md:text-3xl uppercase tracking-tighter">
-              {edu.degree}
-            </h4>
-            <div class="font-mono text-xs uppercase tracking-widest opacity-50">
-              {edu.institution} · {edu.year}
-            </div>
-          </div>
-        ))}
-      </div>
-    </article>
+    ))}
   </div>
+
+  <ul class="manifesto-edu">
+    {personalInfo.about.education.map((edu) => (
+      <li>
+        <span>{edu.degree}</span>
+        <span class="mono">{edu.institution} · {edu.year}</span>
+      </li>
+    ))}
+  </ul>
 </section>
+
+<script>
+  import { gsap } from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+  import { SplitText } from "gsap/SplitText";
+
+  gsap.registerPlugin(ScrollTrigger, SplitText);
+
+  // Words go from dim to full as the statement crosses the viewport (scrub).
+  // Grid and education blocks fade up once; the portrait rises out of a clip mask.
+  // Skipped under reduced motion.
+  function initManifesto() {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const scene = document.querySelector<HTMLElement>("#about");
+    const statement = scene?.querySelector<HTMLElement>("[data-words]");
+    if (!scene || !statement) return;
+
+    const ctx = gsap.context(() => {
+      document.fonts.ready.then(() => {
+        ctx.add(() => {
+          const split = SplitText.create(statement.querySelectorAll("p"), { type: "words" });
+          gsap.fromTo(split.words, { opacity: 0.18 }, {
+            opacity: 1,
+            stagger: 0.02,
+            ease: "none",
+            scrollTrigger: { trigger: statement, start: "top 70%", end: "bottom 45%", scrub: 0.3 },
+          });
+          ScrollTrigger.refresh();
+        });
+      });
+
+      gsap.utils.toArray<HTMLElement>(".manifesto-grid > div, .manifesto-edu li, .manifesto-aside > :not([data-clip-mask])", scene).forEach((el) => {
+        gsap.fromTo(el, { y: 20, opacity: 0 }, {
+          y: 0, opacity: 1, duration: 0.9, ease: "expo.out",
+          scrollTrigger: { trigger: el, start: "top 92%", once: true },
+        });
+      });
+
+      const portrait = scene.querySelector<HTMLElement>("[data-clip-mask]");
+      const portraitImg = portrait?.querySelector("img");
+      if (portrait && portraitImg) {
+        gsap.fromTo(portrait, { clipPath: "inset(100% 0% 0% 0%)" }, {
+          clipPath: "inset(0% 0% 0% 0%)", duration: 1.2, ease: "expo.out",
+          scrollTrigger: { trigger: portrait, start: "top 85%", once: true },
+        });
+        gsap.fromTo(portraitImg, { scale: 1.15 }, {
+          scale: 1, duration: 1.2, ease: "expo.out",
+          scrollTrigger: { trigger: portrait, start: "top 85%", once: true },
+        });
+      }
+    }, scene);
+
+    return () => ctx.revert();
+  }
+
+  document.addEventListener("astro:page-load", initManifesto);
+  if (document.readyState === "complete") {
+    initManifesto();
+  } else {
+    window.addEventListener("load", initManifesto);
+  }
+</script>

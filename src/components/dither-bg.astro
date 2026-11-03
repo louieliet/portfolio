@@ -1,0 +1,410 @@
+---
+// Animated dither texture + cursor ink (Ilya-style), one WebGL2 canvas over
+// the whole page, blended with `difference` so the same grey darkens light
+// chapters and lightens dark ones.
+//
+// Pass 1 (ink): a half-res feedback texture. The stamp follows a spring
+// follower (not the raw pointer), is an ellipse stretched along the
+// follower's velocity, and is modulated by drifting low-frequency noise so
+// the cloud has organic edges and holes. Fast strokes leave a comet.
+// Pass 2 (screen): fine 8x8 Bayer dither of a slow noise field, plus a
+// halftone of the ink: one dot per 14px cell whose radius follows the ink
+// and never touches its neighbour.
+//
+// Falls back to a static CSS halftone without WebGL2; static under reduced motion.
+---
+
+<canvas class="dither-bg" data-dither aria-hidden="true"></canvas>
+
+<script>
+  // ── Tunables (CSS px unless noted) ──────────────────────────────────────
+  const INK_RADIUS = 130;      // base blob radius around the follower
+  const INK_CELL = 14;         // halftone cell size
+  const INK_DECAY = 0.93;      // per-frame decay (~0.9s tail at 60fps)
+  const INK_GAIN = 0.07;       // darkening on cream at full ink (difference blend)
+  const INK_MOVE = 0.18;       // ink per stamp while moving
+  const INK_IDLE = 0.028;      // resting: settles around 0.35
+  const INK_QUIET = 0.018;     // after QUIET_AFTER_MS without movement: settles around 0.2
+  const QUIET_AFTER_MS = 3000;
+  const STRETCH_MAX = 2.2;     // major axis at full speed
+  const SQUEEZE = 0.85;        // minor axis while moving
+  const SPEED_REF = 1800;      // canvas px/s that counts as "full speed"
+  const SPRING_K = 220;        // follower stiffness
+  const SPRING_ZETA = 0.9;     // damping ratio (<1: a touch of overshoot)
+  const DITHER_GAIN = 0.05;    // fine dither strength at rest
+  const DITHER_SCROLL = 0.08;  // extra dither when scrolling fast
+  const MAX_STAMPS = 8;
+  const MAX_RECTS = 16;        // on-screen image rects masked out of the screen pass
+
+  const VERT = `#version 300 es
+  in vec2 p; out vec2 v; void main(){ v = p * 0.5 + 0.5; gl_Position = vec4(p, 0.0, 1.0); }`;
+
+  const NOISE_GLSL = `
+  float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+  float noise(vec2 p){
+    vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(hash(i), hash(i + vec2(1,0)), f.x), mix(hash(i + vec2(0,1)), hash(i + vec2(1,1)), f.x), f.y);
+  }`;
+
+  const INK_FRAG = `#version 300 es
+  precision mediump float;
+  in vec2 v; out vec4 o;
+  uniform sampler2D uPrev; uniform float uDecay; uniform float uRadius; uniform float uTime;
+  uniform int uCount; uniform vec2 uStamps[${MAX_STAMPS}]; uniform float uAmount;
+  uniform vec2 uDir; uniform vec2 uAxes;
+  ${NOISE_GLSL}
+  void main(){
+    // RGBA8 feedback stalls near 10/255 (x*decay rounds back to x); a small bleed lets it reach 0.
+    float ink = max(0.0, texture(uPrev, v).r * uDecay - 0.004);
+    vec2 px = gl_FragCoord.xy;
+    vec2 perp = vec2(-uDir.y, uDir.x);
+    float add = 0.0;
+    for (int i = 0; i < ${MAX_STAMPS}; i++) {
+      if (i >= uCount) break;
+      vec2 rel = px - uStamps[i];
+      float along = dot(rel, uDir) / uAxes.x;
+      float across = dot(rel, perp) / uAxes.y;
+      float d2 = along * along + across * across;
+      add += uAmount * exp(-d2 / (uRadius * uRadius));
+    }
+    // organic edge: drifting low-frequency noise eats the rim and opens holes
+    float n = noise(px * 0.045 + uTime * 0.15);
+    add *= 0.55 + 0.45 * n;
+    o = vec4(vec3(clamp(ink + add, 0.0, 1.0)), 1.0);
+  }`;
+
+  const SCREEN_FRAG = `#version 300 es
+  precision mediump float;
+  in vec2 v; out vec4 o;
+  uniform vec2 uRes; uniform float uTime; uniform float uGain;
+  uniform sampler2D uInk; uniform float uCell; uniform float uInkGain; uniform float uDitherGain;
+  uniform int uRectCount; uniform vec4 uRects[${MAX_RECTS}];
+  ${NOISE_GLSL}
+  float bayer(vec2 px){
+    ivec2 p = ivec2(mod(px, 8.0));
+    int x = p.x, y = p.y, b = 0;
+    for (int i = 0; i < 3; i++) {
+      int xi = (x >> i) & 1, yi = (y >> i) & 1;
+      b = (b << 2) | ((xi ^ yi) << 1) | yi;
+    }
+    return (float(b) + 0.5) / 64.0;
+  }
+  void main(){
+    // fine dither of a drifting noise field
+    vec2 uv = v * vec2(uRes.x / uRes.y, 1.0);
+    float n = noise(uv * 3.0 + uTime * 0.05) * 0.6 + noise(uv * 9.0 - uTime * 0.03) * 0.4;
+    float field = 0.5 + (n - 0.5) * (0.12 + uGain * 0.25);
+    float fine = step(bayer(gl_FragCoord.xy), field) * (uDitherGain + uGain * ${DITHER_SCROLL.toFixed(3)});
+
+    // halftone of the ink: one dot per cell; max radius 0.42 cell so dots never merge
+    vec2 cellC = (floor(gl_FragCoord.xy / uCell) + 0.5) * uCell;
+    float ink = texture(uInk, cellC / uRes).r;
+    float rad = uCell * 0.42 * pow(ink, 0.8);
+    float dd = distance(gl_FragCoord.xy, cellC);
+    float blob = rad < 0.35 ? 0.0 : (1.0 - smoothstep(rad - 0.7, rad + 0.3, dd));
+
+    // difference blend: 0 is neutral, so both terms stay small and positive
+    float g = fine + blob * uInkGain;
+    // difference blend, 0 is neutral, so images stay untouched
+    for (int i = 0; i < ${MAX_RECTS}; i++) {
+      if (i >= uRectCount) break;
+      vec4 r = uRects[i];
+      if (all(greaterThanEqual(gl_FragCoord.xy, r.xy)) && all(lessThan(gl_FragCoord.xy, r.zw))) { g = 0.0; break; }
+    }
+    o = vec4(vec3(g), 1.0);
+  }`;
+
+  // Visible box of a clipped image mask, in viewport CSS px. clip-path none: the box itself.
+  // inset() with 1-4 values in % or px: the box shrunk by the insets (shorthand order top
+  // right bottom left, % of height for top/bottom and % of width for left/right). Any other
+  // shape (round, circle, polygon, path, unparsed) returns null so the caller skips the image.
+  const insetRect = (el: Element) => {
+    const r = el.getBoundingClientRect();
+    const clip = getComputedStyle(el).clipPath;
+    if (clip === "none") return { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
+    const m = /^inset\(([^)]*)\)$/.exec(clip);
+    const parts = m ? m[1].trim().split(/\s+/) : [];
+    if (!m || parts.length > 4 || !parts.every((s) => /^\d*\.?\d+(%|px)$/.test(s))) return null;
+    const [t, rt = t, b = t, l = rt] = parts;
+    const len = (s: string, base: number) => (s.endsWith("%") ? (parseFloat(s) / 100) * base : parseFloat(s));
+    return {
+      left: r.left + len(l, r.width),
+      top: r.top + len(t, r.height),
+      right: r.right - len(rt, r.width),
+      bottom: r.bottom - len(b, r.height),
+    };
+  };
+
+  function initDither() {
+    const canvas = document.querySelector<HTMLCanvasElement>("[data-dither]");
+    if (!canvas) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const gl = canvas.getContext("webgl2", { antialias: false, alpha: false, powerPreference: "low-power" });
+    if (!gl) {
+      document.body.classList.add("no-dither");
+      return;
+    }
+
+    const compile = (type: number, src: string) => {
+      const s = gl.createShader(type)!;
+      gl.shaderSource(s, src); gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) || "shader");
+      return s;
+    };
+    const program = (frag: string) => {
+      const p = gl.createProgram()!;
+      gl.attachShader(p, compile(gl.VERTEX_SHADER, VERT));
+      gl.attachShader(p, compile(gl.FRAGMENT_SHADER, frag));
+      gl.linkProgram(p);
+      if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p) || "link");
+      return p;
+    };
+    const inkProg = program(INK_FRAG);
+    const screenProg = program(SCREEN_FRAG);
+
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    for (const p of [inkProg, screenProg]) {
+      const loc = gl.getAttribLocation(p, "p");
+      gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    }
+    const U = (p: WebGLProgram, n: string) => gl.getUniformLocation(p, n);
+    const ink = {
+      prev: U(inkProg, "uPrev"), decay: U(inkProg, "uDecay"), radius: U(inkProg, "uRadius"), time: U(inkProg, "uTime"),
+      count: U(inkProg, "uCount"), stamps: U(inkProg, "uStamps"), amount: U(inkProg, "uAmount"),
+      dir: U(inkProg, "uDir"), axes: U(inkProg, "uAxes"),
+    };
+    const scr = {
+      res: U(screenProg, "uRes"), time: U(screenProg, "uTime"), gain: U(screenProg, "uGain"), ink: U(screenProg, "uInk"),
+      cell: U(screenProg, "uCell"), inkGain: U(screenProg, "uInkGain"), ditherGain: U(screenProg, "uDitherGain"),
+      rectCount: U(screenProg, "uRectCount"), rects: U(screenProg, "uRects"),
+    };
+
+    const makeTarget = (w: number, h: number) => {
+      const tex = gl.createTexture()!;
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      const fbo = gl.createFramebuffer()!;
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+      gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      return { tex, fbo };
+    };
+    let targets: ReturnType<typeof makeTarget>[] = [];
+    let cur = 0;
+
+    const resize = () => {
+      canvas.width = Math.ceil(window.innerWidth / 2);
+      canvas.height = Math.ceil(window.innerHeight / 2);
+      targets.forEach((t) => { gl.deleteTexture(t.tex); gl.deleteFramebuffer(t.fbo); });
+      targets = [makeTarget(canvas.width, canvas.height), makeTarget(canvas.width, canvas.height)];
+    };
+    resize();
+    window.addEventListener("resize", resize);
+
+    // Pointer target and spring follower, in canvas px (half-res, y up).
+    const target = { x: -1e4, y: -1e4, active: false, lastMove: 0 };
+    const follower = { x: -1e4, y: -1e4, vx: 0, vy: 0, px: -1e4, py: -1e4 };
+    window.addEventListener("pointermove", (e) => {
+      if (e.pointerType !== "mouse") return;
+      const x = e.clientX / 2, y = canvas.height - e.clientY / 2;
+      if (!target.active) { follower.x = follower.px = x; follower.y = follower.py = y; follower.vx = follower.vy = 0; }
+      target.x = x; target.y = y; target.active = true; target.lastMove = performance.now();
+    }, { passive: true });
+    document.documentElement.addEventListener("mouseleave", () => { target.active = false; });
+
+    let lastY = window.scrollY, gain = 0, lastNow = performance.now();
+    const stats = { frames: 0, ms: 0, avgMs: 0, rects: 0 };
+    (window as any).__ditherStats = stats;
+    (window as any).__ditherSample = (cx: number, cy: number) => {
+      const out = new Uint8Array(4);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, targets[cur].fbo);
+      gl.readPixels(Math.round(cx / 2), Math.round(canvas.height - cy / 2), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, out);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      return out[0] / 255;
+    };
+
+    // Test hook: resolves inside the next draw, after pass 2, with the max red of an 8x8 block (0..1).
+    const screenReads: { x: number; y: number; resolve: (v: number) => void }[] = [];
+    (window as any).__ditherScreen = (cx: number, cy: number) => new Promise<number>((resolve) => {
+      screenReads.push({ x: cx, y: cy, resolve });
+      if (reduce) kick();
+    });
+
+    const stampBuf = new Float32Array(MAX_STAMPS * 2);
+    const rectBuf = new Float32Array(MAX_RECTS * 4);
+    const dir = { x: 1, y: 0 };
+    let stretch = 1, squeeze = 1;
+    let running = true;
+
+    // Canvas-px rects of visible <img>s and case clips (xy = min, zw = max, y up). Parent-only clip:
+    // ponytail: walk further ancestors if a nested clip ever shows a hole.
+    const collectRects = () => {
+      // The page curtain covers the images while it leaves (interactions.astro sets this class).
+      if (document.documentElement.classList.contains("is-leaving")) return 0;
+      let n = 0;
+      const vw = window.innerWidth, vh = window.innerHeight;
+      // data-no-mask opts out: the case mascot is transparent, so the dither keeps drawing around it.
+      const media: Element[] = [...document.querySelectorAll("img:not([data-no-mask]), video:not([data-no-mask])")];
+      for (let i = 0; i < media.length && n < MAX_RECTS; i++) {
+        const el = media[i];
+        // CODE BEAUTY image sits in an .image-mask whose clip-path GSAP animates (the scene is frozen),
+        // so the visible area is the clip, not the box: use the clip's inset box. Same for any
+        // [data-clip-mask] wrapper (the About portrait reveal). A clip shape we
+        // cannot read is skipped, since a box rect would cut a hole larger than what is visible.
+        const mask = el.closest(".image-mask, [data-clip-mask]");
+        let left: number, top: number, right: number, bottom: number;
+        if (mask) {
+          const v = insetRect(mask);
+          if (!v) continue;
+          ({ left, top, right, bottom } = v);
+        } else {
+          const parent = el.parentElement;
+          if (!parent) continue;
+          const a = el.getBoundingClientRect(), b = parent.getBoundingClientRect();
+          left = Math.max(a.left, b.left); right = Math.min(a.right, b.right);
+          top = Math.max(a.top, b.top); bottom = Math.min(a.bottom, b.bottom);
+        }
+        if (right <= left || bottom <= top) continue;
+        if (right <= 0 || bottom <= 0 || left >= vw || top >= vh) continue;
+        // hidden hover previews (.row-preview img) report not visible
+        if (el.checkVisibility && !el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue;
+        const o = n * 4;
+        rectBuf[o] = Math.floor(left / 2);
+        rectBuf[o + 1] = Math.floor(canvas.height - bottom / 2);
+        rectBuf[o + 2] = Math.ceil(right / 2);
+        rectBuf[o + 3] = Math.ceil(canvas.height - top / 2);
+        n++;
+      }
+      return n;
+    };
+
+    // Reduced motion has no loop: scroll/resize schedule one coalesced draw.
+    let queued = false;
+    const kick = () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame((t) => { queued = false; draw(t); });
+    };
+    if (reduce) {
+      window.addEventListener("scroll", kick, { passive: true });
+      window.addEventListener("resize", kick, { passive: true });
+    }
+
+    const draw = (now: number) => {
+      if (!running) return;
+      const t0 = performance.now();
+      const dt = Math.min(0.05, Math.max(0.001, (now - lastNow) / 1000));
+      lastNow = now;
+
+      const y = window.scrollY;
+      const v = Math.min(1, Math.abs(y - lastY) / 60);
+      lastY = y;
+      gain += (v - gain) * (v > gain ? 0.25 : 0.04);
+
+      // ── follower spring (semi-implicit Euler) ──
+      let count = 0, amount = 0;
+      if (target.active && !reduce) {
+        const c = 2 * Math.sqrt(SPRING_K) * SPRING_ZETA;
+        follower.vx += ((target.x - follower.x) * SPRING_K - follower.vx * c) * dt;
+        follower.vy += ((target.y - follower.y) * SPRING_K - follower.vy * c) * dt;
+        follower.x += follower.vx * dt;
+        follower.y += follower.vy * dt;
+
+        // shape from velocity: ellipse along the motion, round at rest
+        const speed = Math.hypot(follower.vx, follower.vy);
+        const sN = Math.min(1, speed / SPEED_REF);
+        if (speed > 20) { dir.x = follower.vx / speed; dir.y = follower.vy / speed; }
+        stretch += ((1 + (STRETCH_MAX - 1) * sN) - stretch) * 0.18;
+        squeeze += ((1 - (1 - SQUEEZE) * sN) - squeeze) * 0.18;
+
+        const dx = follower.x - follower.px, dy = follower.y - follower.py;
+        const dist = Math.hypot(dx, dy);
+        if (dist > 0.5) {
+          count = Math.min(MAX_STAMPS, Math.max(1, Math.ceil(dist / 6)));
+          for (let i = 0; i < count; i++) {
+            const f = count === 1 ? 1 : i / (count - 1);
+            stampBuf[i * 2] = follower.px + dx * f;
+            stampBuf[i * 2 + 1] = follower.py + dy * f;
+          }
+          amount = INK_MOVE / Math.sqrt(count);
+        } else {
+          count = 1; stampBuf[0] = follower.x; stampBuf[1] = follower.y;
+          amount = now - target.lastMove > QUIET_AFTER_MS ? INK_QUIET : INK_IDLE;
+        }
+        follower.px = follower.x; follower.py = follower.y;
+      }
+
+      // ── pass 1: ink feedback ──
+      const next = 1 - cur;
+      gl.bindFramebuffer(gl.FRAMEBUFFER, targets[next].fbo);
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.useProgram(inkProg);
+      gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, targets[cur].tex);
+      gl.uniform1i(ink.prev, 0);
+      gl.uniform1f(ink.decay, reduce ? 0 : INK_DECAY);
+      gl.uniform1f(ink.radius, INK_RADIUS / 2);
+      gl.uniform1f(ink.time, now / 1000);
+      gl.uniform1i(ink.count, count);
+      gl.uniform2fv(ink.stamps, stampBuf);
+      gl.uniform1f(ink.amount, amount);
+      gl.uniform2f(ink.dir, dir.x, dir.y);
+      gl.uniform2f(ink.axes, stretch, squeeze);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      cur = next;
+
+      // ── pass 2: screen ──
+      const rectCount = collectRects();
+      stats.rects = rectCount;
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.useProgram(screenProg);
+      gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, targets[cur].tex);
+      gl.uniform1i(scr.ink, 0);
+      gl.uniform2f(scr.res, canvas.width, canvas.height);
+      gl.uniform1f(scr.time, now / 1000);
+      gl.uniform1f(scr.gain, gain);
+      gl.uniform1f(scr.cell, INK_CELL / 2);
+      gl.uniform1f(scr.inkGain, INK_GAIN);
+      gl.uniform1f(scr.ditherGain, DITHER_GAIN);
+      gl.uniform1i(scr.rectCount, rectCount);
+      gl.uniform4fv(scr.rects, rectBuf);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+      if (screenReads.length) {
+        const px = new Uint8Array(8 * 8 * 4);
+        while (screenReads.length) {
+          const q = screenReads.shift()!;
+          const x = Math.min(canvas.width - 8, Math.max(0, Math.round(q.x / 2) - 4));
+          const y = Math.min(canvas.height - 8, Math.max(0, Math.round(canvas.height - q.y / 2) - 4));
+          gl.readPixels(x, y, 8, 8, gl.RGBA, gl.UNSIGNED_BYTE, px);
+          let max = 0;
+          for (let i = 0; i < px.length; i += 4) max = Math.max(max, px[i]);
+          q.resolve(max / 255);
+        }
+      }
+
+      stats.frames++; stats.ms += performance.now() - t0; stats.avgMs = stats.ms / stats.frames;
+      if (!reduce) requestAnimationFrame(draw);
+    };
+    requestAnimationFrame(draw);
+
+    document.addEventListener("visibilitychange", () => {
+      running = !document.hidden;
+      if (running && !reduce) { lastNow = performance.now(); requestAnimationFrame(draw); }
+    });
+  }
+
+  document.addEventListener("astro:page-load", initDither);
+  if (document.readyState === "complete") {
+    initDither();
+  } else {
+    window.addEventListener("load", initDither);
+  }
+</script>

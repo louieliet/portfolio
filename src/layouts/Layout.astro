@@ -4,6 +4,8 @@ import { AppInit } from '../components/app-init';
 import { ScrollProgress } from '../components/scroll-progress';
 import ScrollRestoration from '../components/scroll-restoration';
 import Header from '../components/Header.astro';
+import Interactions from '../components/interactions.astro';
+import DitherBg from '../components/dither-bg.astro';
 
 interface Props {
   title?: string;
@@ -23,7 +25,8 @@ const {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICA8dGV4dCB4PSI1MCIgeT0iNzgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iODIiPvCfqrQ8L3RleHQ+Cjwvc3ZnPgo=" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <title>{title}</title>
     <meta name="description" content={description} />
   </head>
@@ -38,6 +41,12 @@ const {
 
     <!-- Main Content Slot -->
     <slot />
+
+    <!-- Custom cursor + magnetic targets (fine pointers only) -->
+    <Interactions />
+
+    <!-- Animated dither texture over every chapter -->
+    <DitherBg />
 
     <!-- SVG Filter for Liquid Texture injected at bottom of body -->
     <svg width="0" height="0" aria-hidden="true" style="position: absolute; pointer-events: none;">
