@@ -211,6 +211,30 @@ export const projects = [
     ]
   },
   {
+    id: "bloomley",
+    name: "Bloomley",
+    subtitle: "Landing for a calm wellbeing habit",
+    description: "The marketing landing for Bloomley, a wellbeing app that asks for one small action a day instead of a streak. I owned all of it: positioning, copy, design, the AI-generated character, motion and the frontend build.",
+    overview: "Most habit apps sell pressure: streaks, rings and missed-day guilt. Bloomley sells the opposite. The landing has to make a wellbeing product feel gentle and easy to start, with one character who shrinks the goal to fit the day.",
+    focus: "A solo project. I owned the landing end to end: positioning and copy, layout, the character and illustrations, scroll motion and the Astro build with Lenis for smooth scrolling. The character was generated with AI and art-directed with a character sheet, so it stays consistent from rough drafts to final assets.",
+    role: "Product Designer & Frontend Lead",
+    stack: ["Astro", "Lenis", "CSS scroll-driven animations"],
+    year: "2026",
+    link: "https://bloomley.luishomeserver.com/",
+    linkLabel: "Visit Bloomley",
+    images: ["/projects/bloomley-cover.webp"],
+    badge: { label: "Status", text: "In development" },
+    category: "Web",
+    sections: [
+      { id: "the-brief", title: "The brief", body: ["Bloomley's landing has one job: sell calm instead of pressure. The message is one mission a day, no streak guilt, and a goal that gets smaller when the day is hard. I owned it end to end, from positioning and copy to design, illustration, motion and the build."], media: { kind: "full", images: ["/projects/bloomley/hero.mp4"] } },
+      { id: "one-character", title: "One character, generated with AI", body: ["Bloom was generated with AI. I went from rough drafts to final assets and art-directed the poses with a character sheet, so the same face, body and colors hold across the hero, the energy levels and the feature art."], media: { kind: "full", images: ["/projects/bloomley/one-character.webp"] } },
+      { id: "three-decisions", title: "Three decisions, then you are done", body: ["How it works is three short steps: name one intention, let Bloom shrink it to today, then do it and stop. Each step is brief, so the page reads as a process with a clear end."], media: { kind: "full", images: ["/projects/bloomley/three-decisions.webp"] } },
+      { id: "energy", title: "Low on energy, the mission gets smaller", body: ["This is the core idea. Bloomley asks how you are before it asks anything of you, and the mission size follows the answer: five, ten or twenty minutes. The landing shows the three states with three poses, so the promise is visible before a reader scrolls on."], media: { kind: "full", images: ["/projects/bloomley/energy.webp"] } },
+      { id: "the-flow", title: "The flow: value before a password", body: ["Most wellbeing apps ask who you are before they show you anything. This section shows the first mission in iPhone mockups before any sign-up. The phones fly in as you scroll, so the motion follows the reader instead of running on a timer."], media: { kind: "full", images: ["/projects/bloomley/flow.mp4"] } },
+      { id: "delivery", title: "Build and motion", body: ["Built with Astro, with Lenis for smooth scrolling and CSS scroll-driven animations for the phone entrances. The hero entrance is CSS keyframes, and visitors who ask for reduced motion land on the finished frame. Pointer parallax and the blink are small scripts, and the page is served as pre-rendered HTML."] }
+    ]
+  },
+  {
     id: "neura-path",
     name: "NeuraPath",
     subtitle: "STEM Career Recommender",
