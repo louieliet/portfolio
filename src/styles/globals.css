@@ -1702,6 +1702,18 @@
   cursor: zoom-in;
 }
 
+/* Full-width scroll clip: not zoomable, so the cursor stays default and the video fills the 16 / 10 frame. */
+.pj-full-clip {
+  cursor: auto;
+}
+
+.pj-full-clip video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 /* Portrait phone screens: iPhone 17 Pro bezel (450 x 920 pt) at a fixed width, centered on the page. Mobile: two per row,
    a single screen centered at 220px. The screen cutout is 402 x 874 pt at (24, 23) pt; the percentages below are those
    numbers over the bezel's size, and the corner radius is 42 pt over the screen's size. */

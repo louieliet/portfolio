@@ -298,7 +298,22 @@ export default function ProjectPageClient({
               </p>
             ))}
 
-            {s.media?.kind === "full" && s.media.images[0] && (
+            {s.media?.kind === "full" && s.media.images[0] && isVideo(s.media.images[0]) && (
+              <div className="case-media pj-full pj-full-clip">
+                <video
+                  muted
+                  loop
+                  playsInline
+                  preload="none"
+                  poster={s.media.images[0].replace(/\.mp4$/, ".webp")}
+                  data-src={s.media.images[0]}
+                  data-clip
+                  aria-label={`${project.name}, ${s.title}`}
+                />
+              </div>
+            )}
+
+            {s.media?.kind === "full" && s.media.images[0] && !isVideo(s.media.images[0]) && (
               <button
                 type="button"
                 className="case-media pj-full"

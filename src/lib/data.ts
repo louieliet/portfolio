@@ -187,6 +187,30 @@ export const projects = [
     ]
   },
   {
+    id: "iluk-landing",
+    name: "iLuk.ai",
+    subtitle: "Landing for AI Workers",
+    description: "The marketing landing for iLuk, a startup selling AI Workers to financial institutions. I did all of it: positioning, copy, design, the AI-generated illustrations, GSAP motion and the Next.js build.",
+    overview: "iLuk sells autonomous AI agents that run customer acquisition for banks and fintechs, from market insights to real-time KYC. The landing has to make an abstract product feel trustworthy to a cautious audience, so each agent appears as a coworker with a face, a name and a job.",
+    focus: "A solo project inside my frontend role at iLuk. I owned the landing end to end: positioning and copy, a consistent AI-generated character cast, scroll choreography in GSAP and the Next.js build.",
+    role: "Product Designer & Frontend Engineer",
+    stack: ["Next.js", "React", "TypeScript", "Tailwind CSS", "GSAP"],
+    year: "2026",
+    link: "https://www.iluk.ai/",
+    linkLabel: "Visit iLuk.ai",
+    images: ["/projects/iluk-landing/hero.webp"],
+    badge: { label: "Status", text: "Live at iluk.ai" },
+    category: "Web",
+    sections: [
+      { id: "the-brief", title: "The brief", body: ["iLuk asked for a landing that sells AI Workers to financial institutions. I owned all of it: positioning, copy, design, illustration, motion and code."], media: { kind: "full", images: ["/projects/iluk-landing/hero.webp"] } },
+      { id: "workers", title: "Workers, not dashboards", body: ["Selling AI to banks means selling trust. Instead of software screenshots, each agent appears as a coworker with a face, a name and a job, like Carlos, the real-time KYC and onboarding auditor."], media: { kind: "full", images: ["/projects/iluk-landing/spotlight.webp"] } },
+      { id: "cast", title: "One character system, generated with AI", body: ["I set up the image generation inside iLuk's AI stack and art-directed it into one consistent cast: the same line weight, palette and proportions across the hero cards, the worker spotlight and the isometric scene."], media: { kind: "full", images: ["/projects/iluk-landing/cast.webp"] } },
+      { id: "scroll-story", title: "Scroll as a story", body: ["\"Every manual process is a client you lose.\" As you scroll, the cast scatters around that line, then one worker comes into focus while the rest blur.", "The choreography runs on GSAP ScrollTrigger."], media: { kind: "full", images: ["/projects/iluk-landing/scroll-story.mp4"] } },
+      { id: "four-steps", title: "Four steps to go live", body: ["Putting AI inside a bank feels risky. The deployment section breaks it into four numbered steps, so it reads as a controlled process with a clear end."], media: { kind: "full", images: ["/projects/iluk-landing/four-steps.mp4"] } },
+      { id: "delivery", title: "Build and delivery", body: ["Built with Next.js, React, TypeScript and Tailwind CSS, with motion in GSAP. Delivered and live at iluk.ai."] }
+    ]
+  },
+  {
     id: "neura-path",
     name: "NeuraPath",
     subtitle: "STEM Career Recommender",
