@@ -43,7 +43,7 @@ export interface ProjectItem {
 
 export const personalInfo = {
   name: "Emiliano Montes Gómez",
-  role: "Frontend and Mobile Engineer",
+  role: "Product Designer and Engineer",
   tagline: "I build scalable web and mobile products with strong UX foundations.",
   location: "Mexico City, Mexico",
   email: "emilianomg2003@hotmail.com",

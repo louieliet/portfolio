@@ -10,14 +10,29 @@ import DitherBg from '../components/dither-bg.astro';
 interface Props {
   title?: string;
   description?: string;
+  image?: string;
+  imageAlt?: string;
+  imageWidth?: number;
+  imageHeight?: number;
   theme?: "light" | "dark";
 }
 
 const {
-  title = "Emiliano Montes | Frontend and Mobile Engineer",
-  description = "Portfolio of Emiliano Montes, a Frontend and Mobile Engineer building scalable web and mobile products with strong UX foundations.",
+  title = "Emiliano Montes | Product Designer and Engineer",
+  description = "Portfolio of Emiliano Montes, a product designer and engineer building web and iOS products end to end, from Figma to production.",
+  image = "/og.jpg",
+  imageAlt = title,
+  imageWidth,
+  imageHeight,
   theme = "dark",
 } = Astro.props;
+
+const pageUrl = new URL(Astro.url.pathname, Astro.site);
+const imageUrl = new URL(image, Astro.site);
+// The default og.jpg is always 1200x630; other images only report size when the page says so.
+const isDefaultImage = image === "/og.jpg";
+const width = isDefaultImage ? 1200 : imageWidth;
+const height = isDefaultImage ? 630 : imageHeight;
 ---
 
 <!doctype html>
@@ -29,6 +44,20 @@ const {
     <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={pageUrl.href} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Emiliano Montes" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={pageUrl.href} />
+    <meta property="og:image" content={imageUrl.href} />
+    <meta property="og:image:alt" content={imageAlt} />
+    {width && <meta property="og:image:width" content={String(width)} />}
+    {height && <meta property="og:image:height" content={String(height)} />}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageUrl.href} />
   </head>
   <body class={theme === "light" ? "theme-light" : undefined}>
     <!-- Camaleonic Header -->

@@ -1,5 +1,6 @@
 ---
 import type { GetStaticPaths } from 'astro';
+import { existsSync } from 'node:fs';
 import Layout from '../../layouts/Layout.astro';
 import { projects } from '@/lib/data';
 import ProjectPageClient from '../../components/project-page-client';
@@ -12,11 +13,21 @@ export const getStaticPaths = (() => {
 }) satisfies GetStaticPaths;
 
 const { project } = Astro.props;
+// Heavy covers get a 1200x630 crop in public/projects/og/ when one exists (WhatsApp skips multi-MB images).
+const ogPath = `/projects/og/${project.id}.jpg`;
+const hasOgCrop = existsSync(new URL(`../../../public${ogPath}`, import.meta.url));
+// WhatsApp and Facebook do not render SVG og:images, so svg covers fall back to the default /og.jpg.
+const cover = project.images?.[0];
+const coverImage = cover && !cover.endsWith(".svg") ? cover : undefined;
 ---
 
 <Layout
   title={`${project.name} | Projects`}
   description={project.description}
+  image={hasOgCrop ? ogPath : coverImage}
+  imageAlt={`${project.name} cover`}
+  imageWidth={hasOgCrop ? 1200 : undefined}
+  imageHeight={hasOgCrop ? 630 : undefined}
   theme="light"
 >
   <ProjectPageClient project={project} client:load />
