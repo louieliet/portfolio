@@ -13,7 +13,7 @@ export interface ExperienceItem {
   description: string;
   stack: string[];
   assets?: string[];
-  assetAspect?: "4/3" | "9/16";
+  assetAspect?: "4/3" | "9/16" | "16/9";
   appStoreUrl?: string;
   highlight?: boolean;
 }
@@ -33,6 +33,7 @@ export interface ProjectItem {
   linkLabel?: string;
   images?: string[];
   imageAspect?: "9/16";
+  coverAspect?: "16/9"; // cases list card and detail hero; default frame is 4/3
   badge?: { label: string; text: string };
   category: "Web" | "Mobile" | "Gaming";
   sections?: ProjectSection[];
@@ -145,7 +146,9 @@ export const experience: ExperienceItem[] = [
     role: "iOS Developer",
     period: "Jan 2025 - Aug 2025",
     description: "Shipped SwiftUI features for the Universidad Panamericana App Store app, including the campus space booking module.",
-    stack: ["Swift", "SwiftUI", "REST APIs"]
+    stack: ["Swift", "SwiftUI", "REST APIs"],
+    assets: ["/projects/upocket/overview.webp"],
+    assetAspect: "16/9"
   },
   {
     company: "Luyoa / Chain Solutions",
@@ -234,6 +237,29 @@ export const projects = [
       { id: "energy", title: "Low on energy, the mission gets smaller", body: ["This is the core idea. Bloomley asks how you are before it asks anything of you, and the mission size follows the answer: five, ten or twenty minutes. The landing shows the three states with three poses, so the promise is visible before a reader scrolls on."], media: { kind: "full", images: ["/projects/bloomley/energy.webp"] } },
       { id: "the-flow", title: "The flow: value before a password", body: ["Most wellbeing apps ask who you are before they show you anything. This section shows the first mission in iPhone mockups before any sign-up. The phones fly in as you scroll, so the motion follows the reader instead of running on a timer."], media: { kind: "full", images: ["/projects/bloomley/flow.mp4"] } },
       { id: "delivery", title: "Build and motion", body: ["Built with Astro, with Lenis for smooth scrolling and CSS scroll-driven animations for the phone entrances. The hero entrance is CSS keyframes, and visitors who ask for reduced motion land on the finished frame. Pointer parallax and the blink are small scripts, and the page is served as pre-rendered HTML."] }
+    ]
+  },
+  {
+    id: "upocket",
+    name: "UPocket",
+    subtitle: "Student life on iPhone",
+    description: "A native iOS app that gives Universidad Panamericana students their grades, schedule and attendance in one place. I built SwiftUI features for it, including the campus space booking module.",
+    overview: "University information is scattered, so students rebuild the same picture of their semester again and again. UPocket answers the questions they ask each week from one app on their phone.",
+    focus: "I worked as an iOS developer from January to August 2025, building SwiftUI features and leading the campus space booking module. Iñaki Sigüenza led iOS development and design.",
+    role: "iOS Developer",
+    team: ["Emiliano Montes", "Iñaki Sigüenza"],
+    stack: ["Swift", "SwiftUI", "REST APIs"],
+    year: "2025",
+    link: "https://apps.apple.com/mx/app/upocket/id6736629315",
+    linkLabel: "View on the App Store",
+    images: ["/projects/upocket/overview.webp"],
+    coverAspect: "16/9",
+    badge: { label: "Status", text: "On the App Store" },
+    category: "Mobile",
+    sections: [
+      { id: "the-app", title: "One app for the semester", body: ["UPocket puts grades, schedule and attendance in one native iPhone app. It was built by students, for the students of Universidad Panamericana, and it is published on the App Store."], media: { kind: "screens", images: ["/projects/upocket/splash.webp", "/projects/upocket/schedule.webp", "/projects/upocket/widget-guide.webp"] } },
+      { id: "space-booking", title: "Booking a campus space", body: ["I led the campus space reservation module: the SwiftUI views for choosing a space, reading its details, reviewing availability and confirming a booking."] },
+      { id: "real-data", title: "Views that handle real data", body: ["I connected views to backend services through REST APIs, handling data loading, user interactions, state changes and errors. I also built reusable UI patterns and student-centered navigation to keep the experience consistent. The screens here are from the app: a loading state, the attendance list, a class detail and an empty state."], media: { kind: "screens", images: ["/projects/upocket/grades-loading.webp", "/projects/upocket/absences.webp", "/projects/upocket/absence-detail.webp", "/projects/upocket/absence-empty.webp"] } }
     ]
   },
   {
