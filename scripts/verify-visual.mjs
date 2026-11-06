@@ -348,7 +348,7 @@ diag.backLink.direct = await evaluate(`({
   marker: window.__homeMarker ?? null,
 })`);
 
-// ── Luma case: 9 section clips (reminders also has a still), clips play only on screen, the dither cuts holes around
+// ── Luma case: 12 section clips (reminders also has a still; one-thing also has a still), clips play only on screen, the dither cuts holes around
 //    visible clips (not the mascot), and the mascot never overlaps the H1 or the facts ──
 diag.luma = {};
 {
@@ -492,7 +492,7 @@ if (diag.vt.before !== diag.vt.after) failures.push(`curtain moved on a case lin
 {
   const L = diag.luma;
   if (!L.arrived || !L.arrivedMobile) failures.push("luma: arrival animations never finished");
-  if (L.sectionVideos !== 9) failures.push(`luma: ${L.sectionVideos} section videos, expected 9`);
+  if (L.sectionVideos !== 12) failures.push(`luma: ${L.sectionVideos} section videos, expected 12`);
   if (L.reminders.videos !== 1 || L.reminders.stills !== 1) failures.push(`luma: reminders has ${L.reminders.videos} videos and ${L.reminders.stills} stills, expected 1 and 1`);
   if (L.remindersA.paused || L.remindersB.paused || !(L.remindersB.t > L.remindersA.t)) failures.push(`luma: reminders clip not playing on screen (paused ${L.remindersB.paused}, time ${L.remindersA.t} -> ${L.remindersB.t})`);
   if (!L.teamPaused || !L.teamPausedAtTop) failures.push(`luma: off-screen team clip is playing (paused at top ${L.teamPausedAtTop}, after reminders ${L.teamPaused})`);
