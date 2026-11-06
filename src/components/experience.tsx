@@ -52,7 +52,7 @@ function Count({ value, reduce }: { value: string; reduce: boolean }) {
 }
 
 // Two stacked layers crossfade: the hidden one takes the next src, then they swap.
-function Media({ src, alt, tall }: { src?: string; alt: string; tall: boolean }) {
+function Media({ src, alt, tall, wide }: { src?: string; alt: string; tall: boolean; wide: boolean }) {
   const [layers, setLayers] = useState<{ top: 0 | 1; srcs: [string?, string?] }>({ top: 0, srcs: [] });
 
   useEffect(() => {
@@ -67,7 +67,7 @@ function Media({ src, alt, tall }: { src?: string; alt: string; tall: boolean })
   }, [src]);
 
   return (
-    <div className={`xp-media${tall ? " is-tall" : ""}`}>
+    <div className={`xp-media${tall ? " is-tall" : ""}${wide ? " is-wide" : ""}`}>
       {[0, 1].map((i) => (
         <img
           key={i}
@@ -158,11 +158,11 @@ export default function Experience() {
       });
       // The panel unpins when the grid's bottom edge reaches its bottom. Just before that
       // the last role takes over, so it is active while the panel is still pinned.
-      // A tall screenshot (Vyvo) makes the panel taller while it is active, so measure the 4:3 height the last role uses.
+      // A tall (Vyvo) or wide (UPocket) screenshot makes the panel taller or shorter while it is active, so measure the 4:3 height the last role uses.
       const panel = root.querySelector<HTMLElement>(".xp-panel");
       const grid = root.querySelector<HTMLElement>(".xp-grid");
-      const tall = panel?.querySelector<HTMLElement>(".xp-media.is-tall");
-      const panelH = panel && tall?.offsetHeight ? panel.offsetHeight - tall.offsetHeight + panel.clientWidth * 0.75 : panel?.offsetHeight ?? 0;
+      const shaped = panel?.querySelector<HTMLElement>(".xp-media.is-tall, .xp-media.is-wide");
+      const panelH = panel && shaped?.offsetHeight ? panel.offsetHeight - shaped.offsetHeight + panel.clientWidth * 0.75 : panel?.offsetHeight ?? 0;
       if (panel && grid && grid.getBoundingClientRect().bottom <= parseFloat(getComputedStyle(panel).top) + panelH + UNPIN_REACH) {
         index = items.length - 1;
       }
@@ -216,6 +216,7 @@ export default function Experience() {
             src={item.assets?.[0]}
             alt={`${item.company} screenshot`}
             tall={item.assetAspect === "9/16"}
+            wide={item.assetAspect === "16/9"}
           />
         </aside>
 

@@ -524,6 +524,10 @@
     background: var(--border-light);
   }
 
+  .case-media.is-wide {
+    aspect-ratio: 16 / 9;
+  }
+
   .case-media img {
     position: absolute;
     inset: 0;
@@ -734,6 +738,10 @@
     aspect-ratio: 4 / 3;
     overflow: hidden;
     background: var(--border-light);
+  }
+
+  .xp-media.is-wide {
+    aspect-ratio: 16 / 9;
   }
 
   .xp-media.is-tall {

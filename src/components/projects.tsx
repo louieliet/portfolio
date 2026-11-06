@@ -90,7 +90,7 @@ export default function Projects() {
             data-cursor="View"
             aria-label={`View ${project.name} case study`}
           >
-            <div className="case-media" style={{ viewTransitionName: `case-${project.id}` }}>
+            <div className={`case-media${project.coverAspect === "16/9" ? " is-wide" : ""}`} style={{ viewTransitionName: `case-${project.id}` }}>
               {project.images?.[0] ? (
                 <Image src={project.images[0]} alt={`${project.name} cover`} fill sizes="(max-width: 900px) 92vw, 46vw" />
               ) : (

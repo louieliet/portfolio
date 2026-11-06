@@ -266,7 +266,7 @@ export default function ProjectPageClient({
         {/* No entrance animation: this frame is the view-transition target from the home case card. */}
         <button
           type="button"
-          className="case-media pj-hero"
+          className={`case-media pj-hero${project.coverAspect === "16/9" ? " is-wide" : ""}`}
           style={{ viewTransitionName: `case-${project.id}` }}
           onClick={(e) => openViewer(0, e.currentTarget)}
           disabled={!heroImage}
@@ -371,7 +371,7 @@ export default function ProjectPageClient({
         <a href={`/projects/${next.id}`} className="pj-next">
           <span className="pj-next-label">Next case</span>
           <span className="chapter-title pj-next-name">{next.name}</span>
-          <div className="case-media pj-next-media">
+          <div className={`case-media pj-next-media${next.coverAspect === "16/9" ? " is-wide" : ""}`}>
             {next.images?.[0] ? (
               <Image src={next.images[0]} alt={`${next.name} cover`} fill sizes="(max-width: 1023px) 100vw, 36rem" />
             ) : (
