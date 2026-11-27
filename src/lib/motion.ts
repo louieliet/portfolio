@@ -611,8 +611,8 @@ function mountStoryPinned(root: HTMLElement): void {
       pinSpacing: true,
       anticipatePin: 1,
       invalidateOnRefresh: true,
-      // Created before the facts and footer triggers, so it refreshes first and their positions account for the pin.
-      refreshPriority: -1,
+      // Higher priority refreshes first, so every trigger below the pin accounts for its spacer.
+      refreshPriority: 1,
     }),
   );
 

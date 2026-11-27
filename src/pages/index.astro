@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Hero from '../components/Hero.astro';
+import Story from '../components/Story.astro';
 import WorkStack from '../components/WorkStack.astro';
 import Approach from '../components/Approach.astro';
 import Timeline from '../components/Timeline.astro';
@@ -9,6 +10,10 @@ import { experience } from '../lib/data';
 
 <Layout>
   <Hero />
+  <!-- How I work: pinned chapter between the hero and the work (the ASCII field carries over). -->
+  <div class="col">
+    <Story />
+  </div>
   <WorkStack />
   <Approach />
   <div class="col section">
