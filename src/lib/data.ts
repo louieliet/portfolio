@@ -109,38 +109,11 @@ export const personalInfo = {
   // Four columns for the home "Approach" block and the about page. Work/Approach/Drive reuse real facts above.
   // Life is placeholder text; each line is marked DUMMY.
   facts: [
-    {
-      title: "Work",
-      items: [
-        "Co-founder of Luma, a personal organizer for iPhone.",
-        "Fullstack developer and UX/UI designer at Feeble.io.",
-        "UPocket, an iOS app for students, published on the App Store."
-      ]
-    },
-    {
-      title: "Approach",
-      items: [
-        "Understand who it is for and the smallest thing worth building.",
-        "Wireframes to high fidelity in Figma, built on a design system.",
-        "React, Next.js, React Native and SwiftUI. Accessible, performant code."
-      ]
-    },
-    {
-      title: "Drive",
-      items: [
-        "Frontend systems, mobile apps and interaction design.",
-        "Backend integrations, cloud computing and big data.",
-        "Games: I still play them, now as a UX reviewer."
-      ]
-    },
-    {
-      title: "Life",
-      items: [
-        "DUMMY: reemplazar", // DUMMY: reemplazar
-        "DUMMY: reemplazar", // DUMMY: reemplazar
-        "DUMMY: reemplazar" // DUMMY: reemplazar
-      ]
-    }
+    { title: "Work", items: ["Products by day", "Luma on the side", "Motion for fun"] },
+    { title: "Approach", items: ["Understand first", "Design in Figma", "Build it myself"] },
+    { title: "Drive", items: ["Curious about AI", "Obsessed with detail", "Games as UX lessons"] },
+    // DUMMY: reemplazar (the three Life lines are invented placeholders)
+    { title: "Life", items: ["Film photographer", "Weekend cyclist", "Coffee before code"] }
   ] satisfies FactGroup[]
 }
 
