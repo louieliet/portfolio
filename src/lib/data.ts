@@ -59,7 +59,7 @@ export interface ProjectItem {
 }
 
 export const personalInfo = {
-  name: "Emiliano Montes Gómez",
+  name: "Emiliano Montes",
   role: "Product Designer and Engineer",
   tagline: "I build scalable web and mobile products with strong UX foundations.",
   // Role words for the hero RoleWord rotation. Keep in sync with src/components/RoleWord.astro.
@@ -81,7 +81,7 @@ export const personalInfo = {
       },
       {
         title: "Design",
-        description: "Wireframes to high fidelity in Figma, built on a design system."
+        description: "Wireframes to high fidelity, built on a design system."
       },
       {
         title: "Build",
@@ -148,7 +148,7 @@ export const experience: ExperienceItem[] = [
     company: "Feeble.io",
     role: "Fullstack Developer & UX/UI Designer",
     period: "Jul 2026 - Present",
-    description: "Building products end to end: Next.js web, native iOS in SwiftUI, a Convex backend, and the UX in Figma.",
+    description: "Building products end to end: the UX, Next.js web, native iOS in SwiftUI, and a Convex backend.",
     stack: ["Next.js", "TypeScript", "Swift", "SwiftUI", "Convex", "Figma"],
     assets: ["/projects/feeble01.png"],
     appStoreUrl: "https://feeble.io/"
