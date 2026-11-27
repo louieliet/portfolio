@@ -5,7 +5,7 @@ import { personalInfo } from '../lib/data';
 
 /*
  * Hero: the first viewport. At least the full viewport height (below the header): the ASCII wave field takes the
- * free height on top, and the text block (name, two muted lines, fun fact) sits at the bottom. Everything is body
+ * free height on top, and the text block (name and two muted lines) sits at the bottom. Everything is body
  * size (15px); hierarchy comes from colour, not type scale. The role word is RoleWord, which ends with the period.
  * The scroll cue sits at the bottom right, in the bottom padding. It fades once the page scrolls 80px (motion.ts).
  */
@@ -17,11 +17,6 @@ import { personalInfo } from '../lib/data';
   <h1 class="name" data-roll data-arrive="0.15" aria-label="Emiliano Montes, product designer">Emiliano Montes, <RoleWord /></h1>
   <p class="muted" data-roll data-arrive="0.3">{personalInfo.now}</p>
   <p class="muted prev" data-roll data-arrive="0.3">{personalInfo.previously}</p>
-  <p class="muted bio" data-facts={JSON.stringify(personalInfo.funFacts)} data-index="0">
-    <button class="fact-label" type="button" data-fact-next aria-controls="fun-fact">A fun fact</button>
-    <a class="about" href="/about" data-no-inl>about me</a>:
-    <span id="fun-fact" class="fact" data-fact data-roll data-arrive="0.4" aria-live="polite">{personalInfo.funFacts[0]}</span>
-  </p>
   <div class="scroll-cue" data-arrive="0.9" data-scroll-cue aria-hidden="true">
     <span class="cue-inner">
       <span class="t-mono muted">Scroll</span>
@@ -29,25 +24,6 @@ import { personalInfo } from '../lib/data';
     </span>
   </div>
 </section>
-
-<script>
-  import { swapLines } from '../lib/motion';
-
-  // Delegated on document, so it keeps working after client navigations without re-binding.
-  // Each click rotates to the next fact through the line roll; the index lives on the wrapper.
-  document.addEventListener('click', (event) => {
-    const button = (event.target as Element | null)?.closest<HTMLButtonElement>('[data-fact-next]');
-    if (!button) return;
-    const wrap = button.closest<HTMLElement>('[data-facts]');
-    const fact = wrap?.querySelector<HTMLElement>('[data-fact]');
-    if (!wrap || !fact) return;
-    const facts = JSON.parse(wrap.dataset.facts ?? '[]') as string[];
-    if (facts.length < 2) return;
-    const next = (Number(wrap.dataset.index ?? 0) + 1) % facts.length;
-    wrap.dataset.index = String(next);
-    swapLines(fact, facts[next]);
-  });
-</script>
 
 <style>
   /* Full viewport height below the header. dvh tracks the mobile browser bar; vh is the fallback. */
@@ -100,45 +76,4 @@ import { personalInfo } from '../lib/data';
     margin-top: 2px;
   }
 
-  .bio {
-    max-width: 42ch;
-    margin-top: 18px;
-  }
-
-  /* Block, so the line roll (SplitText lines are blocks) can split it. The fact sits on its own line. */
-  .fact {
-    display: block;
-    margin-top: 4px;
-  }
-
-  .about,
-  .fact-label {
-    text-decoration: underline;
-    text-decoration-style: dotted;
-    text-decoration-color: var(--text);
-    text-underline-offset: 0.25em;
-  }
-
-  /* One signal per link: the dotted underline is the affordance, so this link opts out of the drawn
-     underline and the dots turn solid on hover or keyboard focus. */
-  .about:focus-visible {
-    text-decoration-style: solid;
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .about:hover {
-      text-decoration-style: solid;
-    }
-  }
-
-  /* Fun-fact button: press only. Its dotted underline stays the affordance; no hover motion. */
-  .fact-label {
-    transition: transform var(--dur-press) var(--ease-pop);
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .fact-label:active {
-      transform: scale(0.96);
-    }
-  }
 </style>

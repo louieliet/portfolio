@@ -24,12 +24,12 @@ const firstFrame = renderWaveFrame(0, null, 1, 1, 134, 40);
   .ascii-field {
     position: relative;
     /* 60% of the hero's free area in both directions, on the leading edge, sitting right above the text.
-     * Free height is the hero (viewport minus header) minus the text block and paddings (about 270px). */
+     * Free height is the hero (viewport minus header) minus the text block and paddings (about 200px). */
     flex: 0 0 auto;
     width: 60%;
     min-height: 160px;
-    height: calc((100vh - var(--header-h) - 270px) * 0.6);
-    height: calc((100dvh - var(--header-h) - 270px) * 0.6);
+    height: calc((100vh - var(--header-h) - 200px) * 0.6);
+    height: calc((100dvh - var(--header-h) - 200px) * 0.6);
     margin: auto auto 24px 0;
     overflow: clip;
     font-family: var(--font-mono);

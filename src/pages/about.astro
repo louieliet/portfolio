@@ -35,11 +35,6 @@ const pad = (n: number) => String(n).padStart(2, '0');
       <p class="t-mono muted reveal" style="--i: 4">{personalInfo.location}</p>
     </section>
 
-    <section class="block reveal" style="--i: 0" aria-labelledby="fun-fact-label">
-      <p id="fun-fact-label" class="t-serif label">Fun fact</p>
-      <p class="t-lead">{personalInfo.funFact}</p>
-    </section>
-
     <section class="block" aria-label="Work photos">
       <ol class="photos">
         {photos.map((photo, i) => (
@@ -77,7 +72,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
     <section class="block" aria-labelledby="facts-heading">
       <h2 id="facts-heading" class="sub" data-roll>Facts</h2>
       <ul class="facts">
-        {/* Life and funFact are DUMMY content (see data.ts). */}
+        {/* Life is DUMMY content (see data.ts). */}
         {personalInfo.facts.map((group, i) => (
           <li class="reveal" style={`--i: ${i}`}>
             <p class="t-mono muted">{pad(i + 1)}</p>
@@ -131,12 +126,6 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
   .intro .t-mono {
     margin-top: 16px;
-  }
-
-  .label {
-    margin-bottom: 12px;
-    font-size: 18px;
-    color: var(--muted);
   }
 
   .sub {

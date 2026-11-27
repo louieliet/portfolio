@@ -119,14 +119,6 @@ export const personalInfo = {
       "I still play video games, but now I analyze them from a UX perspective."
     ]
   },
-  // DUMMY: reemplazar
-  funFact: "I still play video games, and now I review them as UX case studies.",
-  // Hero fun fact cycle. The first entry is funFact; the hero renders it first and the button rotates from there.
-  funFacts: [
-    "I still play video games, and now I review them as UX case studies.",
-    "DUMMY: reemplazar fun fact two.", // DUMMY: reemplazar
-    "DUMMY: reemplazar fun fact three.", // DUMMY: reemplazar
-  ],
   // "How I work" chapter on the home (src/components/Story.astro). One beat per entry, read in order.
   story: [
     "Good products start before the first screen.",

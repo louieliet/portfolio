@@ -217,26 +217,6 @@ function mountRoll(el: HTMLElement, short: boolean): void {
   splits.set(el, split);
 }
 
-/**
- * Line roll for text that changes in place (the hero fun fact). Splits the new text, rolls it in, and
- * leaves the element as plain text under reduced motion.
- */
-export function swapLines(el: HTMLElement, text: string): void {
-  splits.get(el)?.revert();
-  splits.delete(el);
-  rolls.delete(el);
-  el.textContent = text;
-  if (reduced()) return;
-  const split = SplitText.create(el, {
-    type: 'lines',
-    mask: 'lines',
-    linesClass: 'roll-line',
-    aria: 'none',
-  });
-  gsap.fromTo(split.lines, ROLL_FROM, { ...ROLL_TO, duration: DUR.fast, stagger: LINE_STAGGER, ease: EASE_OUT });
-  splits.set(el, split);
-}
-
 /* ---------- Letter swap (data-swap, gesture 1) ---------- */
 
 // Per link: the child nodes it had before mountSwap, and whether it got an aria-label. Teardown restores both.
