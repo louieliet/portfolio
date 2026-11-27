@@ -69,7 +69,7 @@ Source of truth: `src/lib/motion.ts` (header comment has the full contract). Com
 - `Clock.astro`: "CDMX, 11:12 pm, 18°C" live time and Open-Meteo temperature. `[data-clock]`, any count per page. The colon blinks (opacity, 1s steps).
 - `src/lib/motion.ts`: the motion system. Rules, durations, the `data-*` contract, `initMotion` / `destroyMotion`, theme switch, roll helpers.
 - `Footer.astro`: "Get in touch" copies the email, links row, "Now building", clock, copyright, and the decorative "CONTACT" ghost word.
-- `Story.astro`: "How I work" chapter, rendered on the home between Hero and WorkStack. Three beats from `personalInfo.story`, plus signs, progress ticks (pinned only), and the ASCII block.
+- `Story.astro`: "How I work" chapter, rendered on the home between Hero and WorkStack. Three beats from `personalInfo.story`, plus signs, and the ASCII block.
 - `src/lib/ascii-story.ts`: pure functions for the chapter's ASCII block: noise, wireframe, product, and the blend `renderStoryFrame(progress, t)`.
 - `Timeline.astro`: year, company and role rows, with the `data-timeline` rail. Shared by home and about.
 - `Hero.astro`: home intro, first viewport: at least `100dvh - var(--header-h)` tall. `AsciiField` takes the free height on top; the name with `RoleWord`, now/previously lines and fun fact sit at the bottom (padding-bottom `clamp(28px, 6vh, 64px)`). Bottom-right scroll cue ("Scroll" plus a 1px, 24px line), `aria-hidden`, fades on opacity once the page scrolls 80px.

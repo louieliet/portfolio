@@ -6,10 +6,10 @@ import { renderStoryProduct } from '../lib/ascii-story';
  * Story: the "How I work" chapter, the first block of the home Approach section.
  * - Three beats, in DOM order. Screen readers read them in order at all times.
  * - Desktop with motion (>= 900px): the stage pins under the header and scroll lights the words
- *   (motion.ts, mountStoryPinned). The ticks and plus signs come alive only there (.is-pinned).
+ *   (motion.ts, mountStoryPinned). The plus signs come alive only there (.is-pinned).
  * - Under 900px with motion: no pin. Each beat lights once when it enters (mountStoryFlow).
- * - Reduced motion and no JS: all beats fully lit, the PRODUCT frame, and no ticks.
- * The ASCII block, the plus signs and ticks are decorative and aria-hidden.
+ * - Reduced motion and no JS: all beats fully lit, the PRODUCT frame.
+ * The ASCII block, the plus signs are decorative and aria-hidden.
  */
 const beats = personalInfo.story;
 const frame = renderStoryProduct();
@@ -20,13 +20,6 @@ const frame = renderStoryProduct();
     <div class="copy">
       <div class="head">
         <p id="story-label" class="label t-mono muted">How I work</p>
-        <div class="meter">
-          <span class="ticks" aria-hidden="true">
-            <i data-story-tick></i>
-            <i data-story-tick></i>
-            <i data-story-tick></i>
-          </span>
-        </div>
       </div>
 
       <div class="beats">
@@ -78,41 +71,6 @@ const frame = renderStoryProduct();
 
   .label {
     margin: 0;
-  }
-
-  .meter {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-
-  /* The ticks exist only while the chapter is pinned. Elsewhere they would claim a state that is not shown. */
-  .ticks {
-    display: none;
-  }
-
-  .is-pinned .ticks {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .ticks i {
-    display: block;
-    width: 34px;
-    height: 1px;
-    background: var(--text);
-    opacity: 0.4;
-    transform-origin: left center;
-    transform: scaleX(0.53);
-    transition:
-      transform var(--dur-fast) var(--ease-out),
-      opacity var(--dur-fast) var(--ease-out);
-  }
-
-  .ticks i.is-on {
-    opacity: 1;
-    transform: scaleX(1);
   }
 
   .beat {

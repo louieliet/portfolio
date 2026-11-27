@@ -460,7 +460,6 @@ let storyRun = 0;
 interface StoryParts {
   beats: HTMLElement[];
   pluses: HTMLElement[];
-  ticks: HTMLElement[];
   caption: HTMLElement;
   ascii: HTMLElement;
 }
@@ -482,7 +481,6 @@ function storyParts(root: HTMLElement): StoryParts | null {
   return {
     beats,
     pluses: Array.from(root.querySelectorAll<HTMLElement>('[data-story-plus]')),
-    ticks: Array.from(root.querySelectorAll<HTMLElement>('[data-story-tick]')),
     caption,
     ascii,
   };
@@ -500,14 +498,14 @@ function splitWords(beat: HTMLElement): HTMLElement[] {
 /**
  * Desktop with motion: one ScrollTrigger pins the stage under the header. The trigger drives a scrubbed
  * timeline (scrub 0.5 gives the smoothing), and that timeline's update lights the words, the plus signs, the
- * tick, and the caption. Between scroll events a shimmer loop moves the noise, but only while the
+ * caption. Between scroll events a shimmer loop moves the noise, but only while the
  * chapter is on screen and the tab is visible.
  */
 function mountStoryPinned(root: HTMLElement): void {
   const parts = storyParts(root);
   const stage = root.querySelector<HTMLElement>('[data-story-stage]');
   if (!parts || !stage) return;
-  const { beats, pluses, ticks, caption, ascii } = parts;
+  const { beats, pluses, caption, ascii } = parts;
   const run = ++storyRun;
 
   root.classList.add('is-pinned');
@@ -535,8 +533,6 @@ function mountStoryPinned(root: HTMLElement): void {
       });
     });
     pluses.forEach((plus, k) => plus.classList.toggle('is-on', p >= (k + 1) / 3 - 0.03));
-    const cur = p < 1 / 3 ? 0 : p < 2 / 3 ? 1 : 2;
-    ticks.forEach((tick, i) => tick.classList.toggle('is-on', i === cur));
     const name = storyStage(p);
     if (name !== lastStage) {
       caption.textContent = name;
