@@ -1,0 +1,12 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { personalInfo } from '../lib/data';
+// Placeholder: the About coder replaces this with the portrait, bio, facts and full timeline.
+---
+
+<Layout title="About | Emiliano Montes" description={personalInfo.tagline}>
+  <section class="col section">
+    <h1 class="t-display">About</h1>
+    <p class="t-lead muted">{personalInfo.tagline}</p>
+  </section>
+</Layout>

@@ -1,0 +1,123 @@
+---
+import Clock from './Clock.astro';
+import { personalInfo } from '../lib/data';
+
+/*
+ * Site footer: "Get in touch" copies the email (button) and offers a real mailto link.
+ * Links row, then "Now building" on the left and the clock on the right.
+ */
+const mailto = `mailto:${personalInfo.email}`;
+---
+
+<footer class="site-footer bleed">
+  <div class="col">
+    <div class="cta">
+      <!-- The label swaps "Copy email" -> "Copied" for 2s; aria-live announces the change. -->
+      <button class="get-in-touch t-display" type="button" data-copy-email={personalInfo.email}>
+        Get in touch
+        <span class="copy-label t-mono muted" data-copy-label aria-live="polite">Copy email</span>
+      </button>
+      <p class="email">
+        <a href={mailto}>{personalInfo.email}</a>
+      </p>
+    </div>
+
+    <ul class="links">
+      <li><a href={personalInfo.linkedin} target="_blank" rel="noopener">LinkedIn</a></li>
+      <li><a href={personalInfo.github} target="_blank" rel="noopener">GitHub</a></li>
+      <li><a href={mailto}>Email</a></li>
+    </ul>
+
+    <div class="meta">
+      <p class="t-mono">
+        <span class="muted">Now building:</span>
+        <a href="/projects/luma">Luma</a>
+      </p>
+      <Clock />
+    </div>
+
+    <p class="copyright t-mono muted">(c) 2026 Emiliano Montes</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid var(--line);
+    padding-block: clamp(64px, 10vh, 120px) 40px;
+  }
+
+  .get-in-touch {
+    display: block;
+    text-align: left;
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 6px;
+    transition: text-decoration-color 200ms ease;
+  }
+
+  .get-in-touch:hover {
+    text-decoration-color: var(--accent);
+  }
+
+  .copy-label {
+    display: inline-block;
+    margin-left: 12px;
+    vertical-align: middle;
+    font-size: 13px;
+    letter-spacing: 0.01em;
+  }
+
+  .email {
+    margin-top: 20px;
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 28px;
+    margin-top: 40px;
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px 24px;
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+  }
+
+  .copyright {
+    margin-top: 40px;
+  }
+</style>
+
+<script>
+  const RESET_MS = 2000;
+  let resetTimer: number | undefined;
+
+  // Delegated on document so it survives client navigations.
+  document.addEventListener('click', async (event) => {
+    const target = event.target as Element | null;
+    const button = target?.closest<HTMLButtonElement>('[data-copy-email]');
+    if (!button) return;
+
+    const label = button.querySelector<HTMLElement>('[data-copy-label]');
+    if (!label) return;
+
+    let message = 'Copied';
+    try {
+      await navigator.clipboard.writeText(button.dataset.copyEmail ?? '');
+    } catch {
+      message = 'Copy failed';
+    }
+
+    label.textContent = message;
+    window.clearTimeout(resetTimer);
+    resetTimer = window.setTimeout(() => {
+      label.textContent = 'Copy email';
+    }, RESET_MS);
+  });
+</script>

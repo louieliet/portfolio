@@ -18,6 +18,11 @@ export interface ExperienceItem {
   highlight?: boolean;
 }
 
+export interface FactGroup {
+  title: "Work" | "Approach" | "Drive" | "Life";
+  items: string[]; // three short lines per group
+}
+
 export interface ProjectItem {
   id: string;
   name: string;
@@ -32,6 +37,8 @@ export interface ProjectItem {
   link?: string;
   linkLabel?: string;
   images?: string[];
+  // Still image that floats in the home hero. Must exist under public/. Optional: projects without one are skipped there.
+  heroShot?: string;
   imageAspect?: "9/16";
   coverAspect?: "16/9"; // cases list card and detail hero; default frame is 4/3
   badge?: { label: string; text: string };
@@ -46,6 +53,9 @@ export const personalInfo = {
   name: "Emiliano Montes Gómez",
   role: "Product Designer and Engineer",
   tagline: "I build scalable web and mobile products with strong UX foundations.",
+  // Rotating words for the hero role sticker.
+  roles: ["product designer", "design engineer", "iOS builder", "co-founder"],
+  intro: "I design and build web and iOS products end to end, from Figma to production.",
   location: "Mexico City, Mexico",
   email: "emilianomg2003@hotmail.com",
   linkedin: "https://www.linkedin.com/in/emiliano-mg/",
@@ -93,7 +103,55 @@ export const personalInfo = {
       "I read about cognitive psychology, behavioral design, and design theory.",
       "I still play video games, but now I analyze them from a UX perspective."
     ]
-  }
+  },
+  // DUMMY: reemplazar
+  funFact: "I still play video games, and now I review them as UX case studies.",
+  // Four columns for the home "Approach" block and the about page. Work/Approach/Drive reuse real facts above.
+  // Life is placeholder text; each line is marked DUMMY.
+  facts: [
+    {
+      title: "Work",
+      items: [
+        "Co-founder of Luma, a personal organizer for iPhone.",
+        "Fullstack developer and UX/UI designer at Feeble.io.",
+        "UPocket, an iOS app for students, published on the App Store."
+      ]
+    },
+    {
+      title: "Approach",
+      items: [
+        "Understand who it is for and the smallest thing worth building.",
+        "Wireframes to high fidelity in Figma, built on a design system.",
+        "React, Next.js, React Native and SwiftUI. Accessible, performant code."
+      ]
+    },
+    {
+      title: "Drive",
+      items: [
+        "Frontend systems, mobile apps and interaction design.",
+        "Backend integrations, cloud computing and big data.",
+        "Games: I still play them, now as a UX reviewer."
+      ]
+    },
+    {
+      title: "Life",
+      items: [
+        "DUMMY: reemplazar", // DUMMY: reemplazar
+        "DUMMY: reemplazar", // DUMMY: reemplazar
+        "DUMMY: reemplazar" // DUMMY: reemplazar
+      ]
+    }
+  ] satisfies FactGroup[]
+}
+
+/**
+ * Year shown on timelines. "Now" for an ongoing period ("... - Present"), otherwise the trailing
+ * 4-digit year. Falls back to the raw period string when no year is found, so nothing renders blank.
+ */
+export function periodYear(period: string): string {
+  if (/present\s*$/i.test(period)) return "Now";
+  const match = period.match(/(\d{4})\s*$/);
+  return match ? match[1] : period;
 }
 
 export const stack = {
@@ -176,6 +234,7 @@ export const projects = [
     link: "https://www.lumaproductivity.app/",
     linkLabel: "Visit Luma",
     images: ["/projects/luma-cover.svg"],
+    heroShot: "/projects/luma/day-home.webp",
     imageAspect: "9/16",
     mascot: { mov: "/projects/luma/odi-flower.mov", webm: "/projects/luma/odi-flower.webm", poster: "/projects/luma/odi-flower-still.webp" },
     badge: { label: "Status", text: "Private beta, join the waitlist" },
@@ -204,6 +263,7 @@ export const projects = [
     link: "https://www.iluk.ai/",
     linkLabel: "Visit iLuk.ai",
     images: ["/projects/iluk-cover.webp"],
+    heroShot: "/projects/iluk-landing/hero.webp",
     badge: { label: "Status", text: "Live at iluk.ai" },
     category: "Web",
     sections: [
@@ -228,6 +288,7 @@ export const projects = [
     link: "https://bloomley.luishomeserver.com/",
     linkLabel: "Visit Bloomley",
     images: ["/projects/bloomley-cover.webp"],
+    heroShot: "/projects/bloomley/hero.webp",
     badge: { label: "Status", text: "In development" },
     category: "Web",
     sections: [
@@ -253,6 +314,7 @@ export const projects = [
     link: "https://apps.apple.com/mx/app/upocket/id6736629315",
     linkLabel: "View on the App Store",
     images: ["/projects/upocket/overview.webp"],
+    heroShot: "/projects/upocket/overview.webp",
     coverAspect: "16/9",
     badge: { label: "Status", text: "On the App Store" },
     category: "Mobile",
@@ -275,6 +337,7 @@ export const projects = [
     stack: ["SwiftUI", "NLP", "ML", "Forms", "Career Matching"],
     year: "2025",
     images: ["/projects/neurapathcover.png", "/projects/neurapath01.png", "/projects/neurapath02.png", "/projects/neurapath03.png", "/projects/neurapath04.png", "/projects/neurapath05.png", "/projects/neurapath06.png", "/projects/neurapath07.png"],
+    heroShot: "/projects/neurapathcover.png",
     badge: { label: "Award", text: "1st place, National Swift Changemakers Hackathon 2025 (Bosch Challenge)" },
     category: "Mobile",
     sections: [
@@ -297,6 +360,7 @@ export const projects = [
     role: "Product Designer & iOS Builder",
     stack: ["SwiftUI", "iOS", "Wellness UX", "Gamification", "Local Persistence"],
     year: "2025",
+    heroShot: "/projects/welltycover.png",
     images: ["/projects/welltycover.png", "/projects/wellty01.png", "/projects/wellty02.png", "/projects/wellty03.png", "/projects/wellty04.png", "/projects/wellty05.png", "/projects/wellty06.png", "/projects/wellty07.png", "/projects/wellty09.png", "/projects/wellty10.png", "/projects/wellty11.png", "/projects/wellty12.png", "/projects/wellty13.png"],
     category: "Mobile",
     sections: [

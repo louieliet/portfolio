@@ -3,7 +3,6 @@ import type { GetStaticPaths } from 'astro';
 import { existsSync } from 'node:fs';
 import Layout from '../../layouts/Layout.astro';
 import { projects } from '@/lib/data';
-import ProjectPageClient from '../../components/project-page-client';
 
 export const getStaticPaths = (() => {
   return projects.map((project) => ({
@@ -19,6 +18,7 @@ const hasOgCrop = existsSync(new URL(`../../../public${ogPath}`, import.meta.url
 // WhatsApp and Facebook do not render SVG og:images, so svg covers fall back to the default /og.jpg.
 const cover = project.images?.[0];
 const coverImage = cover && !cover.endsWith(".svg") ? cover : undefined;
+// Placeholder: the Case coder replaces the body with CaseMeta, CaseSection, CaseOutcome and NextProject.
 ---
 
 <Layout
@@ -28,7 +28,10 @@ const coverImage = cover && !cover.endsWith(".svg") ? cover : undefined;
   imageAlt={`${project.name} cover`}
   imageWidth={hasOgCrop ? 1200 : undefined}
   imageHeight={hasOgCrop ? 630 : undefined}
-  theme="light"
 >
-  <ProjectPageClient project={project} client:load />
+  <section class="col section">
+    <p class="t-mono muted">{project.category} / {project.year}</p>
+    <h1 class="t-display">{project.name}</h1>
+    <p class="t-lead muted">{project.description}</p>
+  </section>
 </Layout>

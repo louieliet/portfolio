@@ -1,3 +1,3 @@
 #!/bin/sh
-# Gate: CODE BEAUTY scene + handoffs frozen (see scripts/check-code-beauty.mjs)
+# Gate: deterministic, local, free tests (node --test over src/lib/*.test.ts). See package.json "test".
 npm test --silent

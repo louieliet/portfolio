@@ -1,0 +1,355 @@
+/*
+ * Global styles. Vanilla CSS, no framework.
+ *
+ * CONTRACT (other coders build on this file; do not rename tokens or classes):
+ *
+ * Tokens (defined on :root, overridden per theme):
+ *   --bg, --text, --muted, --line, --accent
+ *   --font-sans, --font-serif, --font-mono
+ *   --col            max width of the content column (880px)
+ *   --header-h       fixed header height
+ *   --space-section  vertical rhythm between sections
+ *   --ease-out       the one easing used for entrances
+ *
+ * Layout:
+ *   .col             content column, offset to the left on wide screens
+ *   .bleed           full width with fluid gutters (for full-bleed media)
+ *   .section         vertical section padding (--space-section)
+ *   .rule            1px separator in --line
+ *
+ * Type:
+ *   .t-lead          22-26px fluid opening sentence
+ *   .t-display       clamp(44px, 6vw, 80px) display, used for names and case titles
+ *   .t-mono          12.5px mono metadata, tabular numbers
+ *   .t-serif         Instrument Serif italic accent
+ *   .muted           --muted color
+ *
+ * Motion:
+ *   .reveal          entrance; hidden only when html.js is set (no-JS safe).
+ *                    Set --i on the element for stagger (60ms steps).
+ *                    JS adds .is-in when the element enters the viewport.
+ *
+ * Utilities:
+ *   .sr-only         visually hidden, still read by screen readers
+ *   .skip-link       first focusable element in Layout
+ */
+
+/* ---------- Fonts ---------- */
+
+@font-face {
+  font-family: "General Sans";
+  src: url("/fonts/GeneralSans-Variable.woff2") format("woff2");
+  font-weight: 200 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/fonts/GeistMono-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Instrument Serif";
+  src: url("/fonts/InstrumentSerif-Italic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* ---------- Tokens ---------- */
+
+:root,
+:root[data-theme="light"] {
+  --bg: #f4f4f4;
+  --text: #0c0c0c;
+  --muted: #6b6b6b;
+  --line: rgb(0 0 0 / 8%);
+  --accent: #f5d04a;
+  color-scheme: light;
+}
+
+/* Dark follows the system only when no explicit theme is stored. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b0c0b;
+    --text: #ededed;
+    --muted: #8a8a8c;
+    --line: rgb(255 255 255 / 8%);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0b0c0b;
+  --text: #ededed;
+  --muted: #8a8a8c;
+  --line: rgb(255 255 255 / 8%);
+  color-scheme: dark;
+}
+
+:root {
+  --font-sans: "General Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Instrument Serif", Georgia, serif;
+  --font-mono: "Geist Mono", ui-monospace, Menlo, Consolas, monospace;
+
+  --col: 880px;
+  --header-h: 56px;
+  --space-section: clamp(96px, 14vh, 180px);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --radius: 0;
+}
+
+/* ---------- Reset ---------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: var(--header-h);
+}
+
+body {
+  min-height: 100vh;
+  padding-top: var(--header-h);
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+img,
+video,
+picture,
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+  border-radius: var(--radius);
+  box-shadow: none;
+}
+
+button {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ---------- Links ---------- */
+
+a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  transition: text-decoration-color 200ms ease;
+}
+
+a:hover {
+  text-decoration-color: var(--accent);
+}
+
+/* ---------- Focus and selection ---------- */
+
+:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: var(--accent);
+  color: #000;
+}
+
+/* ---------- Type ---------- */
+
+.t-lead {
+  font-size: clamp(22px, 1.4vw + 16px, 26px);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.t-display {
+  font-size: clamp(44px, 6vw, 80px);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.t-mono {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.t-serif {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+/* ---------- Layout ---------- */
+
+/* Content column: 20px gutter on small screens; from 960px it starts at 26.25vw (504px at 1920). */
+.col {
+  margin-inline: 20px;
+  max-width: var(--col);
+}
+
+@media (min-width: 960px) {
+  .col {
+    margin-left: max(20px, 26.25vw);
+    margin-right: 20px;
+  }
+}
+
+/* Full-bleed: no max width, fluid gutters. */
+.bleed {
+  width: 100%;
+  padding-inline: clamp(20px, 3vw, 48px);
+}
+
+.section {
+  padding-block: var(--space-section);
+}
+
+.rule {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 0;
+}
+
+/* ---------- Reveal (entrance motion) ---------- */
+
+.reveal {
+  transition:
+    opacity 600ms var(--ease-out),
+    transform 600ms var(--ease-out);
+  transition-delay: calc(var(--i, 0) * 60ms);
+}
+
+/* Hidden only when the head script has set html.js, so no-JS visitors see everything. */
+.js .reveal {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.js .reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- Utilities ---------- */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  left: 20px;
+  top: -100px;
+  z-index: 100;
+  padding: 8px 12px;
+  background: var(--text);
+  color: var(--bg);
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
+/* ---------- Lenis base CSS (from Lenis docs) ---------- */
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* ---------- Reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .js .reveal {
+    opacity: 1;
+    transform: none;
+  }
+
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0.01ms !important;
+  }
+}

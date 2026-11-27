@@ -33,7 +33,11 @@ test("section ids are unique per project and slug-safe", () => {
 
 test("every project image and section media image exists under public/", () => {
   for (const p of projects) {
-    const paths = [...(p.images ?? []), ...sectionsOf(p).flatMap((s) => s.media?.images ?? [])];
+    const paths = [
+      ...(p.images ?? []),
+      ...(p.heroShot ? [p.heroShot] : []),
+      ...sectionsOf(p).flatMap((s) => s.media?.images ?? []),
+    ];
     for (const src of paths) {
       assert.ok(existsSync(`${PUBLIC}${src}`), `${p.id}: missing ${src}`);
     }
