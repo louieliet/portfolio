@@ -1,0 +1,62 @@
+---
+/*
+ * Curtain: the full-screen ASCII cover that opens the home page (logic in src/lib/curtain.ts, wired by motion.ts).
+ * - The cover is in the server HTML, so it is on the first paint. Creating it from JS would flash the page first.
+ * - Used only in src/pages/index.astro, as the first child of Layout (before Hero).
+ * - Styles are is:global: the rules need html.js and html[data-vt-return], and the block only ships with this page.
+ * - No JS here. motion.ts finds [data-curtain] and mounts the canvas work on it.
+ */
+---
+
+<div class="curtain" data-curtain aria-hidden="true"><canvas></canvas></div>
+
+<style is:global>
+  /* No JS: the cover is never rendered, so a no-JS visitor sees the page at once. */
+  .curtain {
+    display: none;
+  }
+
+  /* z-index 90 sits above the header (50) and the cursor pill (60), and below the skip link (100), so the cover
+     hides the header too and a keyboard user can still reach the skip link. pointer-events off: it never takes a click. */
+  html.js .curtain {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    background: var(--bg);
+    pointer-events: none;
+    /* Its own view-transition group, so it is not inside the root snapshot. Groups paint in paint order, and the
+       cover (z 90) paints after the header (z 50, its own group), so during a navigation the cover sits above the
+       header. It is new-only (the old page has no cover), so it fades in with the UA default. */
+    view-transition-name: curtain;
+    /* Failsafe, the same idea as arrive-failsafe: if the script never runs, the cover is hidden after 2.5s. The
+       animation is cancelled by mountCurtain, which takes over the removal. */
+    animation: curtain-failsafe 0s linear 2.5s both;
+  }
+
+  @keyframes curtain-failsafe {
+    to {
+      visibility: hidden;
+    }
+  }
+
+  /* A return from a case page: the card travel needs the first viewport on screen, so the cover stays out of it. */
+  html[data-vt-return] .curtain {
+    display: none;
+  }
+
+  /* Reduced motion: no cover at all. Same specificity as the html.js rule above, and it comes after it. */
+  @media (prefers-reduced-motion: reduce) {
+    html.js .curtain {
+      display: none;
+    }
+  }
+
+  .curtain canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+</style>

@@ -18,6 +18,10 @@
  * - data-arrive="0.15"        load choreography offset in seconds. Used on the first viewport only:
  *                             data-roll (rolls at that time), data-ascii-field (row draw, 0.5s), a .reveal
  *                             block (gets .is-in at that time), data-scroll-cue (fades in at 0.9s, last).
+ * - data-curtain              the full-screen ASCII cover on home (Curtain.astro, curtain.ts). It plays on every arrival
+ *                             at home, as the first step of the full choreography: the first-viewport arrivals start
+ *                             when its dissolve starts. Hidden instead under reduced motion, on a return from a case
+ *                             page, and in the short version. It never covers a page that is already visible.
  * - data-swap                 letter swap on a link or label (gesture 1). initMotion wraps its text nodes in clipped
  *                             per-character cells (mountSwap). Fine pointers only (CSS). aria-hidden copy; the
  *                             accessible name is kept on the link (aria-label) or in an .sr-only copy.
@@ -43,14 +47,17 @@
  *
  * LIFECYCLE
  * - initMotion() on astro:page-load, destroyMotion() on astro:before-swap. Both are idempotent.
- * - The full choreography runs on the first arrival in a session (sessionStorage "motion:arrived").
- *   Later navigations use the short version: everything in the first viewport rolls together at 0.3s.
+ * - The full choreography runs on the first arrival in a session (sessionStorage "motion:arrived"), and on every
+ *   arrival at home ("/"). Home's full version opens with the curtain (data-curtain, curtain.ts): the first-viewport
+ *   arrivals start as its dissolve starts. Later navigations to other pages use the short version: everything in the
+ *   first viewport rolls together at 0.3s.
  */
 
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
 import type Lenis from 'lenis';
+import { CURTAIN_HOLD, mountCurtain } from './curtain';
 import { renderStoryFrame, renderStoryProduct, storyStage } from './ascii-story';
 import { centreTop } from './page-transition';
 
@@ -378,10 +385,18 @@ export function rollText(cell: HTMLElement, text: string, dir: -1 | 0 | 1, force
 
 /* ---------- Arrivals: first viewport, one timeline ---------- */
 
-function buildArrivals(short: boolean, settled: (el: HTMLElement) => boolean): void {
+/**
+ * `curtain` is the [data-curtain] element when the home curtain should play, otherwise null. When it plays, the
+ * curtain's tween sits on this timeline at 0 and every arrival starts at CURTAIN_HOLD, as the dissolve starts.
+ */
+function buildArrivals(short: boolean, settled: (el: HTMLElement) => boolean, curtain: HTMLElement | null): void {
   const tl = gsap.timeline();
   timelines.push(tl);
   const dur = short ? DUR.fast : DUR.slow;
+  const teardown = curtain ? mountCurtain(curtain, tl) : null;
+  if (teardown) undo.push(teardown);
+  const curtainOn = teardown !== null;
+  const offset = curtainOn ? CURTAIN_HOLD : 0;
 
   document.querySelectorAll<HTMLElement>('[data-arrive]').forEach((el) => {
     if (settled(el)) {
@@ -390,10 +405,11 @@ function buildArrivals(short: boolean, settled: (el: HTMLElement) => boolean): v
       if (el.hasAttribute('data-scroll-cue')) gsap.set(el, { opacity: 1 });
       return;
     }
-    const at = short ? 0 : Number(el.dataset.arrive) || 0;
+    const at = short ? 0 : (Number(el.dataset.arrive) || 0) + offset;
 
     if (el.hasAttribute('data-ascii-field')) {
-      if (short) return;
+      // The field is already whole under the cover. The dissolve reveals it, so the wave appears to stay in place.
+      if (short || curtainOn) return;
       el.dataset.reveal = '0';
       el.textContent = '';
       const progress = { value: 0 };
@@ -780,7 +796,11 @@ function mountFull(short: boolean): void {
   });
   document.querySelectorAll<HTMLElement>('[data-swap]').forEach(mountSwap);
   document.querySelectorAll<HTMLElement>('[data-magnetic]').forEach(mountMagnetic);
-  buildArrivals(short, settled);
+  // The curtain is home's full version only. Short and returning arrivals hide it and never play it.
+  const curtain = document.querySelector<HTMLElement>('[data-curtain]');
+  const curtainPlays = !short && !returning ? curtain : null;
+  if (curtain && !curtainPlays) curtain.style.display = 'none';
+  buildArrivals(short, settled, curtainPlays);
   if (travelled) buildLateArrivals();
   mountBatch();
   document.querySelectorAll<HTMLElement>('[data-timeline]').forEach(mountTimeline);
@@ -796,6 +816,10 @@ function mountFull(short: boolean): void {
 function showStatic(): void {
   // Reduced motion: nothing is split, hidden or animated. Arrivals are simply shown.
   document.querySelectorAll<HTMLElement>('[data-arrive]').forEach(unhide);
+  // The curtain is also hidden by CSS under reduced motion. This is the belt for the JS path.
+  document.querySelectorAll<HTMLElement>('[data-curtain]').forEach((el) => {
+    el.style.display = 'none';
+  });
   // A card travel never starts under reduced motion, but the late pieces must never stay hidden.
   document.querySelectorAll<HTMLElement>('[data-vt-late]').forEach((el) => {
     el.style.opacity = '1';
@@ -859,7 +883,8 @@ export function switchTheme(origin: { x: number; y: number }, commit: () => void
 /** Builds every motion piece for the current page. Safe to call again: it tears down first. */
 export function initMotion(): void {
   destroyMotion();
-  const short = readArrived();
+  // Home always plays the full choreography: its curtain opens it (curtain.ts).
+  const short = readArrived() && location.pathname !== '/';
   writeArrived();
   ctx = gsap.matchMedia();
   ctx.add(MOTION_QUERY, () => mountFull(short));
