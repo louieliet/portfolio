@@ -23,10 +23,15 @@ const pad = (n: number) => String(n).padStart(2, '0');
   <div class="col page">
     <section class="intro">
       <DotPortrait src="/projects/me-portrait.jpg" alt="Portrait of Emiliano Montes" size={200} />
-      <h1 class="reveal" style="--i: 0">A little about me.</h1>
-      {paragraphs.map((paragraph, i) => (
-        <p class="bio reveal" style={`--i: ${i + 1}`}>{paragraph}</p>
-      ))}
+      <h1 data-roll data-arrive="0">A little about me.</h1>
+      {paragraphs.map((paragraph, i) =>
+        i === 0 ? (
+          // The first paragraph is the lead of the load choreography.
+          <p class="bio" data-roll data-arrive="0.15">{paragraph}</p>
+        ) : (
+          <p class="bio reveal" style={`--i: ${i + 1}`}>{paragraph}</p>
+        ),
+      )}
       <p class="t-mono muted reveal" style="--i: 4">{personalInfo.location}</p>
     </section>
 
@@ -38,7 +43,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
     <section class="block" aria-label="Work photos">
       <ol class="photos">
         {photos.map((photo, i) => (
-          <li class="reveal" style={`--i: ${i}`}>
+          <li class="reveal" style={`--i: ${i}`} data-arrive={i === 0 ? '0.5' : undefined}>
             <figure>
               <figcaption class="t-mono muted">{pad(i + 1)} / {photo.company.split(/[\s./]/)[0]}</figcaption>
               <div class="frame">
@@ -55,7 +60,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
     </section>
 
     <section class="block" aria-labelledby="education-heading">
-      <h2 id="education-heading" class="sub">Education</h2>
+      <h2 id="education-heading" class="sub" data-roll>Education</h2>
       <ol class="edu">
         {personalInfo.about.education.map((item, i) => (
           <li class="reveal" style={`--i: ${i}`}>
@@ -70,7 +75,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
     </section>
 
     <section class="block" aria-labelledby="facts-heading">
-      <h2 id="facts-heading" class="sub">Facts</h2>
+      <h2 id="facts-heading" class="sub" data-roll>Facts</h2>
       <ul class="facts">
         {/* Life and funFact are DUMMY content (see data.ts). */}
         {personalInfo.facts.map((group, i) => (

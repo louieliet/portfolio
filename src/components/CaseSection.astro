@@ -28,12 +28,12 @@ const label = `${projectName}: ${section.title}`;
 <section id={section.id} class="bleed case">
   <div class="label">
     <p class="t-mono muted num">{number}</p>
-    <p class="t-mono muted label-title" aria-hidden="true">{section.title}</p>
+    <p class="t-mono muted label-title" aria-hidden="true" data-roll>{section.title}</p>
   </div>
 
-  <div class="text reveal" style="--i: 0">
-    <h2 class="title">{section.title}</h2>
-    {section.body.map((paragraph) => <p class="body">{paragraph}</p>)}
+  <div class="text">
+    <h2 class="title" data-roll>{section.title}</h2>
+    {section.body.map((paragraph, j) => <p class="body reveal" style={`--i: ${j}`}>{paragraph}</p>)}
   </div>
 
   {

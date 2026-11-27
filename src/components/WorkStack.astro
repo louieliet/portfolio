@@ -21,7 +21,7 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
       {
         projects.map((p, i) => (
           <li>
-            <a href={`#work-${p.id}`} data-index-link>
+            <a href={`#work-${p.id}`} data-index-link data-roll-hover>
               <span class="num t-mono">{String(i + 1).padStart(2, '0')}</span>
               {p.name}
             </a>
@@ -30,19 +30,25 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
       }
     </ol>
   </nav>
-  <p class="counter t-mono muted" data-counter aria-hidden="true">01 &mdash; {total}</p>
+  <p class="counter t-mono muted" data-counter aria-hidden="true"><span class="roll-cell" data-odo><span class="cell-face">01</span></span> &mdash; {total}</p>
 
   <div class="col">
-    <header class="head reveal" style="--i:0">
-      <h2 id="work-heading" class="muted">Selected work</h2>
-      <span class="t-mono muted">01 &mdash; {total}</span>
+    <header class="head">
+      <h2 id="work-heading" class="muted" data-roll>Selected work</h2>
+      <span class="t-mono muted" data-counter-head><span class="roll-cell" data-odo><span class="cell-face">01</span></span> &mdash; {total}</span>
     </header>
 
     <ol class="stack" data-stack>
       {
-        projects.map((p) => (
+        projects.map((p, i) => (
           <li class="item" id={`work-${p.id}`} data-work-item>
-            <a class="card" href={`/projects/${p.id}`} aria-label={`${p.name}: ${p.subtitle}`} data-card>
+            <a
+              class="card"
+              href={`/projects/${p.id}`}
+              aria-label={`${p.name}: ${p.subtitle}`}
+              data-card
+              data-arrive={i === 0 ? '0.5' : undefined}
+            >
               <span class:list={['frame', `kind-${p.card.kind}`]}>
                 {p.card.media.map((src, j) =>
                   isVideo(src) ? (
@@ -78,7 +84,7 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
                 )}
               </span>
               <span class="label">
-                <span class="name">{p.name}</span>
+                <span class="name roll-cell" data-label-name={p.name}><span class="cell-face">{p.name}</span></span>
                 <span class="chips">
                   {p.card.chips.map((chip) => (
                     <span class="chip">{chip}</span>
@@ -122,6 +128,11 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
     display: flex;
     flex-direction: column;
     gap: clamp(40px, 9vh, 96px);
+  }
+
+  /* --v is the smoothed scroll velocity (-1..1), written by the script. Zero at rest. */
+  .stack {
+    --v: 0;
   }
 
   /* --p is set by the script. --below and --above split it so CSS can tilt each side on its own. */
@@ -195,7 +206,10 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
       color 200ms;
   }
 
+  /* The label name is a roll cell: the padding keeps descenders inside the clip. */
   .name {
+    padding-block: 0.12em;
+    margin-block: -0.12em;
     font-size: 20px;
     font-weight: 600;
     letter-spacing: -0.02em;
@@ -281,6 +295,15 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
     }
   }
 
+  /* Velocity: while scrolling, each card leans up to 6deg and stretches up to 1.5% in Y. Both scale with |--v|
+   * and return to exactly flat at rest. Desktop and motion only; will-change is set here and nowhere else. */
+  @media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+    .card {
+      transform: rotateX(calc(var(--v) * 6deg)) scaleY(calc(1 + max(var(--v), calc(var(--v) * -1)) * 0.015));
+      will-change: transform;
+    }
+  }
+
   /* Phones: under 900px show two screens; the third is hidden. */
   @media (max-width: 899px) {
     .kind-phones .media:nth-child(n + 3) {
@@ -310,7 +333,9 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
 </style>
 
 <script>
+  import gsap from 'gsap';
   import type Lenis from 'lenis';
+  import { rollText, scrollEnergy } from '../lib/motion';
 
   /*
    * Work stack controller. One scroll handler: Lenis when present, plus window scroll and resize as the
@@ -339,7 +364,8 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
   function mount(root: HTMLElement, reduce: boolean): void {
     const items = Array.from(root.querySelectorAll<HTMLElement>('[data-work-item]'));
     const indexLinks = Array.from(root.querySelectorAll<HTMLAnchorElement>('[data-index-link]'));
-    const counter = root.querySelector<HTMLElement>('[data-counter]');
+    const odos = Array.from(root.querySelectorAll<HTMLElement>('[data-odo]'));
+    const labels = items.map((item) => item.querySelector<HTMLElement>('[data-label-name]'));
     const stack = root.querySelector<HTMLElement>('[data-stack]');
     if (items.length === 0 || !stack) return;
 
@@ -374,6 +400,7 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
     };
 
     const setActive = (next: number): void => {
+      const prev = active;
       if (active >= 0) {
         cards[active].item.classList.remove('is-active');
         indexLinks[active]?.removeAttribute('aria-current');
@@ -381,9 +408,14 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
       active = next;
       cards[next].item.classList.add('is-active');
       indexLinks[next]?.setAttribute('aria-current', 'true');
-      if (counter) {
-        counter.textContent = `${String(next + 1).padStart(2, '0')} \u2014 ${String(cards.length).padStart(2, '0')}`;
-      }
+
+      // Odometer: the number rolls in from below when moving down the list and from above when moving up.
+      // The first activation swaps at once (dir 0). The newly active card's label rolls once.
+      const dir = prev < 0 ? 0 : next > prev ? 1 : -1;
+      const number = String(next + 1).padStart(2, '0');
+      for (const cell of odos) rollText(cell, number, dir);
+      const label = labels[next];
+      if (label && prev >= 0) rollText(label, label.dataset.labelName ?? '', 1, true);
       syncPlayback();
     };
 
@@ -456,6 +488,21 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
           target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
         }
       });
+    });
+
+    // Stack velocity: the smoothed scroll velocity from motion.ts becomes --v on the list whenever it changes.
+    // It is exactly 0 at rest, so every card settles flat.
+    let lastV = 0;
+    const writeVelocity = (): void => {
+      const v = scrollEnergy();
+      if (v === lastV) return;
+      lastV = v;
+      stack.style.setProperty('--v', v.toFixed(3));
+    };
+    gsap.ticker.add(writeVelocity);
+    cleanups.push(() => {
+      gsap.ticker.remove(writeVelocity);
+      stack.style.removeProperty('--v');
     });
 
     update();

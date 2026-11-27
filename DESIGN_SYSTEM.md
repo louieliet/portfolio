@@ -41,17 +41,32 @@ Accent is used only for: the active work label bar and its index dot, the iOS bu
 
 ## Motion rules
 
-- Smooth scroll: Lenis, created on `astro:page-load`, destroyed on `astro:before-swap`. Not created under reduced motion.
-- Page transitions: Astro ClientRouter. Shared elements use `transition:name`.
-- Entrances: `.reveal` fades in and rises 12px over 600ms `--ease-out`, stagger with `--i` (60ms steps). Visible without JS.
+Source of truth: `src/lib/motion.ts` (header comment has the full contract). Components do not set their own timings.
+
+- One entrance ease `power3.out` (CSS `--ease-out`). One hover ease `power3.inOut` (CSS `--ease-inout`).
+- Three durations: `fast` 0.3s, `base` 0.45s, `slow` 0.8s (CSS `--dur-fast`, `--dur-base`, `--dur-slow`). Line stagger 0.08s.
+- Animate only transform and opacity. The theme circle also animates `clip-path`.
+- Everything is created inside `gsap.matchMedia()` under `(prefers-reduced-motion: no-preference)`. Under reduced motion nothing is split, hidden or animated.
+- Lenis is created on `astro:page-load` and driven by `gsap.ticker`, so ScrollTrigger shares its clock. Destroyed on `astro:before-swap`. Not created under reduced motion. `window.__lenis` is still set.
+- `initMotion()` / `destroyMotion()` run on page load and before swap.
+- Line roll: `data-roll` (text rises from behind a mask while rotating on X, 0.45s, stagger 0.08). `data-roll="slow"` is 0.8s, stagger 0.12. `data-roll-delay="0.2"` adds a delay. Below the fold it fires once at `top 85%`. Used on headings, titles and the case h1.
+- Hover roll: `data-roll-hover` on a link or label. Fine pointers only. The label rolls 90deg onto an aria-hidden copy in 0.3s.
+- Load choreography: `data-arrive="<seconds>"` marks first-viewport items. First visit in a session plays the full version (about 1.1s). Later navigations play the short version (everything rolls together at 0.3s).
+- `data-arrive` is the only CSS-hidden state (`html.js [data-arrive]`). It has a 2s failsafe, so text shows if JS never runs.
+- Scroll-lit words: `data-scrub` (Approach lead). Opacity 0.28 to 1 between `top 80%` and `top 35%`.
+- Footer: one arrival schedule at `top 85%`, once.
+- Stack velocity: smoothed scroll velocity sets `--v` on the work stack (up to 6deg tilt, 1.5% stretch) and scales the hero field (up to 2.2x amplitude and speed). Exactly 0 at rest.
+- Theme dot: circle reveal from the dot (0.65s) through `document.startViewTransition`. Instant under reduced motion or without the API.
+- Entrances for non-text blocks: `.reveal` fades in and rises 12px over 600ms `--ease-out`, stagger with `--i` (60ms steps). Visible without JS.
 - Video loops (`.mp4`): muted, play only while on screen, never under reduced motion (the poster stays).
-- Reduced motion: transitions and animations collapse to ~0ms, reveals show immediately.
+- Reduced motion: every item above is off. Transitions and animations collapse to ~0ms, text and arrivals show immediately.
 
 ## Components (one line each)
 
 - `Layout.astro`: head and SEO, theme script, ClientRouter, Lenis and reveal init, skip link, Header, `<main>`, Footer.
 - `Header.astro`: fixed bar: name, clock, Work (count), About, Resume, theme dot.
-- `Clock.astro`: "CDMX, 11:12 pm, 18°C" live time and Open-Meteo temperature. `[data-clock]`, any count per page.
+- `Clock.astro`: "CDMX, 11:12 pm, 18°C" live time and Open-Meteo temperature. `[data-clock]`, any count per page. The colon blinks (opacity, 1s steps).
+- `src/lib/motion.ts`: the motion system. Rules, durations, the `data-*` contract, `initMotion` / `destroyMotion`, theme switch, roll helpers.
 - `Footer.astro`: "Get in touch" copies the email, links row, "Now building", clock, copyright.
 - `Hero.astro`: home intro at content height: `AsciiField`, name with `RoleWord`, now/previously lines, fun fact link.
 - `AsciiField.astro`: 46x18 ASCII wave field, the hero object. SSR t=0 frame; loop only when on screen and visible; static under reduced motion. Math in `src/lib/wave.ts`.

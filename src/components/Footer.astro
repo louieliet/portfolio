@@ -14,7 +14,7 @@ const mailto = `mailto:${personalInfo.email}`;
     <div class="cta">
       <!-- The label swaps "Copy email" -> "Copied" for 2s; aria-live announces the change. -->
       <button class="get-in-touch t-display" type="button" data-copy-email={personalInfo.email}>
-        Get in touch
+        <span class="cta-text" data-roll="slow">Get in touch</span>
         <span class="copy-label t-mono muted" data-copy-label aria-live="polite">Copy email</span>
       </button>
       <p class="email">
@@ -23,9 +23,9 @@ const mailto = `mailto:${personalInfo.email}`;
     </div>
 
     <ul class="links">
-      <li><a href={personalInfo.linkedin} target="_blank" rel="noopener">LinkedIn</a></li>
-      <li><a href={personalInfo.github} target="_blank" rel="noopener">GitHub</a></li>
-      <li><a href={mailto}>Email</a></li>
+      <li><a href={personalInfo.linkedin} target="_blank" rel="noopener" data-roll-hover>LinkedIn</a></li>
+      <li><a href={personalInfo.github} target="_blank" rel="noopener" data-roll-hover>GitHub</a></li>
+      <li><a href={mailto} data-roll-hover>Email</a></li>
     </ul>
 
     <div class="meta">
@@ -58,6 +58,13 @@ const mailto = `mailto:${personalInfo.email}`;
 
   .get-in-touch:hover {
     text-decoration-color: var(--accent);
+  }
+
+  /* Inline-block keeps the copy label on the same line as the heading. It inherits the button's underline,
+   * because decorations do not pass into inline-block children. */
+  .cta-text {
+    display: inline-block;
+    text-decoration: inherit;
   }
 
   .copy-label {

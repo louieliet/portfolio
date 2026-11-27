@@ -20,7 +20,7 @@ const { items, detailed = false, heading } = Astro.props;
 ---
 
 <div class="timeline">
-  {heading && <h2 class="heading muted reveal" style="--i:0">{heading}</h2>}
+  {heading && <h2 class="heading muted" data-roll>{heading}</h2>}
 
   <ol class="rows">
     {

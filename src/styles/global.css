@@ -25,9 +25,12 @@
  *   .muted           --muted color
  *
  * Motion:
- *   .reveal          entrance; hidden only when html.js is set (no-JS safe).
+ *   .reveal          entrance for non-text blocks; hidden only when html.js is set (no-JS safe).
  *                    Set --i on the element for stagger (60ms steps).
  *                    JS adds .is-in when the element enters the viewport.
+ *   --dur-fast/base/slow, --ease-inout   mirrors of the motion.ts constants (0.3 / 0.45 / 0.8s).
+ *   data-roll, data-roll-hover, data-arrive, data-scrub: the motion contract, documented in src/lib/motion.ts.
+ *                    Only html.js [data-arrive] hides anything before JS runs (first viewport, 2s failsafe).
  *
  * Utilities:
  *   .sr-only         visually hidden, still read by screen readers
@@ -100,6 +103,10 @@
   --header-h: 56px;
   --space-section: clamp(96px, 14vh, 180px);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1); /* CSS mirror of GSAP power3.inOut */
+  --dur-fast: 300ms;
+  --dur-base: 450ms;
+  --dur-slow: 800ms;
   --radius: 0;
 }
 
@@ -286,6 +293,78 @@ a:hover {
   transform: none;
 }
 
+/* First-viewport arrivals: hidden only once html.js is set, so the first paint never shows them early.
+   motion.ts sets an inline visibility: visible on each one in the same task that sets its start state.
+   The failsafe shows them after 2s if the script never runs. */
+html.js [data-arrive] {
+  visibility: hidden;
+  animation: arrive-failsafe 0s linear 2s both;
+}
+
+@keyframes arrive-failsafe {
+  to {
+    visibility: visible;
+  }
+}
+
+/* Roll (line roll and hover roll share these names). The line roll lives in SplitText output; the
+   hover roll is a holder with two identical faces, the copy aria-hidden and rotated 90deg away. */
+.roll-holder {
+  display: inline-block;
+  position: relative;
+  perspective: 400px;
+  text-decoration: inherit;
+}
+
+.roll-face {
+  display: block;
+  text-decoration: inherit;
+  transform-origin: 50% 100%;
+  backface-visibility: hidden;
+}
+
+.roll-face + .roll-face {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 0%;
+  transform: rotateX(90deg);
+}
+
+/* Hover roll: fine pointers only. Transitions only on transform; reverses on leave and retargets mid-flight. */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .roll-face {
+    transition: transform var(--dur-fast) var(--ease-inout);
+  }
+
+  [data-roll-hover]:hover > .roll-holder > .roll-face:first-child {
+    transform: rotateX(-90deg);
+  }
+
+  [data-roll-hover]:hover > .roll-holder > .roll-face + .roll-face {
+    transform: rotateX(0deg);
+  }
+}
+
+/* Cell for the odometer digits and the label roll: faces stack in one grid cell and the cell clips them,
+   so the cell keeps the width of its widest face and nothing shifts. */
+.roll-cell {
+  display: inline-grid;
+  overflow: clip;
+}
+
+.roll-cell > .cell-face {
+  grid-area: 1 / 1;
+  display: block;
+}
+
+/* Theme switch: the circle reveal is the only transition, so the default root cross-fade is off for this
+   view transition only. The class is removed when the transition finishes. */
+html.theme-switching::view-transition-old(root),
+html.theme-switching::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
 /* ---------- Utilities ---------- */
 
 .sr-only {
@@ -345,6 +424,11 @@ html.lenis body {
   .js .reveal {
     opacity: 1;
     transform: none;
+  }
+
+  html.js [data-arrive] {
+    visibility: visible;
+    animation: none;
   }
 
   ::view-transition-old(*),

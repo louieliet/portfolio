@@ -24,16 +24,16 @@ const onAbout = path === '/about' || path === '/about/';
       <nav aria-label="Primary">
         <ul class="nav">
           <li>
-            <a href="/#work" aria-current={onWork ? 'page' : undefined}>
+            <a href="/#work" aria-current={onWork ? 'page' : undefined} data-roll-hover>
               Work<sup>{projects.length}</sup>
             </a>
           </li>
           <li>
-            <a href="/about" aria-current={onAbout ? 'page' : undefined}>About</a>
+            <a href="/about" aria-current={onAbout ? 'page' : undefined} data-roll-hover>About</a>
           </li>
           <li>
             <!-- TODO(emiliano): swap for a PDF -->
-            <a href={personalInfo.linkedin} target="_blank" rel="noopener">
+            <a href={personalInfo.linkedin} target="_blank" rel="noopener" data-roll-hover>
               Resume<sup aria-hidden="true">+</sup><span class="sr-only"> (opens in a new tab)</span>
             </a>
           </li>
@@ -153,18 +153,25 @@ const onAbout = path === '/about' || path === '/about/';
 </style>
 
 <script>
+  import { switchTheme } from '../lib/motion';
+
   // Delegated on document, so it keeps working after client navigations without re-binding.
   document.addEventListener('click', (event) => {
     const target = event.target as Element | null;
-    if (!target?.closest('[data-theme-toggle]')) return;
+    const toggle = target?.closest<HTMLElement>('[data-theme-toggle]');
+    if (!toggle) return;
 
     const root = document.documentElement;
     const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    root.setAttribute('data-theme', next);
-    try {
-      localStorage.setItem('theme', next);
-    } catch {
-      // Storage blocked: the choice applies for this page view only.
-    }
+    const rect = toggle.getBoundingClientRect();
+    // The circle grows from the centre of the theme dot. Under reduced motion this is an instant switch.
+    switchTheme({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }, () => {
+      root.setAttribute('data-theme', next);
+      try {
+        localStorage.setItem('theme', next);
+      } catch {
+        // Storage blocked: the choice applies for this page view only.
+      }
+    });
   });
 </script>

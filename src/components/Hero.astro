@@ -13,11 +13,34 @@ import { personalInfo } from '../lib/data';
 <section class="col hero">
   <AsciiField />
 
-  <h1 class="name reveal" style="--i:0" aria-label="Emiliano Montes, product designer">Emiliano Montes, <RoleWord /></h1>
-  <p class="muted reveal" style="--i:1">{personalInfo.now}</p>
-  <p class="muted prev reveal" style="--i:1">{personalInfo.previously}</p>
-  <p class="muted bio reveal" style="--i:2">A fun fact <a class="about" href="/about">about me</a>: {personalInfo.funFact}</p>
+  <h1 class="name" data-roll data-arrive="0.15" aria-label="Emiliano Montes, product designer">Emiliano Montes, <RoleWord /></h1>
+  <p class="muted" data-roll data-arrive="0.3">{personalInfo.now}</p>
+  <p class="muted prev" data-roll data-arrive="0.3">{personalInfo.previously}</p>
+  <p class="muted bio" data-facts={JSON.stringify(personalInfo.funFacts)} data-index="0">
+    <button class="fact-label" type="button" data-fact-next aria-controls="fun-fact">A fun fact</button>
+    <a class="about" href="/about">about me</a>:
+    <span id="fun-fact" class="fact" data-fact data-roll data-arrive="0.4" aria-live="polite">{personalInfo.funFacts[0]}</span>
+  </p>
 </section>
+
+<script>
+  import { swapLines } from '../lib/motion';
+
+  // Delegated on document, so it keeps working after client navigations without re-binding.
+  // Each click rotates to the next fact through the line roll; the index lives on the wrapper.
+  document.addEventListener('click', (event) => {
+    const button = (event.target as Element | null)?.closest<HTMLButtonElement>('[data-fact-next]');
+    if (!button) return;
+    const wrap = button.closest<HTMLElement>('[data-facts]');
+    const fact = wrap?.querySelector<HTMLElement>('[data-fact]');
+    if (!wrap || !fact) return;
+    const facts = JSON.parse(wrap.dataset.facts ?? '[]') as string[];
+    if (facts.length < 2) return;
+    const next = (Number(wrap.dataset.index ?? 0) + 1) % facts.length;
+    wrap.dataset.index = String(next);
+    swapLines(fact, facts[next]);
+  });
+</script>
 
 <style>
   .hero {
@@ -44,7 +67,15 @@ import { personalInfo } from '../lib/data';
     margin-top: 18px;
   }
 
-  .about {
+  /* Block, so the line roll (SplitText lines are blocks) can split it. The fact sits on its own line. */
+  .fact {
+    display: block;
+    margin-top: 4px;
+  }
+
+  .about,
+  .fact-label {
+    text-decoration: underline;
     text-decoration-style: dotted;
     text-decoration-color: var(--text);
     text-underline-offset: 0.25em;

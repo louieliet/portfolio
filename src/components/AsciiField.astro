@@ -12,7 +12,7 @@ import { renderWaveFrame } from '../lib/wave';
 const firstFrame = renderWaveFrame(0);
 ---
 
-<pre class="ascii" aria-hidden="true" data-ascii-field>{firstFrame}</pre>
+<pre class="ascii" aria-hidden="true" data-ascii-field data-arrive="0">{firstFrame}</pre>
 
 <style>
   .ascii {
@@ -37,13 +37,17 @@ const firstFrame = renderWaveFrame(0);
 
 <script>
   import { COLS, ROWS, renderWaveFrame, type Pointer } from '../lib/wave';
+  import { scrollEnergy } from '../lib/motion';
 
   /*
    * One loop per field. A field draws only while it is on screen and the tab is visible.
    * Init on astro:page-load, full teardown on astro:before-swap.
+   * Scroll energy (smoothed, from motion.ts) raises the amplitude and the phase speed by up to 2.2x.
+   * data-reveal (0..1) is the load draw written by motion.ts: rows below it stay blank.
    */
 
   const SPEED = 1.8; // wave phase per second (the mockup advanced 0.03 per 60 fps frame)
+  const ENERGY_GAIN = 1.2; // energy = 1 + ENERGY_GAIN * |scroll velocity|, so the field peaks at 2.2x
 
   let cleanups: Array<() => void> = [];
 
@@ -52,16 +56,33 @@ const firstFrame = renderWaveFrame(0);
     cleanups = [];
   }
 
+  function revealOf(el: HTMLElement): number {
+    const value = Number(el.dataset.reveal ?? 1);
+    return Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 1;
+  }
+
   function mount(el: HTMLPreElement, fine: boolean): void {
     let pointer: Pointer | null = null;
     let inView = false;
     let frame = 0; // id of the pending animation frame, 0 when the loop is stopped
-    const origin = performance.now();
+    let phase = 0;
+    let last = 0;
+
+    const paint = (energy: number): void => {
+      el.textContent = renderWaveFrame(phase, pointer, energy, revealOf(el));
+    };
 
     const draw = (now: number): void => {
-      el.textContent = renderWaveFrame(((now - origin) / 1000) * SPEED, pointer);
+      const dt = last ? Math.min((now - last) / 1000, 0.1) : 0;
+      last = now;
+      const energy = 1 + ENERGY_GAIN * Math.abs(scrollEnergy());
+      phase += dt * SPEED * energy;
+      paint(energy);
       frame = requestAnimationFrame(draw);
     };
+
+    // Paint once at mount so the field matches the current reveal state before the first loop frame.
+    paint(1);
 
     // Start only when the field is visible and the tab is visible; stop as soon as either fails.
     const sync = (): void => {

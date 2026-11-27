@@ -10,6 +10,27 @@
     color: var(--muted);
     white-space: nowrap;
   }
+
+</style>
+
+<!-- Global on purpose: the colon span is created by the script, so scoped styles would not reach it. -->
+<style is:global>
+  /* The colon blinks in one-second steps. Opacity only; off under reduced motion. */
+  [data-clock] .colon {
+    animation: colon-blink 1s steps(1, end) infinite;
+  }
+
+  @keyframes colon-blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-clock] .colon {
+      animation: none;
+    }
+  }
 </style>
 
 <script>
@@ -28,10 +49,10 @@
   });
 
   // Built from parts so the output uses plain spaces and lowercase "pm" (no narrow no-break space).
-  function formatTime(date: Date): string {
+  function formatTime(date: Date): { hour: string; minute: string; period: string } {
     const parts = timeParts.formatToParts(date);
     const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? '';
-    return `${get('hour')}:${get('minute')} ${get('dayPeriod').toLowerCase()}`;
+    return { hour: get('hour'), minute: get('minute'), period: get('dayPeriod').toLowerCase() };
   }
 
   type Cached = { at: number; temp: number };
@@ -76,11 +97,15 @@
   let timer: number | undefined;
   let weather: string | null = null;
 
+  // The colon is its own span so it can blink. The text content is still "CDMX, 11:12 pm, 18°C".
   function render(): void {
+    const { hour, minute, period } = formatTime(new Date());
     const suffix = weather ? `, ${weather}` : '';
-    const text = `CDMX, ${formatTime(new Date())}${suffix}`;
     document.querySelectorAll<HTMLElement>('[data-clock]').forEach((el) => {
-      el.textContent = text;
+      const colon = document.createElement('span');
+      colon.className = 'colon';
+      colon.textContent = ':';
+      el.replaceChildren(`CDMX, ${hour}`, colon, `${minute} ${period}${suffix}`);
     });
   }
 

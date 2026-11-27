@@ -96,10 +96,12 @@ const height = isDefaultImage ? 630 : imageHeight;
 
     <script>
       import Lenis from 'lenis';
+      import { destroyMotion, initMotion, startScrollClock } from '../lib/motion';
 
       /*
        * One module for the whole site. Runs once; re-initialises on every client navigation
        * (astro:page-load), tears down before the swap (astro:before-swap).
+       * Lenis is driven by gsap.ticker (see startScrollClock), so ScrollTrigger and Lenis share one clock.
        */
 
       type LenisWindow = Window & { __lenis?: Lenis };
@@ -107,7 +109,7 @@ const height = isDefaultImage ? 630 : imageHeight;
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
       let lenis: Lenis | null = null;
-      let rafId = 0;
+      let stopClock: () => void = () => {};
       let revealObserver: IntersectionObserver | null = null;
 
       function resolveTheme(): 'light' | 'dark' {
@@ -128,15 +130,12 @@ const height = isDefaultImage ? 630 : imageHeight;
         if (reduceMotion.matches) return;
         lenis = new Lenis({ duration: 1.1 });
         w.__lenis = lenis;
-        const frame = (time: number) => {
-          lenis?.raf(time);
-          rafId = requestAnimationFrame(frame);
-        };
-        rafId = requestAnimationFrame(frame);
+        stopClock = startScrollClock(lenis);
       }
 
       function stopLenis(): void {
-        cancelAnimationFrame(rafId);
+        stopClock();
+        stopClock = () => {};
         lenis?.destroy();
         lenis = null;
         w.__lenis = undefined;
@@ -164,6 +163,7 @@ const height = isDefaultImage ? 630 : imageHeight;
       }
 
       document.addEventListener('astro:before-swap', () => {
+        destroyMotion();
         stopLenis();
         revealObserver?.disconnect();
         revealObserver = null;
@@ -178,6 +178,7 @@ const height = isDefaultImage ? 630 : imageHeight;
       document.addEventListener('astro:page-load', () => {
         stopLenis();
         startLenis();
+        initMotion();
         observeReveals();
       });
 

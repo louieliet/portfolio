@@ -11,14 +11,14 @@ const statement =
 ---
 
 <section class="col section" aria-label="Approach">
-  <p class="t-lead lead reveal" style="--i:0">{statement}</p>
+  <p class="t-lead lead" data-scrub>{statement}</p>
 
   <ul class="facts">
     {
       personalInfo.facts.map((group, i) => (
         <li class="fact reveal" style={`--i:${i + 1}`}>
           <span class="index t-mono muted">{String(i + 1).padStart(2, '0')}</span>
-          <h3 class="title">{group.title}</h3>
+          <h3 class="title" data-roll>{group.title}</h3>
           <ul class="items muted">
             {group.items.map((item) => (
               <li>{item}</li>
@@ -29,7 +29,7 @@ const statement =
     }
   </ul>
 
-  <a class="more" href="/about">More about me</a>
+  <a class="more" href="/about" data-roll-hover>More about me</a>
 </section>
 
 <style>

@@ -64,7 +64,7 @@ const alt = `${item.name} cover`;
     <div class="col case-head">
       <p class="t-mono muted">{item.category} / {item.year}</p>
       <div class="title-row">
-        <h1 class="t-display">{item.name}</h1>
+        <h1 class="t-display" data-roll="slow" data-arrive="0">{item.name}</h1>
         {
           mascot && (
             <video
@@ -83,14 +83,14 @@ const alt = `${item.name} cover`;
           )
         }
       </div>
-      <p class="t-lead description">{item.description}</p>
+      <p class="t-lead description" data-roll data-arrive="0.15">{item.description}</p>
     </div>
 
     <CaseMeta project={item} />
 
     {
       heroSrc && (
-        <div class:list={['bleed', 'hero', portrait ? 'hero--portrait' : 'hero--wide']}>
+        <div class:list={['bleed', 'hero', 'reveal', portrait ? 'hero--portrait' : 'hero--wide']} data-arrive="0.5">
           {portrait ? (
             <div class="hero-band">
               <Media
@@ -152,7 +152,7 @@ const alt = `${item.name} cover`;
           stroke-linejoin="round"
         />
       </svg>
-      <span>Back</span>
+      <span data-roll-hover>Back</span>
     </a>
   </article>
 </Layout>

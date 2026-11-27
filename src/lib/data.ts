@@ -120,6 +120,12 @@ export const personalInfo = {
   },
   // DUMMY: reemplazar
   funFact: "I still play video games, and now I review them as UX case studies.",
+  // Hero fun fact cycle. The first entry is funFact; the hero renders it first and the button rotates from there.
+  funFacts: [
+    "I still play video games, and now I review them as UX case studies.",
+    "DUMMY: reemplazar fun fact two.", // DUMMY: reemplazar
+    "DUMMY: reemplazar fun fact three.", // DUMMY: reemplazar
+  ],
   // Four columns for the home "Approach" block and the about page. Work/Approach/Drive reuse real facts above.
   // Life is placeholder text; each line is marked DUMMY.
   facts: [
