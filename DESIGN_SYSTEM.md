@@ -19,7 +19,7 @@ default on `:root`; dark follows the system only when no `data-theme` is set. `c
 Other tokens: `--font-sans`, `--font-serif`, `--font-mono`, `--col` (880px), `--header-h` (56px),
 `--space-section` (`clamp(96px, 14vh, 180px)`), `--ease-out` (`cubic-bezier(0.16, 1, 0.3, 1)`).
 
-Accent is used only for: the active work label bar and its index dot, the iOS builder and co-founder role effects, `::selection`, the "Now" timeline label, and link underline on hover.
+Accent is used only for: the active work label bar and its index dot, the iOS builder and co-founder role effects, `::selection`, the "Now" chip and ongoing bar in Experience, and link underline on hover.
 
 ## Type scale
 
@@ -54,7 +54,8 @@ Source of truth: `src/lib/motion.ts` (header comment has the full contract). Com
 - Load choreography: `data-arrive="<seconds>"` marks first-viewport items. First visit in a session plays the full version (about 1.1s). Later navigations play the short version (everything rolls together at 0.3s).
 - `data-arrive` is the only CSS-hidden state (`html.js [data-arrive]`). It has a 2s failsafe, so text shows if JS never runs.
 - The one pinned chapter: `data-story` ("How I work", Story.astro). Desktop (>= 900px) with motion only. The stage pins under the header for 200% of a viewport (`scrub` 0.5). Words light up with scroll, each beat owning a third of the progress. The ASCII block dissolves noise, wireframe, product. Limits: one pin on the home, no snap, no pin on mobile or reduced motion. Under 900px each beat lights once on entry. Reduced motion and no JS show all beats lit with the product frame.
-- Timeline rail: `data-timeline` draws a 1px rail down the rows (scrubbed `--draw`), and each row lights as the rail passes it. Without JS the rail is fully drawn and every row is lit.
+- Timeline rail (/about only): `data-timeline` draws a 1px rail down the rows (scrubbed `--draw`), and each row lights as the rail passes it. Without JS the rail is fully drawn and every row is lit.
+- Experience (home, `Experience.astro`): desktop with motion and a viewport that fits the block (`innerHeight - header >= block + 48px`) uses a CSS sticky block, not a ScrollTrigger pin. The track is about 680px of scroll for five rows (`STEP` 170px per row). Scroll sets `s`, the open amount per row is a triangle over `s` (sums to 1, so the block height is constant), and detail opacity, ASCII resolve and bars follow it. Under 900px or a short viewport: natural flow, each row opens once at 70% of the viewport. Reduced motion and no JS: every row open, real photos.
 - Footer: one arrival schedule at `top 85%`, once. The ghost word "CONTACT" (`data-ghost`) scrubs from 35% down to 0 and fades in as the footer enters. It is cropped by the footer, absolutely positioned, and adds no height.
 - Stack velocity: smoothed scroll velocity sets `--v` on the work stack (up to 6deg tilt, 1.5% stretch) and scales the hero field (up to 2.2x amplitude and speed). Exactly 0 at rest.
 - Work stack resolve (desktop, motion only): `res = smoothstep(0.62, 0.1, |p|)` per card. The media moves `-9%` of its frame height per unit of `p` and settles from 1.08x to 1x. The ASCII overlay dissolves bottom to top as `res` rises. Repaints only when `res` moves by 1/60.
@@ -73,7 +74,9 @@ Source of truth: `src/lib/motion.ts` (header comment has the full contract). Com
 - `Footer.astro`: "Get in touch" copies the email, links row, "Now building", clock, copyright, and the decorative "CONTACT" ghost word.
 - `Story.astro`: "How I work" chapter, rendered on the home between Hero and WorkStack. Three beats from `personalInfo.story`, plus signs, and the ASCII block.
 - `src/lib/ascii-story.ts`: pure functions for the chapter's ASCII block: noise, wireframe, product, and the blend `renderStoryFrame(progress, t)`.
-- `Timeline.astro`: year, company and role rows, with the `data-timeline` rail. Shared by home and about.
+- `Experience.astro`: home "Experience". Companies as headlines (`h3`) on one shared time axis (gantt bars, years in mono). The active row opens on scroll: description, stack chips, and the first asset as a 300x190 ASCII-resolving photo (9:16 assets keep their shape at 190px tall). Motion modes are described under Motion rules.
+- `src/lib/period.ts`: period math for Experience: parse "Mon YYYY - Mon YYYY|Present", range text, duration text, and the shared axis. Throws on a bad period so the build fails.
+- `Timeline.astro`: year, company and role rows, with the `data-timeline` rail. Used by /about only.
 - `Hero.astro`: home intro, first viewport: at least `100dvh - var(--header-h)` tall. `AsciiField` takes the free height on top; the name with `RoleWord`, now/previously lines and fun fact sit at the bottom (padding-bottom `clamp(28px, 6vh, 64px)`). Bottom-right scroll cue ("Scroll" plus a 1px, 24px line), `aria-hidden`, fades on opacity once the page scrolls 80px.
 - `AsciiField.astro`: full-width ASCII wave field (`.col` width up to 880px, full free height, 11px glyphs, 9px under 520px, min 160px). The grid is measured: cell size from a hidden probe (read once after fonts), cols/rows from a ResizeObserver, capped at 160x60. SSR frame is 134x40 in a box of the same size, so nothing shifts. Loop only when on screen and visible; reduced motion paints one static frame at the measured size. Math in `src/lib/wave.ts` (`renderWaveFrame(t, pointer, energy, reveal, cols, rows)`).
 - `RoleWord.astro`: rotating role inside the intro, 3.2s dwell. Four entrances (wireframe, ASCII resolve, spring pop, cursor highlight). Width reserved for the longest role.
