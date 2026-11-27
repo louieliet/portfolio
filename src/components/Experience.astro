@@ -81,12 +81,20 @@ const rows = experience.map((item, i) => {
       </ol>
     </div>
   </div>
+  <a class="more" href="/about" data-swap>More about me</a>
 </section>
 
 <style>
   /* Columns: when 180 | copy 1fr | gantt 300. The gantt column is the time axis. */
+  /* Follows the work stack directly, so it carries its own top spacing. */
   .experience {
-    padding-bottom: var(--space-section);
+    padding-block: var(--space-section);
+  }
+
+  .more {
+    display: inline-block;
+    margin-top: 40px;
+    color: var(--text);
   }
 
   .head {
