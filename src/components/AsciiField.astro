@@ -23,10 +23,14 @@ const firstFrame = renderWaveFrame(0, null, 1, 1, 134, 40);
 <style>
   .ascii-field {
     position: relative;
-    flex: 1 1 auto;
+    /* 60% of the hero's free area in both directions, on the leading edge, sitting right above the text.
+     * Free height is the hero (viewport minus header) minus the text block and paddings (about 270px). */
+    flex: 0 0 auto;
+    width: 60%;
     min-height: 160px;
-    height: 40em; /* SSR size: 40 rows at line-height 1. The flex grow fills the free height in the hero. */
-    margin: 0 0 24px;
+    height: calc((100vh - var(--header-h) - 270px) * 0.6);
+    height: calc((100dvh - var(--header-h) - 270px) * 0.6);
+    margin: auto auto 24px 0;
     overflow: clip;
     font-family: var(--font-mono);
     font-size: 11px;
@@ -55,6 +59,13 @@ const firstFrame = renderWaveFrame(0, null, 1, 1, 134, 40);
     visibility: hidden;
     white-space: pre;
     pointer-events: none;
+  }
+
+  /* Narrow columns keep the full width (60% would be too small to read); the height still shrinks. */
+  @media (max-width: 719px) {
+    .ascii-field {
+      width: 100%;
+    }
   }
 
   @media (max-width: 519px) {
