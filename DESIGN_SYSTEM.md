@@ -72,8 +72,8 @@ Source of truth: `src/lib/motion.ts` (header comment has the full contract). Com
 - `Story.astro`: "How I work" chapter, the first block of Approach. Three beats from `personalInfo.story`, plus signs, a counter and ticks (pinned only), and the ASCII block.
 - `src/lib/ascii-story.ts`: pure functions for the chapter's ASCII block: noise, wireframe, product, and the blend `renderStoryFrame(progress, t)`.
 - `Timeline.astro`: year, company and role rows, with the `data-timeline` rail. Shared by home and about.
-- `Hero.astro`: home intro at content height: `AsciiField`, name with `RoleWord`, now/previously lines, fun fact link.
-- `AsciiField.astro`: 46x18 ASCII wave field, the hero object. SSR t=0 frame; loop only when on screen and visible; static under reduced motion. Math in `src/lib/wave.ts`.
+- `Hero.astro`: home intro, first viewport: at least `100dvh - var(--header-h)` tall. `AsciiField` takes the free height on top; the name with `RoleWord`, now/previously lines and fun fact sit at the bottom (padding-bottom `clamp(28px, 6vh, 64px)`). Bottom-right scroll cue ("Scroll" plus a 1px, 24px line), `aria-hidden`, fades on opacity once the page scrolls 80px.
+- `AsciiField.astro`: full-width ASCII wave field (`.col` width up to 880px, full free height, 11px glyphs, 9px under 520px, min 160px). The grid is measured: cell size from a hidden probe (read once after fonts), cols/rows from a ResizeObserver, capped at 160x60. SSR frame is 134x40 in a box of the same size, so nothing shifts. Loop only when on screen and visible; reduced motion paints one static frame at the measured size. Math in `src/lib/wave.ts` (`renderWaveFrame(t, pointer, energy, reveal, cols, rows)`).
 - `RoleWord.astro`: rotating role inside the intro, 3.2s dwell. Four entrances (wireframe, ASCII resolve, spring pop, cursor highlight). Width reserved for the longest role.
 - `WorkStack.astro`: home work list as a perspective card stack. Tilt from `--p`; sticky index and counter at 1100px and up; only the active card plays video.
 - `Media.astro`: image or muted looping `.mp4` with `.webp` poster; optional `transitionName`. Used by the case pages.

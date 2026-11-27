@@ -47,7 +47,6 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
               href={`/projects/${p.id}`}
               aria-label={`${p.name}: ${p.subtitle}`}
               data-card
-              data-arrive={i === 0 ? '0.5' : undefined}
             >
               <span class:list={['frame', `kind-${p.card.kind}`]}>
                 {p.card.media.map((src, j) =>

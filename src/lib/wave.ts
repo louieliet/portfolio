@@ -3,7 +3,9 @@
  * AsciiField renders the t = 0 frame on the server and calls the same function on every client frame,
  * so the first paint and the animation use identical math.
  *
- * Coordinates are cell units: x in [0, COLS), y in [0, ROWS).
+ * Coordinates are cell units: x in [0, cols), y in [0, rows). The grid size is a parameter, so the field can
+ * fill any container. COLS and ROWS are the defaults for callers that do not pass a grid.
+ * Spatial frequencies are per cell, so the feature size in glyphs does not depend on the grid size.
  */
 
 export const COLS = 46;
@@ -37,22 +39,30 @@ export function glyphIndex(x: number, y: number, t: number, pointer: Pointer | n
 }
 
 /**
- * One full frame as text: ROWS lines of COLS characters, no trailing newline.
+ * One full frame as text: `rows` lines of `cols` characters, no trailing newline. The pointer is in cell units
+ * of this same grid, so callers map it with the live cols and rows.
  * `reveal` (0..1) is the load draw: rows at or below the progress line are blank, so the field draws top
  * to bottom. reveal = 1 draws every row.
  */
-export function renderWaveFrame(t: number, pointer: Pointer | null = null, energy = 1, reveal = 1): string {
-  const visibleRows = Math.max(0, Math.min(ROWS, Math.round(reveal * ROWS)));
-  const blank = " ".repeat(COLS);
-  const rows: string[] = [];
-  for (let y = 0; y < ROWS; y++) {
+export function renderWaveFrame(
+  t: number,
+  pointer: Pointer | null = null,
+  energy = 1,
+  reveal = 1,
+  cols = COLS,
+  rows = ROWS,
+): string {
+  const visibleRows = Math.max(0, Math.min(rows, Math.round(reveal * rows)));
+  const blank = " ".repeat(cols);
+  const lines: string[] = [];
+  for (let y = 0; y < rows; y++) {
     if (y >= visibleRows) {
-      rows.push(blank);
+      lines.push(blank);
       continue;
     }
-    let row = "";
-    for (let x = 0; x < COLS; x++) row += RAMP[glyphIndex(x, y, t, pointer, energy)];
-    rows.push(row);
+    let line = "";
+    for (let x = 0; x < cols; x++) line += RAMP[glyphIndex(x, y, t, pointer, energy)];
+    lines.push(line);
   }
-  return rows.join("\n");
+  return lines.join("\n");
 }

@@ -4,9 +4,10 @@ import RoleWord from './RoleWord.astro';
 import { personalInfo } from '../lib/data';
 
 /*
- * Hero: a quiet intro. Content height, not 100dvh, so the first work card peeks into the first
- * viewport at 1440x900. Everything is body size (15px); hierarchy comes from colour, not type scale.
- * The object is the ASCII wave field. The role word is RoleWord, which ends with the period.
+ * Hero: the first viewport. At least the full viewport height (below the header): the ASCII wave field takes the
+ * free height on top, and the text block (name, two muted lines, fun fact) sits at the bottom. Everything is body
+ * size (15px); hierarchy comes from colour, not type scale. The role word is RoleWord, which ends with the period.
+ * The scroll cue sits at the bottom right, in the bottom padding. It fades once the page scrolls 80px (motion.ts).
  */
 ---
 
@@ -21,6 +22,12 @@ import { personalInfo } from '../lib/data';
     <a class="about" href="/about">about me</a>:
     <span id="fun-fact" class="fact" data-fact data-roll data-arrive="0.4" aria-live="polite">{personalInfo.funFacts[0]}</span>
   </p>
+  <div class="scroll-cue" data-arrive="0.9" data-scroll-cue aria-hidden="true">
+    <span class="cue-inner">
+      <span class="t-mono muted">Scroll</span>
+      <span class="cue-line"></span>
+    </span>
+  </div>
 </section>
 
 <script>
@@ -43,8 +50,39 @@ import { personalInfo } from '../lib/data';
 </script>
 
 <style>
+  /* Full viewport height below the header. dvh tracks the mobile browser bar; vh is the fallback. */
   .hero {
-    padding-top: 72px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - var(--header-h));
+    min-height: calc(100dvh - var(--header-h));
+    padding-top: 24px;
+    padding-bottom: clamp(28px, 6vh, 64px);
+  }
+
+  /* Bottom right, inside the bottom padding, so it never covers the text. Opacity only. */
+  .scroll-cue {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+  }
+
+  .cue-inner {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    transition: opacity var(--dur-fast) var(--ease-out);
+  }
+
+  .cue-line {
+    width: 1px;
+    height: 24px;
+    background: var(--muted);
+  }
+
+  .scroll-cue.is-faded .cue-inner {
+    opacity: 0;
   }
 
   .name {

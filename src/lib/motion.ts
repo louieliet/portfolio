@@ -16,10 +16,12 @@
  *                             "top 85%" (ScrollTrigger.batch). With data-arrive it is part of the load choreography.
  * - data-roll-delay="0.2"     optional delay in seconds for a data-roll.
  * - data-arrive="0.15"        load choreography offset in seconds. Used on the first viewport only:
- *                             data-roll (rolls at that time), data-ascii-field (row draw, 0.5s), a .card
- *                             (rises 40px, 0.8s), a .reveal block (gets .is-in at that time).
+ *                             data-roll (rolls at that time), data-ascii-field (row draw, 0.5s), a .reveal
+ *                             block (gets .is-in at that time), data-scroll-cue (fades in at 0.9s, last).
  * - data-roll-hover           hover roll on a link or label. Fine pointers only (CSS), wrapped by initMotion.
  * - data-ascii-field          the hero field. Its load reveal writes data-reveal (0..1) on the element.
+ * - data-scroll-cue           the hero's scroll cue. Its inner element fades (opacity) once the page scrolls 80px
+ *                             (mountScrollCue, ScrollTrigger). Under reduced motion it stays visible.
  * - data-story                the "How I work" chapter (Story.astro). Desktop with motion: ONE pinned chapter,
  *                             scroll lights the words and drives the ASCII block (mountStoryPinned). Under 900px:
  *                             each beat lights once on entry (mountStoryFlow). Reduced motion: static, all lit.
@@ -49,7 +51,6 @@ export const EASE_INOUT = 'power3.inOut';
 export const DUR = { fast: 0.3, base: 0.45, slow: 0.8 } as const;
 export const LINE_STAGGER = 0.08;
 const SLOW_LINE_STAGGER = 0.12;
-const ARRIVE_RISE_PX = 40;
 const ASCII_DRAW_SECONDS = 0.5;
 
 const MOTION_QUERY = '(prefers-reduced-motion: no-preference)';
@@ -320,28 +321,10 @@ function buildArrivals(short: boolean): void {
       return;
     }
 
-    if (el.classList.contains('card')) {
-      // Rise through the individual translate property, so the stack's transform (tilt, velocity) is untouched.
-      const rise = short ? 0 : ARRIVE_RISE_PX;
-      const lift = { y: rise };
-      el.style.translate = `0px ${rise}px`;
-      undo.push(() => {
-        el.style.translate = '';
-      });
+    if (el.hasAttribute('data-scroll-cue')) {
+      // Joins last. A plain opacity fade on the outer element; the scroll fade (mountScrollCue) owns the inner one.
       gsap.set(el, { opacity: 0 });
       tl.to(el, { opacity: 1, duration: dur, ease: EASE_OUT }, at);
-      tl.to(
-        lift,
-        {
-          y: 0,
-          duration: dur,
-          ease: EASE_OUT,
-          onUpdate: () => {
-            el.style.translate = `0px ${lift.y}px`;
-          },
-        },
-        at,
-      );
       return;
     }
 
@@ -661,6 +644,21 @@ function mountStoryFlow(root: HTMLElement): void {
   });
 }
 
+/* ---------- Scroll cue ---------- */
+
+const SCROLL_CUE_PX = 80;
+
+/** Marks the cue faded once the page has scrolled past SCROLL_CUE_PX. ScrollTrigger shares the Lenis clock. */
+function mountScrollCue(cue: HTMLElement): void {
+  triggers.push(
+    ScrollTrigger.create({
+      start: SCROLL_CUE_PX,
+      end: 'max',
+      onToggle: (self) => cue.classList.toggle('is-faded', self.isActive),
+    }),
+  );
+}
+
 /* ---------- Full and reduced branches ---------- */
 
 function mountFull(short: boolean): void {
@@ -671,6 +669,7 @@ function mountFull(short: boolean): void {
   buildArrivals(short);
   mountBatch();
   document.querySelectorAll<HTMLElement>('[data-timeline]').forEach(mountTimeline);
+  document.querySelectorAll<HTMLElement>('[data-scroll-cue]').forEach(mountScrollCue);
   const footer = document.querySelector<HTMLElement>('.site-footer');
   if (footer) {
     mountFooter(footer);
