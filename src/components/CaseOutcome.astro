@@ -20,7 +20,7 @@ interface Fact {
 const { project } = Astro.props;
 
 const facts: Fact[] = [
-  { label: 'Status', value: project.badge?.text ?? `Shipped ${project.year}` },
+  { label: 'Status', value: project.badge?.text ?? `Shipped ${project.year}`, href: project.appStoreUrl },
   { label: 'Platform', value: [project.category, project.stack[0]].filter(Boolean).join(' / ') },
   { label: 'Stack', value: project.stack.join(', ') },
 ];

@@ -49,6 +49,7 @@ export interface ProjectItem {
   // Still image for the case page hero (falls back to images[0]). Must exist under public/.
   heroShot?: string;
   card: ProjectCard; // home work stack card
+  appStoreUrl?: string; // App Store listing; the case Outcome links the status to it
   metric?: string; // real result, shown first in the case Outcome row
   metricLabel?: string;
   imageAspect?: "9/16";
@@ -234,10 +235,11 @@ export const projects = [
     linkLabel: "Visit Luma",
     images: ["/projects/luma-cover.svg"],
     heroShot: "/projects/luma/day-home.webp",
-    card: { kind: "wide", media: ["/projects/luma-cover.svg"], chips: ["iOS", "Mobile", "Co-founder"] },
+    card: { kind: "wide", media: ["/projects/luma-cover.svg"], chips: ["iOS", "App Store", "Co-founder"] },
     imageAspect: "9/16",
     mascot: { mov: "/projects/luma/odi-flower.mov", webm: "/projects/luma/odi-flower.webm", poster: "/projects/luma/odi-flower-still.webp" },
-    badge: { label: "Status", text: "Private beta, join the waitlist" },
+    badge: { label: "Status", text: "Live on the App Store" },
+    appStoreUrl: "https://apps.apple.com/us/app/luma-productivity/id6818345062",
     category: "Mobile",
     sections: [
       { id: "why-luma", title: "Why Luma", body: ["Most days end up split across four apps: reminders in one, notes in another, habits and to-dos somewhere else. Luma puts all of it in one calm iPhone app."], media: { kind: "screens", images: ["/projects/luma/day-home.mp4"] } },
@@ -247,7 +249,7 @@ export const projects = [
       { id: "offline", title: "Built to work offline", body: ["Luma works offline and syncs when you are back online. The app is native Swift, and Convex runs the backend and sync."], media: { kind: "screens", images: ["/projects/luma/det-offline.mp4"] } },
       { id: "shared", title: "Better together", body: ["Luma Shared puts to-dos, reminders, habits and notes in front of up to five people, including notes you write together. It is part of Luma Pro."], media: { kind: "screens", images: ["/projects/luma/together-list.mp4"] } },
       { id: "team", title: "The team", body: ["I co-founded Luma with Iñaki Sigüenza. We share product design and development, from the flows and interface to the Swift app and the Convex backend. Fernanda Rosas leads illustration and animation."], media: { kind: "screens", images: ["/projects/luma/team-emi.mp4", "/projects/luma/team-inaki.mp4", "/projects/luma/team-fer.mp4"] } },
-      { id: "status", title: "Where it is now", body: ["Luma is in private beta. The waitlist is open at lumaproductivity.app."] }
+      { id: "status", title: "Where it is now", body: ["Luma is live on the App Store. It is free to download, and Luma Pro is an in-app purchase that adds urgent alarms and shared lists."] }
     ]
   },
   {
