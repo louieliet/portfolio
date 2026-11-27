@@ -1,0 +1,444 @@
+---
+/*
+ * RoleWord: the rotating role inside the hero intro ("Emiliano Montes, [role].").
+ * Every role has its own entrance (see the style block). All four roles share one grid cell, so the cell
+ * is as wide as the longest role and the sentence never shifts. The period sits inside each role so it
+ * follows the word instead of stranding after the reserved width.
+ * The first role is server-rendered in its final state. Cycling pauses while the tab is hidden, the hero
+ * is off screen, or the pointer is over the word. Reduced motion keeps the first role static.
+ */
+const ROLES = [
+  { kind: 'wireframe', text: 'product designer' },
+  { kind: 'ascii', text: 'design engineer' },
+  { kind: 'pop', text: 'iOS builder' },
+  { kind: 'cofounder', text: 'co-founder' },
+] as const;
+
+// Arrow cursor, 16 x 16 viewBox.
+const ARROW = 'M2 1L2 13L5 10L7.2 14.6L9 13.8L6.9 9.3L11 9.3Z';
+
+// One span per character so each can animate on its own. Spaces become non-breaking.
+const chars = (text: string): string[] => Array.from(text, (c) => (c === ' ' ? ' ' : c));
+---
+
+<span class="role-word" data-role-word>
+  <span class="sr-only">{ROLES[0].text}</span>
+  <span class="stack" data-role-stack aria-hidden="true">
+    {
+      ROLES.map((role, i) => (
+        <span
+          class={`word word-${role.kind}`}
+          data-role-item
+          data-kind={role.kind}
+          data-active={i === 0 ? '' : undefined}
+        >
+          <span class="txt">
+            {chars(role.text).map((ch, n) => (
+              <span class="ch" style={`--i:${n}`} data-ch data-final={ch}>
+                {ch}
+              </span>
+            ))}
+            {role.kind === 'cofounder' && (
+              <>
+                <svg class="arrow arrow-l" viewBox="0 0 16 16" focusable="false" aria-hidden="true">
+                  <path d={ARROW} fill="currentColor" />
+                </svg>
+                <svg class="arrow arrow-r" viewBox="0 0 16 16" focusable="false" aria-hidden="true">
+                  <path d={ARROW} fill="currentColor" />
+                </svg>
+              </>
+            )}
+          </span>
+          <span class="stop">.</span>
+        </span>
+      ))
+    }
+  </span>
+</span>
+
+<style>
+  .role-word {
+    display: inline-block;
+  }
+
+  .stack {
+    display: inline-grid;
+    vertical-align: baseline;
+  }
+
+  /* Every role sits in the same cell. Only the active one is visible; the rest keep the reserved width. */
+  .word {
+    grid-area: 1 / 1;
+    justify-self: start;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 150ms linear,
+      visibility 0s linear 150ms;
+  }
+
+  .word[data-active] {
+    opacity: 1;
+    visibility: visible;
+    transition:
+      opacity 150ms linear,
+      visibility 0s;
+  }
+
+  /* Shared inline box for the chip-style roles. isolation keeps the ::before behind the text. */
+  .txt {
+    position: relative;
+    isolation: isolate;
+    display: inline-block;
+  }
+
+  /* 1. Product designer: a dashed box draws, letters appear as outlines, then they fill into an inverted chip.
+   * The base state is the final chip, so no-JS and the first load show the finished word. */
+  .word-wireframe .txt {
+    padding: 0 5px;
+    color: var(--bg);
+    outline: 1px dashed transparent;
+    outline-offset: 4px;
+  }
+
+  .word-wireframe .txt::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--text);
+  }
+
+  .word-wireframe.is-enter .txt {
+    animation: wire-box 1000ms linear both;
+  }
+
+  .word-wireframe.is-enter .txt::before {
+    animation: wire-fill 320ms var(--ease-out) 600ms both;
+  }
+
+  .word-wireframe.is-enter .ch {
+    animation: wire-letter 480ms var(--ease-out) both;
+    animation-delay: calc(var(--i) * 28ms + 100ms);
+  }
+
+  @keyframes wire-box {
+    0% {
+      outline-color: transparent;
+    }
+    20% {
+      outline-color: var(--text);
+    }
+    75% {
+      outline-color: var(--text);
+    }
+    100% {
+      outline-color: transparent;
+    }
+  }
+
+  @keyframes wire-letter {
+    0% {
+      opacity: 0;
+      color: transparent;
+      -webkit-text-stroke: 1px var(--text);
+    }
+    40% {
+      opacity: 1;
+      color: transparent;
+      -webkit-text-stroke: 1px var(--text);
+    }
+    100% {
+      opacity: 1;
+      color: var(--bg);
+      -webkit-text-stroke-width: 0;
+    }
+  }
+
+  @keyframes wire-fill {
+    from {
+      opacity: 0;
+      transform: scale(1.04);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* 2. Design engineer: letters scramble and resolve left to right (script below). Mono with a 1px underline. */
+  /* .txt is an inline-block, which does not inherit decorations from its parent, so it gets the underline too. */
+  .word-ascii,
+  .word-ascii .txt {
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.25em;
+  }
+
+  /* 3. iOS builder: an accent chip springs in from 0.7 with a slight overshoot. Only this chip has a radius. */
+  .word-pop .txt {
+    padding: 0 6px;
+    border-radius: 7px;
+    background: var(--accent);
+    color: #000;
+    transform-origin: 50% 50%;
+  }
+
+  .word-pop.is-enter .txt {
+    animation: pop-in 500ms cubic-bezier(0.2, 1.35, 0.4, 1) both;
+  }
+
+  @keyframes pop-in {
+    from {
+      transform: scale(0.7);
+    }
+    to {
+      transform: none;
+    }
+  }
+
+  /* 4. Co-founder: two cursors arrive from both sides, meet at the word, then a selection highlight appears. */
+  .word-cofounder .txt {
+    padding: 0 4px;
+  }
+
+  .word-cofounder .txt::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+
+  .word-cofounder.is-enter .txt {
+    animation: co-text 200ms linear 300ms both;
+  }
+
+  .word-cofounder.is-enter .txt::before {
+    animation: co-highlight 260ms var(--ease-out) 420ms both;
+  }
+
+  .arrow {
+    position: absolute;
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    margin-top: -7px;
+    color: var(--text);
+    opacity: 0;
+  }
+
+  .arrow-l {
+    left: -22px;
+    transform: scaleX(-1);
+  }
+
+  .arrow-r {
+    right: -22px;
+  }
+
+  .word-cofounder.is-enter .arrow-l {
+    animation: co-from-left 420ms var(--ease-out) both;
+  }
+
+  .word-cofounder.is-enter .arrow-r {
+    animation: co-from-right 420ms var(--ease-out) both;
+  }
+
+  @keyframes co-text {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes co-highlight {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  @keyframes co-from-left {
+    0% {
+      opacity: 0;
+      transform: scaleX(-1) translate(-30px, 6px);
+    }
+    70% {
+      opacity: 1;
+      transform: scaleX(-1) translate(0, 0);
+    }
+    100% {
+      opacity: 0;
+      transform: scaleX(-1) translate(0, 0);
+    }
+  }
+
+  @keyframes co-from-right {
+    0% {
+      opacity: 0;
+      transform: translate(30px, 6px);
+    }
+    70% {
+      opacity: 1;
+      transform: translate(0, 0);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+  }
+
+  /* Last on purpose: no entrance animation and no transitions for users who ask for less motion. */
+  @media (prefers-reduced-motion: reduce) {
+    .word,
+    .txt,
+    .txt::before,
+    .ch,
+    .arrow {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+</style>
+
+<script>
+  /*
+   * Role cycler. One interval per word, shared tick, paused by three reasons:
+   * hidden tab, hero off screen, pointer over the word. Reduced motion starts no timers.
+   * Entrances are CSS (.is-enter). The design engineer role also runs a scramble here.
+   */
+
+  const DWELL_MS = 3200;
+  const TICK_MS = 100;
+  const SCRAMBLE_MS = 600; // total time for the letters to resolve, left to right
+  const SCRAMBLE_STEP_MS = 40;
+  const GLYPHS = '#%&*+=/<>[]{}01';
+
+  let cleanups: Array<() => void> = [];
+
+  function teardown(): void {
+    for (const fn of cleanups) fn();
+    cleanups = [];
+  }
+
+  function randomGlyph(): string {
+    return GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+  }
+
+  function mount(root: HTMLElement, reduce: boolean): void {
+    const items = Array.from(root.querySelectorAll<HTMLElement>('[data-role-item]'));
+    const stack = root.querySelector<HTMLElement>('[data-role-stack]');
+    // Reduced motion or nothing to cycle: the first role stays static.
+    if (reduce || items.length < 2 || !stack) return;
+
+    let active = 0;
+    let elapsed = 0;
+    let tick = 0;
+    let scramble = 0;
+    const paused = new Set<string>();
+
+    const stopScramble = (): void => {
+      if (scramble !== 0) {
+        window.clearInterval(scramble);
+        scramble = 0;
+      }
+    };
+
+    // Each letter shows random glyphs until its slot in SCRAMBLE_MS, then shows its final character.
+    const startScramble = (el: HTMLElement): void => {
+      stopScramble();
+      const letters = Array.from(el.querySelectorAll<HTMLElement>('[data-ch]'));
+      const began = performance.now();
+      const step = (): void => {
+        const elapsedMs = performance.now() - began;
+        let pending = false;
+        letters.forEach((letter, i) => {
+          const final = letter.dataset.final ?? '';
+          if (final.trim() === '') {
+            letter.textContent = final;
+            return;
+          }
+          if (elapsedMs >= ((i + 1) / letters.length) * SCRAMBLE_MS) {
+            letter.textContent = final;
+          } else {
+            pending = true;
+            letter.textContent = randomGlyph();
+          }
+        });
+        if (!pending) stopScramble();
+      };
+      step();
+      scramble = window.setInterval(step, SCRAMBLE_STEP_MS);
+    };
+
+    const show = (next: number): void => {
+      const prev = items[active];
+      prev.removeAttribute('data-active');
+      prev.classList.remove('is-enter');
+      stopScramble();
+
+      active = next;
+      const el = items[next];
+      el.setAttribute('data-active', '');
+      el.classList.add('is-enter');
+      if (el.dataset.kind === 'ascii') startScramble(el);
+    };
+
+    const setPaused = (reason: string, on: boolean): void => {
+      if (on) paused.add(reason);
+      else paused.delete(reason);
+    };
+
+    tick = window.setInterval(() => {
+      if (paused.size > 0) return;
+      elapsed += TICK_MS;
+      if (elapsed < DWELL_MS) return;
+      elapsed = 0;
+      show((active + 1) % items.length);
+    }, TICK_MS);
+
+    const onVisibility = (): void => setPaused('hidden', document.hidden);
+    document.addEventListener('visibilitychange', onVisibility);
+    setPaused('hidden', document.hidden);
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        const last = entries[entries.length - 1];
+        if (last) setPaused('offscreen', !last.isIntersecting);
+      },
+      { threshold: 0 },
+    );
+    io.observe(root);
+
+    const onEnter = (): void => setPaused('pointer', true);
+    const onLeave = (): void => setPaused('pointer', false);
+    stack.addEventListener('pointerenter', onEnter);
+    stack.addEventListener('pointerleave', onLeave);
+
+    cleanups.push(() => {
+      window.clearInterval(tick);
+      stopScramble();
+      io.disconnect();
+      document.removeEventListener('visibilitychange', onVisibility);
+      stack.removeEventListener('pointerenter', onEnter);
+      stack.removeEventListener('pointerleave', onLeave);
+    });
+  }
+
+  function init(): void {
+    teardown();
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    document.querySelectorAll<HTMLElement>('[data-role-word]').forEach((root) => mount(root, reduce));
+  }
+
+  document.addEventListener('astro:page-load', init);
+  document.addEventListener('astro:before-swap', teardown);
+</script>

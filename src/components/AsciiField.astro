@@ -1,0 +1,122 @@
+---
+import { renderWaveFrame } from '../lib/wave';
+
+/*
+ * AsciiField: the hero object, a wave field of ASCII glyphs (math in src/lib/wave.ts).
+ * - The t = 0 frame is rendered here, so the box is never empty and nothing shifts before JS runs.
+ * - The client loop runs only while the field is on screen and the tab is visible.
+ * - Fine pointers add a ripple that follows the cursor. Touch devices get the plain wave.
+ * - Reduced motion keeps the static frame and starts no loop.
+ * Size is fixed in ch and em units, so the block never resizes.
+ */
+const firstFrame = renderWaveFrame(0);
+---
+
+<pre class="ascii" aria-hidden="true" data-ascii-field>{firstFrame}</pre>
+
+<style>
+  .ascii {
+    margin: 0 0 28px;
+    width: 46ch;
+    height: 18em;
+    overflow: hidden;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1;
+    color: var(--text);
+    white-space: pre;
+    user-select: none;
+  }
+
+  @media (max-width: 519px) {
+    .ascii {
+      font-size: 9px;
+    }
+  }
+</style>
+
+<script>
+  import { COLS, ROWS, renderWaveFrame, type Pointer } from '../lib/wave';
+
+  /*
+   * One loop per field. A field draws only while it is on screen and the tab is visible.
+   * Init on astro:page-load, full teardown on astro:before-swap.
+   */
+
+  const SPEED = 1.8; // wave phase per second (the mockup advanced 0.03 per 60 fps frame)
+
+  let cleanups: Array<() => void> = [];
+
+  function teardown(): void {
+    for (const fn of cleanups) fn();
+    cleanups = [];
+  }
+
+  function mount(el: HTMLPreElement, fine: boolean): void {
+    let pointer: Pointer | null = null;
+    let inView = false;
+    let frame = 0; // id of the pending animation frame, 0 when the loop is stopped
+    const origin = performance.now();
+
+    const draw = (now: number): void => {
+      el.textContent = renderWaveFrame(((now - origin) / 1000) * SPEED, pointer);
+      frame = requestAnimationFrame(draw);
+    };
+
+    // Start only when the field is visible and the tab is visible; stop as soon as either fails.
+    const sync = (): void => {
+      const run = inView && !document.hidden;
+      if (run && frame === 0) {
+        frame = requestAnimationFrame(draw);
+      } else if (!run && frame !== 0) {
+        cancelAnimationFrame(frame);
+        frame = 0;
+      }
+    };
+
+    const onMove = (event: PointerEvent): void => {
+      const rect = el.getBoundingClientRect();
+      pointer = {
+        x: ((event.clientX - rect.left) / rect.width) * COLS,
+        y: ((event.clientY - rect.top) / rect.height) * ROWS,
+      };
+    };
+    const onLeave = (): void => {
+      pointer = null;
+    };
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        inView = entries[entries.length - 1]?.isIntersecting ?? false;
+        sync();
+      },
+      { threshold: 0 },
+    );
+    io.observe(el);
+    document.addEventListener('visibilitychange', sync);
+    if (fine) {
+      el.addEventListener('pointermove', onMove);
+      el.addEventListener('pointerleave', onLeave);
+    }
+
+    cleanups.push(() => {
+      cancelAnimationFrame(frame);
+      frame = 0;
+      io.disconnect();
+      document.removeEventListener('visibilitychange', sync);
+      el.removeEventListener('pointermove', onMove);
+      el.removeEventListener('pointerleave', onLeave);
+    });
+  }
+
+  function init(): void {
+    teardown();
+    // Reduced motion: the server-rendered frame stays and nothing runs.
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const fine = window.matchMedia('(pointer: fine)').matches;
+    document.querySelectorAll<HTMLPreElement>('[data-ascii-field]').forEach((el) => mount(el, fine));
+  }
+
+  document.addEventListener('astro:page-load', init);
+  document.addEventListener('astro:before-swap', teardown);
+</script>

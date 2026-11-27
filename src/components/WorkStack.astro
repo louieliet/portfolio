@@ -1,0 +1,483 @@
+---
+import { projects } from '../lib/data';
+
+/*
+ * WorkStack: the home work list as a perspective card stack.
+ * - Each <li> is one project. The tilt is set on the <li> (a direct child of the perspective list), and the
+ *   <a> inside it is the card link. The script writes --p (-1 .. 1) per item; CSS turns it into the tilt.
+ * - The card closest to the viewport centre is active: accent label bar, aria-current on its index link.
+ * - Only the active card's videos play, and only while the stack is on screen and the tab is visible.
+ * - Desktop (>= 1100px): sticky index in the left gutter and sticky counter in the right gutter.
+ * - Under 900px and under reduced motion: flat cards. No-JS: flat cards, fully visible.
+ */
+const total = String(projects.length).padStart(2, '0');
+const isVideo = (src: string): boolean => src.endsWith('.mp4');
+const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
+---
+
+<section id="work" class="work" data-work-stack aria-labelledby="work-heading">
+  <nav class="index" aria-label="Projects">
+    <ol>
+      {
+        projects.map((p, i) => (
+          <li>
+            <a href={`#work-${p.id}`} data-index-link>
+              <span class="num t-mono">{String(i + 1).padStart(2, '0')}</span>
+              {p.name}
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </nav>
+  <p class="counter t-mono muted" data-counter aria-hidden="true">01 &mdash; {total}</p>
+
+  <div class="col">
+    <header class="head reveal" style="--i:0">
+      <h2 id="work-heading" class="muted">Selected work</h2>
+      <span class="t-mono muted">01 &mdash; {total}</span>
+    </header>
+
+    <ol class="stack" data-stack>
+      {
+        projects.map((p) => (
+          <li class="item" id={`work-${p.id}`} data-work-item>
+            <a class="card" href={`/projects/${p.id}`} aria-label={`${p.name}: ${p.subtitle}`} data-card>
+              <span class:list={['frame', `kind-${p.card.kind}`]}>
+                {p.card.media.map((src, j) =>
+                  isVideo(src) ? (
+                    j === 0 ? (
+                      <video
+                        class="media"
+                        src={src}
+                        poster={posterOf(src)}
+                        muted
+                        loop
+                        playsinline
+                        preload="none"
+                        aria-hidden="true"
+                        transition:name={`cover-${p.id}`}
+                      />
+                    ) : (
+                      <video
+                        class="media"
+                        src={src}
+                        poster={posterOf(src)}
+                        muted
+                        loop
+                        playsinline
+                        preload="none"
+                        aria-hidden="true"
+                      />
+                    )
+                  ) : j === 0 ? (
+                    <img class="media" src={src} alt="" loading="lazy" decoding="async" transition:name={`cover-${p.id}`} />
+                  ) : (
+                    <img class="media" src={src} alt="" loading="lazy" decoding="async" />
+                  )
+                )}
+              </span>
+              <span class="label">
+                <span class="name">{p.name}</span>
+                <span class="chips">
+                  {p.card.chips.map((chip) => (
+                    <span class="chip">{chip}</span>
+                  ))}
+                </span>
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .work {
+    padding-top: clamp(72px, 12vh, 140px);
+  }
+
+  /* Gutters: hidden below 1100px, sticky at 40vh inside the section (height 0, so they take no room). */
+  .index,
+  .counter {
+    display: none;
+  }
+
+  .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 20px;
+  }
+
+  .head h2 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.6;
+  }
+
+  .stack {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(40px, 9vh, 96px);
+  }
+
+  /* --p is set by the script. --below and --above split it so CSS can tilt each side on its own. */
+  .item {
+    --below: max(var(--p, 0), 0);
+    --above: max(calc(var(--p, 0) * -1), 0);
+    transform-origin: 50% 100%;
+  }
+
+  .card {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .card:focus-visible {
+    outline: 2px solid var(--text);
+    outline-offset: 4px;
+  }
+
+  /* Media frame: 16:10, flat colour, hairline outline, no radius, no shadow. */
+  .frame {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--text) 5%, transparent);
+    outline: 1px solid var(--line);
+    outline-offset: -1px;
+  }
+
+  .kind-wide .media {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+  }
+
+  .kind-phones .media {
+    position: relative;
+    flex: none;
+    width: auto;
+    height: 82%;
+    max-width: none;
+    aspect-ratio: 640 / 1392;
+    object-fit: cover;
+    outline: 1px solid var(--line);
+    outline-offset: -1px;
+  }
+
+  .kind-phones .media:nth-child(2) {
+    translate: 0 6%;
+  }
+
+  /* Label bar: inactive is a quiet bar; active is the one accent on the card. */
+  .label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 5px;
+    padding: 9px 12px;
+    background: color-mix(in srgb, var(--text) 12%, var(--bg));
+    color: var(--text);
+    transition:
+      background-color 200ms,
+      color 200ms;
+  }
+
+  .name {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 5px;
+  }
+
+  .chip {
+    padding: 3px 8px;
+    font-size: 12.5px;
+    line-height: 1.4;
+    background: color-mix(in srgb, var(--text) 22%, var(--bg));
+    color: var(--text);
+    transition:
+      background-color 200ms,
+      color 200ms;
+  }
+
+  .item.is-active .label {
+    background: var(--accent);
+    color: #000;
+  }
+
+  .item.is-active .chip {
+    background: #fff;
+    color: #000;
+  }
+
+  .num {
+    font-size: 12.5px;
+  }
+
+  /* Index: active item in --text with an accent dot; the rest muted. */
+  .index ol {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .index a {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.4;
+    text-decoration: none;
+  }
+
+  .index a[aria-current='true'] {
+    color: var(--text);
+  }
+
+  .index a[aria-current='true']::after {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  @media (min-width: 900px) {
+    .stack {
+      perspective: 1400px;
+    }
+  }
+
+  /* Tilt: below centre leans back from the bottom edge, above centre leans slightly forward from the top. */
+  @media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+    .js .item {
+      transform: rotateX(calc(var(--below) * 34deg - var(--above) * 12deg)) scale(calc(1 - var(--below) * 0.07));
+      opacity: calc(1 - var(--below) * 0.15 - var(--above) * 0.3);
+      transition:
+        transform 400ms var(--ease-out),
+        opacity 400ms var(--ease-out);
+    }
+
+    .js .item[data-side='above'] {
+      transform-origin: 50% 0%;
+    }
+  }
+
+  /* Phones: under 900px show two screens; the third is hidden. */
+  @media (max-width: 899px) {
+    .kind-phones .media:nth-child(n + 3) {
+      display: none;
+    }
+  }
+
+  @media (min-width: 1100px) {
+    .index {
+      display: block;
+      position: sticky;
+      top: 40vh;
+      width: 220px;
+      height: 0;
+      margin-left: 56px;
+    }
+
+    .counter {
+      display: block;
+      position: sticky;
+      top: 40vh;
+      height: 0;
+      margin: 0 56px 0 0;
+      text-align: right;
+    }
+  }
+</style>
+
+<script>
+  import type Lenis from 'lenis';
+
+  /*
+   * Work stack controller. One scroll handler: Lenis when present, plus window scroll and resize as the
+   * fallback, batched in one animation frame. Reads all geometry first, then writes.
+   * Init on astro:page-load, full teardown on astro:before-swap.
+   */
+
+  type LenisWindow = Window & { __lenis?: Lenis };
+
+  let cleanups: Array<() => void> = [];
+
+  function teardown(): void {
+    for (const fn of cleanups) fn();
+    cleanups = [];
+  }
+
+  function clamp(value: number, min: number, max: number): number {
+    return Math.min(max, Math.max(min, value));
+  }
+
+  function headerOffset(): number {
+    const value = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h'));
+    return -(Number.isFinite(value) ? value : 0);
+  }
+
+  function mount(root: HTMLElement, reduce: boolean): void {
+    const items = Array.from(root.querySelectorAll<HTMLElement>('[data-work-item]'));
+    const indexLinks = Array.from(root.querySelectorAll<HTMLAnchorElement>('[data-index-link]'));
+    const counter = root.querySelector<HTMLElement>('[data-counter]');
+    const stack = root.querySelector<HTMLElement>('[data-stack]');
+    if (items.length === 0 || !stack) return;
+
+    const cards = items.map((item) => ({
+      item,
+      videos: Array.from(item.querySelectorAll<HTMLVideoElement>('video')),
+    }));
+
+    let active = -1;
+    let focused = -1;
+    let inView = false;
+    let frame = 0;
+
+    const listen = (target: EventTarget, type: string, fn: EventListener, options?: AddEventListenerOptions): void => {
+      target.addEventListener(type, fn, options);
+      cleanups.push(() => target.removeEventListener(type, fn, options));
+    };
+
+    // Only the active card's clips play, and only while the stack is on screen and the tab is visible.
+    const syncPlayback = (): void => {
+      const allowed = !reduce && inView && !document.hidden;
+      cards.forEach(({ videos }, i) => {
+        const live = allowed && i === active;
+        for (const video of videos) {
+          if (live) {
+            if (video.paused) void video.play().catch(() => undefined);
+          } else {
+            video.pause();
+          }
+        }
+      });
+    };
+
+    const setActive = (next: number): void => {
+      if (active >= 0) {
+        cards[active].item.classList.remove('is-active');
+        indexLinks[active]?.removeAttribute('aria-current');
+      }
+      active = next;
+      cards[next].item.classList.add('is-active');
+      indexLinks[next]?.setAttribute('aria-current', 'true');
+      if (counter) {
+        counter.textContent = `${String(next + 1).padStart(2, '0')} \u2014 ${String(cards.length).padStart(2, '0')}`;
+      }
+      syncPlayback();
+    };
+
+    const update = (): void => {
+      frame = 0;
+      const vh = window.innerHeight;
+      const mid = vh / 2;
+
+      // Read pass: every card's geometry first.
+      const ps = cards.map(({ item }) => {
+        const rect = item.getBoundingClientRect();
+        return clamp((rect.top + rect.height / 2 - mid) / vh, -1, 1);
+      });
+
+      // Write pass.
+      let nearest = 0;
+      ps.forEach((p, i) => {
+        if (Math.abs(p) < Math.abs(ps[nearest])) nearest = i;
+        cards[i].item.style.setProperty('--p', p.toFixed(3));
+        cards[i].item.dataset.side = p >= 0 ? 'below' : 'above';
+      });
+
+      // A focused card counts as active, so keyboard users see the same state as pointer users.
+      const next = focused >= 0 ? focused : nearest;
+      if (next !== active) setActive(next);
+    };
+
+    const schedule = (): void => {
+      if (frame === 0) frame = requestAnimationFrame(update);
+    };
+
+    listen(window, 'scroll', schedule, { passive: true });
+    listen(window, 'resize', schedule, { passive: true });
+    const lenis = (window as LenisWindow).__lenis;
+    if (lenis) {
+      lenis.on('scroll', schedule);
+      cleanups.push(() => lenis.off('scroll', schedule));
+    }
+
+    listen(root, 'focusin', (event) => {
+      focused = cards.findIndex(({ item }) => item.contains(event.target as Node));
+      schedule();
+    });
+    listen(root, 'focusout', () => {
+      focused = -1;
+      schedule();
+    });
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        const last = entries[entries.length - 1];
+        if (!last) return;
+        inView = last.isIntersecting;
+        syncPlayback();
+      },
+      { threshold: 0 },
+    );
+    io.observe(stack);
+    cleanups.push(() => io.disconnect());
+    listen(document, 'visibilitychange', syncPlayback);
+
+    indexLinks.forEach((link, i) => {
+      listen(link, 'click', (event) => {
+        event.preventDefault();
+        const target = items[i];
+        const lenisNow = (window as LenisWindow).__lenis;
+        if (lenisNow) {
+          lenisNow.scrollTo(target, { offset: headerOffset() });
+        } else {
+          target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    update();
+
+    cleanups.push(() => {
+      cancelAnimationFrame(frame);
+      frame = 0;
+      for (const { videos } of cards) {
+        for (const video of videos) video.pause();
+      }
+    });
+  }
+
+  function init(): void {
+    teardown();
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    document.querySelectorAll<HTMLElement>('[data-work-stack]').forEach((root) => mount(root, reduce));
+  }
+
+  document.addEventListener('astro:page-load', init);
+  document.addEventListener('astro:before-swap', teardown);
+</script>

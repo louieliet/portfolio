@@ -1,7 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Hero from '../components/Hero.astro';
-import WorkList from '../components/WorkList.astro';
+import WorkStack from '../components/WorkStack.astro';
 import Approach from '../components/Approach.astro';
 import Timeline from '../components/Timeline.astro';
 import { experience } from '../lib/data';
@@ -9,7 +9,7 @@ import { experience } from '../lib/data';
 
 <Layout>
   <Hero />
-  <WorkList />
+  <WorkStack />
   <Approach />
   <div class="col section">
     <Timeline items={experience} heading="Experience" detailed={false} />

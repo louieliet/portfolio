@@ -19,7 +19,7 @@ default on `:root`; dark follows the system only when no `data-theme` is set. `c
 Other tokens: `--font-sans`, `--font-serif`, `--font-mono`, `--col` (880px), `--header-h` (56px),
 `--space-section` (`clamp(96px, 14vh, 180px)`), `--ease-out` (`cubic-bezier(0.16, 1, 0.3, 1)`).
 
-Accent is used only for: the role sticker, `::selection`, the "Now" timeline label, and link underline on hover.
+Accent is used only for: the active work label bar and its index dot, the iOS builder and co-founder role effects, `::selection`, the "Now" timeline label, and link underline on hover.
 
 ## Type scale
 
@@ -53,6 +53,10 @@ Accent is used only for: the role sticker, `::selection`, the "Now" timeline lab
 - `Header.astro`: fixed bar: name, clock, Work (count), About, Resume, theme dot.
 - `Clock.astro`: "CDMX, 11:12 pm, 18°C" live time and Open-Meteo temperature. `[data-clock]`, any count per page.
 - `Footer.astro`: "Get in touch" copies the email, links row, "Now building", clock, copyright.
-- `Media.astro`: image or muted looping `.mp4` with `.webp` poster; optional `transitionName`.
+- `Hero.astro`: home intro at content height: `AsciiField`, name with `RoleWord`, now/previously lines, fun fact link.
+- `AsciiField.astro`: 46x18 ASCII wave field, the hero object. SSR t=0 frame; loop only when on screen and visible; static under reduced motion. Math in `src/lib/wave.ts`.
+- `RoleWord.astro`: rotating role inside the intro, 3.2s dwell. Four entrances (wireframe, ASCII resolve, spring pop, cursor highlight). Width reserved for the longest role.
+- `WorkStack.astro`: home work list as a perspective card stack. Tilt from `--p`; sticky index and counter at 1100px and up; only the active card plays video.
+- `Media.astro`: image or muted looping `.mp4` with `.webp` poster; optional `transitionName`. Used by the case pages.
 - `src/styles/global.css`: tokens, reset, `@font-face`, type utilities, `.col`/`.bleed`, `.reveal`.
-- `src/lib/data.ts`: content, `heroShot` per project, `personalInfo.roles/intro/facts/funFact`, `periodYear()`.
+- `src/lib/data.ts`: content, `heroShot` (case hero), `ProjectItem.card` (home stack: kind, media, chips), `personalInfo.roles/now/previously/intro/facts/funFact`, `periodYear()`.

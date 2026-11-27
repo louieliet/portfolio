@@ -18,20 +18,13 @@ export interface ExperienceItem {
   highlight?: boolean;
 }
 
-// One clip or still in a hero scene. Clips (.mp4) need a .webp poster beside them.
-export interface HeroPiece {
-  src: string;
-  kind: "phone" | "wide" | "detail";
-  alt: string;
-}
-
-// One role on the home hero stage. Pieces are real product media; the first piece is the main one.
-export interface HeroScene {
-  role: string;
-  projectId: string;
-  ghost: string; // giant background word for the scene
-  pieces: HeroPiece[];
-  mascot?: boolean; // adds the projectId's animated mascot peeking behind the main piece
+// One card in the home work stack. "wide": the first clip or still fills the frame.
+// "phones": up to three portrait screens side by side. Media paths must exist under public/;
+// a .mp4 entry needs a .webp poster beside it.
+export interface ProjectCard {
+  kind: "wide" | "phones";
+  media: string[];
+  chips: string[]; // 2 to 4 short tags
 }
 
 export interface FactGroup {
@@ -53,8 +46,9 @@ export interface ProjectItem {
   link?: string;
   linkLabel?: string;
   images?: string[];
-  // Still image that floats in the home hero. Must exist under public/. Optional: projects without one are skipped there.
+  // Still image for the case page hero (falls back to images[0]). Must exist under public/.
   heroShot?: string;
+  card: ProjectCard; // home work stack card
   metric?: string; // real result, shown first in the case Outcome row
   metricLabel?: string;
   imageAspect?: "9/16";
@@ -71,49 +65,10 @@ export const personalInfo = {
   name: "Emiliano Montes Gómez",
   role: "Product Designer and Engineer",
   tagline: "I build scalable web and mobile products with strong UX foundations.",
-  // Rotating words for the hero role sticker.
+  // Role words for the hero RoleWord rotation. Keep in sync with src/components/RoleWord.astro.
   roles: ["product designer", "design engineer", "iOS builder", "co-founder"],
-  // Home hero stage, in the same order as roles. Each role is proven by moving product.
-  heroScenes: [
-    {
-      role: "product designer",
-      projectId: "bloomley",
-      ghost: "DESIGN",
-      pieces: [
-        { src: "/projects/bloomley/hero.mp4", kind: "wide", alt: "Bloomley landing hero" },
-        { src: "/projects/bloomley/flow.mp4", kind: "wide", alt: "Bloomley first mission flow" }
-      ]
-    },
-    {
-      role: "design engineer",
-      projectId: "iluk-landing",
-      ghost: "ENGINEER",
-      pieces: [
-        { src: "/projects/iluk-landing/scroll-story.mp4", kind: "wide", alt: "iLuk.ai scroll story" },
-        { src: "/projects/iluk-landing/four-steps.mp4", kind: "wide", alt: "iLuk.ai four steps to go live" }
-      ]
-    },
-    {
-      role: "iOS builder",
-      projectId: "luma",
-      ghost: "iOS",
-      pieces: [
-        { src: "/projects/luma/day-home.mp4", kind: "phone", alt: "Luma home screen" },
-        { src: "/projects/luma/feat-tasks.mp4", kind: "phone", alt: "Luma task lists" }
-      ],
-      mascot: true
-    },
-    {
-      role: "co-founder",
-      projectId: "luma",
-      ghost: "FOUNDER",
-      pieces: [
-        { src: "/projects/luma/team-emi.mp4", kind: "phone", alt: "Emiliano on the Luma team" },
-        { src: "/projects/luma/team-inaki.mp4", kind: "phone", alt: "Iñaki on the Luma team" },
-        { src: "/projects/luma/team-fer.mp4", kind: "phone", alt: "Fernanda on the Luma team" }
-      ]
-    }
-  ] satisfies HeroScene[],
+  now: "Building Luma and products at Feeble",
+  previously: "Previously iLuk.ai, Vyvo Tech, & UPocket.",
   intro: "I design and build web and iOS products end to end, from Figma to production.",
   location: "Mexico City, Mexico",
   email: "emilianomg2003@hotmail.com",
@@ -267,6 +222,7 @@ export const projects = [
     linkLabel: "Visit Luma",
     images: ["/projects/luma-cover.svg"],
     heroShot: "/projects/luma/day-home.webp",
+    card: { kind: "phones", media: ["/projects/luma/day-home.mp4", "/projects/luma/feat-tasks.mp4", "/projects/luma/day-habit.mp4"], chips: ["iOS", "Mobile", "Co-founder"] },
     imageAspect: "9/16",
     mascot: { mov: "/projects/luma/odi-flower.mov", webm: "/projects/luma/odi-flower.webm", poster: "/projects/luma/odi-flower-still.webp" },
     badge: { label: "Status", text: "Private beta, join the waitlist" },
@@ -296,6 +252,7 @@ export const projects = [
     linkLabel: "Visit iLuk.ai",
     images: ["/projects/iluk-cover.webp"],
     heroShot: "/projects/iluk-landing/hero.webp",
+    card: { kind: "wide", media: ["/projects/iluk-landing/scroll-story.mp4"], chips: ["Web", "AI", "Fintech"] },
     badge: { label: "Status", text: "Live at iluk.ai" },
     category: "Web",
     sections: [
@@ -321,6 +278,7 @@ export const projects = [
     linkLabel: "Visit Bloomley",
     images: ["/projects/bloomley-cover.webp"],
     heroShot: "/projects/bloomley/hero.webp",
+    card: { kind: "wide", media: ["/projects/bloomley/hero.mp4"], chips: ["Web", "Wellbeing"] },
     badge: { label: "Status", text: "In development" },
     category: "Web",
     sections: [
@@ -347,6 +305,7 @@ export const projects = [
     linkLabel: "View on the App Store",
     images: ["/projects/upocket/overview.webp"],
     heroShot: "/projects/upocket/overview.webp",
+    card: { kind: "wide", media: ["/projects/upocket/overview.webp"], chips: ["iOS", "SwiftUI", "App Store"] },
     coverAspect: "16/9",
     badge: { label: "Status", text: "On the App Store" },
     category: "Mobile",
@@ -371,6 +330,7 @@ export const projects = [
     year: "2025",
     images: ["/projects/neurapathcover.png", "/projects/neurapath01.png", "/projects/neurapath02.png", "/projects/neurapath03.png", "/projects/neurapath04.png", "/projects/neurapath05.png", "/projects/neurapath06.png", "/projects/neurapath07.png"],
     heroShot: "/projects/neurapathcover.png",
+    card: { kind: "wide", media: ["/projects/neurapathcover.png"], chips: ["iOS", "Hackathon winner"] },
     badge: { label: "Award", text: "1st place, National Swift Changemakers Hackathon 2025 (Bosch Challenge)" },
     category: "Mobile",
     sections: [
@@ -395,6 +355,7 @@ export const projects = [
     stack: ["SwiftUI", "iOS", "Wellness UX", "Gamification", "Local Persistence"],
     year: "2025",
     heroShot: "/projects/welltycover.png",
+    card: { kind: "wide", media: ["/projects/welltycover.png"], chips: ["iOS", "Hackathon winner"] },
     images: ["/projects/welltycover.png", "/projects/wellty01.png", "/projects/wellty02.png", "/projects/wellty03.png", "/projects/wellty04.png", "/projects/wellty05.png", "/projects/wellty06.png", "/projects/wellty07.png", "/projects/wellty09.png", "/projects/wellty10.png", "/projects/wellty11.png", "/projects/wellty12.png", "/projects/wellty13.png"],
     category: "Mobile",
     sections: [
@@ -406,7 +367,7 @@ export const projects = [
       { id: "outcome", title: "Outcome", body: ["Wellty won 1st place at the iOS Lab Universidad Panamericana x Windsurf hackathon."] }
     ]
   }
-]
+] satisfies ProjectItem[]
 
 export const certifications = [
   { name: "Unity Essentials Pathway", issuer: "Unity", year: 2023 },
