@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import DotPortrait from '../components/DotPortrait.astro';
 import Timeline from '../components/Timeline.astro';
 import { experience, personalInfo } from '../lib/data';
+import { ABOUT_TITLE, aboutDescription, aboutJsonLd } from '../lib/seo';
 
 const paragraphs = personalInfo.about.history
   .split(/\n\s*\n/)
@@ -10,7 +11,7 @@ const paragraphs = personalInfo.about.history
   .filter(Boolean);
 ---
 
-<Layout title="About | Emiliano Montes" description={personalInfo.intro}>
+<Layout title={ABOUT_TITLE} description={aboutDescription()} ogType="profile" jsonLd={aboutJsonLd()}>
   <div class="col page">
     <section class="intro">
       <DotPortrait src="/projects/me-portrait.jpg" alt="Portrait of Emiliano Montes" size={200} />

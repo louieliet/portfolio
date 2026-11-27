@@ -4,9 +4,10 @@ import Hero from '../components/Hero.astro';
 import Story from '../components/Story.astro';
 import WorkStack from '../components/WorkStack.astro';
 import Experience from '../components/Experience.astro';
+import { homeJsonLd } from '../lib/seo';
 ---
 
-<Layout>
+<Layout jsonLd={homeJsonLd()}>
   <Hero />
   <!-- How I work: pinned chapter between the hero and the work (the ASCII field carries over). -->
   <div class="col">

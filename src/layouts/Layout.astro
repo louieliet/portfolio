@@ -3,10 +3,11 @@ import '../styles/global.css';
 import { ClientRouter } from 'astro:transitions';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import { SITE, absoluteUrl, toJsonLd } from '../lib/seo';
 
 /*
  * CONTRACT for pages:
- *   <Layout title? description? image? imageAlt? imageWidth? imageHeight?>
+ *   <Layout title? description? image? imageAlt? imageWidth? imageHeight? ogType? noindex? jsonLd?>
  *     ...page content (rendered inside <main id="main">)
  *   </Layout>
  * Layout renders Header and Footer. Pages must not render their own <header>/<footer>.
@@ -22,19 +23,26 @@ interface Props {
   imageAlt?: string;
   imageWidth?: number;
   imageHeight?: number;
+  ogType?: "website" | "article" | "profile";
+  noindex?: boolean;
+  jsonLd?: object | object[];
 }
 
 const {
-  title = "Emiliano Montes | Product Designer and Engineer",
-  description = "Portfolio of Emiliano Montes, a product designer and engineer building web and iOS products end to end, from Figma to production.",
+  title = SITE.defaultTitle,
+  description = SITE.defaultDescription,
   image = "/og.jpg",
   imageAlt = title,
   imageWidth,
   imageHeight,
+  ogType = "website",
+  noindex = false,
+  jsonLd,
 } = Astro.props;
 
-const pageUrl = new URL(Astro.url.pathname, Astro.site);
-const imageUrl = new URL(image, Astro.site);
+// Canonical form: no trailing slash (see lib/seo.ts). The same URL feeds canonical, og:url and the sitemap.
+const pageUrl = new URL(absoluteUrl(Astro.url.pathname));
+const imageUrl = new URL(image, SITE.url);
 // The default og.jpg is always 1200x630; other images only report size when the page says so.
 const isDefaultImage = image === "/og.jpg";
 const width = isDefaultImage ? 1200 : imageWidth;
@@ -50,9 +58,15 @@ const height = isDefaultImage ? 630 : imageHeight;
     <link rel="preload" href="/fonts/GeneralSans-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <meta name="author" content={SITE.author} />
+    <meta name="robots" content={noindex ? "noindex, follow" : "index, follow, max-image-preview:large"} />
+    <meta name="theme-color" content={SITE.themeColor.light} media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content={SITE.themeColor.dark} media="(prefers-color-scheme: dark)" />
     <link rel="canonical" href={pageUrl.href} />
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Emiliano Montes" />
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:locale" content={SITE.locale} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={pageUrl.href} />
@@ -64,6 +78,8 @@ const height = isDefaultImage ? 630 : imageHeight;
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={imageUrl.href} />
+    <meta name="twitter:image:alt" content={imageAlt} />
+    {jsonLd && <script type="application/ld+json" set:html={toJsonLd(jsonLd)}></script>}
 
     <!-- Blocking theme script: runs before first paint to avoid a flash. Sets html.js for no-JS-safe reveals. -->
     <script is:inline>

@@ -65,7 +65,7 @@ export const personalInfo = {
   roles: ["product designer", "design engineer", "iOS builder", "co-founder"],
   now: "Building Luma and products at Feeble",
   previously: "Previously iLuk.ai, Vyvo Tech, & UPocket.",
-  intro: "I design and build web and iOS products end to end, from Figma to production.",
+  intro: "I design and build web and iOS products end to end, from the first idea to production.",
   location: "Mexico City, Mexico",
   email: "emilianomg2003@hotmail.com",
   linkedin: "https://www.linkedin.com/in/emiliano-mg/",

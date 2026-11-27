@@ -36,7 +36,7 @@ import StackChips from './StackChips.astro';
               {isNow ? <span class="chip">Now</span> : <span class="year t-mono muted">{when}</span>}
             </div>
             <div class="body">
-              <p class="company">{item.company}</p>
+              <h3 class="company">{item.company}</h3>
               <p class="role muted">{item.role}</p>
               {detailed && (
                 <>
@@ -123,6 +123,7 @@ import StackChips from './StackChips.astro';
 
   .company {
     color: var(--text);
+    font-size: inherit;
     font-weight: 500;
   }
 
