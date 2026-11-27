@@ -222,7 +222,7 @@ export const projects = [
     linkLabel: "Visit Luma",
     images: ["/projects/luma-cover.svg"],
     heroShot: "/projects/luma/day-home.webp",
-    card: { kind: "phones", media: ["/projects/luma/day-home.mp4", "/projects/luma/feat-tasks.mp4", "/projects/luma/day-habit.mp4"], chips: ["iOS", "Mobile", "Co-founder"] },
+    card: { kind: "wide", media: ["/projects/luma-cover.svg"], chips: ["iOS", "Mobile", "Co-founder"] },
     imageAspect: "9/16",
     mascot: { mov: "/projects/luma/odi-flower.mov", webm: "/projects/luma/odi-flower.webm", poster: "/projects/luma/odi-flower-still.webp" },
     badge: { label: "Status", text: "Private beta, join the waitlist" },
