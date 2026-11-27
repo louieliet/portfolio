@@ -1,39 +1,209 @@
 ---
-import { personalInfo, projects, experience } from '@/lib/data';
+import Clock from './Clock.astro';
+import { personalInfo, projects } from '../lib/data';
+
+/*
+ * Fixed top bar, four points: name | clock | nav | theme dot.
+ * Nav: Work (home, with project count), About, Resume (external, opens new tab).
+ * aria-current="page" marks the active internal link. The header is transition:persist: the same node is kept across
+ * client navigations, so its aria-current is synced after each swap (script below), not rendered per page.
+ * It has its own view-transition-name, so it stays still during a page travel (not during the theme switch).
+ */
+const path = Astro.url.pathname;
+const onWork = path === '/' || path.startsWith('/projects/');
+const onAbout = path === '/about' || path === '/about/';
 ---
 
-<header class="site-header header-grid" aria-label="Site header">
-  <a class="brand" href="/" aria-label={`${personalInfo.name} portfolio home`}>
-    {personalInfo.name.split(' ').slice(0, 2).join(' ')}
-  </a>
+<header class="site-header" transition:persist>
+  <div class="bar bleed">
+    <a class="name" href="/" data-no-inl>Emiliano Montes</a>
 
-  <nav class="site-nav" aria-label="Primary navigation">
-    <a href="#projects">Work<sup>{projects.length}</sup></a>
-    <a href="#experience">Experience<sup>{experience.length}</sup></a>
-    <a href="#about">About</a>
-    <a href="#contact">Contact</a>
-  </nav>
+    <div class="center">
+      <Clock />
+    </div>
 
-  <div class="header-meta">
-    <div>{personalInfo.role}</div>
-    <div class="site-clock" data-clock aria-label="Local time in Mexico City">CDMX --:--</div>
+    <div class="end">
+      <nav aria-label="Primary">
+        <ul class="nav dim">
+          <li>
+            <a href="/#work" aria-current={onWork ? 'page' : undefined} data-swap>
+              Work<sup>{projects.length}</sup>
+            </a>
+          </li>
+          <li>
+            <a href="/about" aria-current={onAbout ? 'page' : undefined} data-swap>About</a>
+          </li>
+          <li>
+            <!-- TODO(emiliano): swap for a PDF -->
+            <a href={personalInfo.linkedin} target="_blank" rel="noopener" data-swap>
+              Resume<sup aria-hidden="true">+</sup><span class="sr-only"> (opens in a new tab)</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <button class="theme-toggle" type="button" aria-label="Toggle theme" data-theme-toggle>
+        <span class="dot" aria-hidden="true"></span>
+      </button>
+    </div>
   </div>
 </header>
 
+<style>
+  .site-header {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 50;
+    height: var(--header-h);
+    background: color-mix(in srgb, var(--bg) 85%, transparent);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    /* Named so the root cross-fade of a page travel leaves it alone. Off during the theme switch, which is a
+       circle over the whole page, header included. */
+    view-transition-name: site-header;
+  }
+
+  html.theme-switching .site-header {
+    view-transition-name: none;
+  }
+
+  .bar {
+    height: 100%;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .name {
+    justify-self: start;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .center {
+    justify-self: center;
+  }
+
+  .end {
+    justify-self: end;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+
+  .nav a {
+    color: var(--muted);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .nav a:hover {
+      color: var(--text);
+    }
+  }
+
+  .nav a[aria-current='page'] {
+    color: var(--text);
+  }
+
+  sup {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    line-height: 0;
+    vertical-align: super;
+    margin-left: 2px;
+    color: var(--muted);
+  }
+
+  .theme-toggle {
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--text);
+    transition: transform 160ms var(--ease-pop);
+  }
+
+  /* Only the dot scales; the button keeps its hit area. The press rule comes after the hover rule, so it wins. */
+  @media (hover: hover) and (pointer: fine) {
+    .theme-toggle:hover .dot {
+      transform: scale(1.25);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .theme-toggle:active .dot {
+      transform: scale(0.92);
+    }
+  }
+
+  @media (max-width: 719px) {
+    .bar {
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+    }
+
+    .center {
+      display: none;
+    }
+
+    .end {
+      gap: 20px;
+    }
+
+    .nav {
+      gap: 18px;
+    }
+  }
+</style>
+
 <script>
-  // Local time in CDMX, refreshed every 30s. Deterministic: Intl does the tz math.
-  function initClock() {
-    const el = document.querySelector<HTMLElement>("[data-clock]");
-    if (!el) return;
-    const fmt = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "America/Mexico_City" });
-    const tick = () => { el.textContent = `CDMX ${fmt.format(new Date())}`; };
-    tick();
-    window.setInterval(tick, 30_000);
+  import { switchTheme } from '../lib/motion';
+
+  // The header is persisted, so its aria-current is set here after each swap (the server markup is only the first page).
+  function setCurrent(link: Element | null, on: boolean): void {
+    if (!link) return;
+    if (on) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
   }
-  document.addEventListener("astro:page-load", initClock);
-  if (document.readyState === "complete") {
-    initClock();
-  } else {
-    window.addEventListener("load", initClock);
+
+  function syncCurrent(): void {
+    const path = location.pathname;
+    setCurrent(document.querySelector('.site-header a[href="/#work"]'), path === '/' || path.startsWith('/projects/'));
+    setCurrent(document.querySelector('.site-header a[href="/about"]'), path === '/about' || path === '/about/');
   }
+
+  document.addEventListener('astro:after-swap', syncCurrent);
+
+  // Delegated on document, so it keeps working after client navigations without re-binding.
+  document.addEventListener('click', (event) => {
+    const target = event.target as Element | null;
+    const toggle = target?.closest<HTMLElement>('[data-theme-toggle]');
+    if (!toggle) return;
+
+    const root = document.documentElement;
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    const rect = toggle.getBoundingClientRect();
+    // The circle grows from the centre of the theme dot. Under reduced motion this is an instant switch.
+    switchTheme({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }, () => {
+      root.setAttribute('data-theme', next);
+      try {
+        localStorage.setItem('theme', next);
+      } catch {
+        // Storage blocked: the choice applies for this page view only.
+      }
+    });
+  });
 </script>

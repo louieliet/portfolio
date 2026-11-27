@@ -1,0 +1,190 @@
+---
+/*
+ * CaseSection: one numbered block of a case study.
+ * Desktop (>=960px): a sticky left gutter holds the number and title; the text sits in the
+ * content column; media spans from the content column to the right gutter (full) or stays
+ * in the column (screens). Under 960px the label sits above the text, one visible title.
+ * Media kinds:
+ *   full     one landscape image or clip, no crop
+ *   screens  row of 1-4 portrait phone screens, max 260px each; scroll-snap row under 720px
+ */
+import type { ProjectSection } from '@/lib/data';
+import Media from './Media.astro';
+
+interface Props {
+  section: ProjectSection;
+  index: number;
+  projectName: string;
+}
+
+const { section, index, projectName } = Astro.props;
+const number = String(index + 1).padStart(2, '0');
+const media = section.media;
+const images = media?.images ?? [];
+const kind = media?.kind;
+const label = `${projectName}: ${section.title}`;
+---
+
+<section id={section.id} class="bleed case">
+  <div class="label">
+    <p class="t-mono muted num">{number}</p>
+    <p class="t-mono muted label-title" aria-hidden="true" data-roll>{section.title}</p>
+  </div>
+
+  <div class="text">
+    <h2 class="title" data-roll>{section.title}</h2>
+    {section.body.map((paragraph, j) => <p class="body reveal" style={`--i: ${j}`}>{paragraph}</p>)}
+  </div>
+
+  {
+    kind && images.length > 0 && (
+      <div class:list={['case-media', kind === 'screens' ? 'is-screens' : 'is-full']}>
+        {kind === 'screens' ? (
+          <ul class="screens">
+            {images.map((src, i) => (
+              <li class="screen reveal" style={`--i: ${i + 1}`}>
+                <Media
+                  class="screen-media"
+                  src={src}
+                  alt={`${label} (${i + 1} of ${images.length})`}
+                  loading="lazy"
+                />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          images.map((src, i) => (
+            <div class="full reveal" style={`--i: ${i + 1}`}>
+              <Media src={src} alt={label} loading="lazy" />
+            </div>
+          ))
+        )}
+      </div>
+    )
+  }
+</section>
+
+<style>
+  .case {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    padding-block: clamp(56px, 8vh, 96px);
+  }
+
+  .label {
+    margin-bottom: 16px;
+  }
+
+  .label-title {
+    display: none;
+  }
+
+  .text {
+    max-width: var(--col);
+  }
+
+  .title {
+    margin-bottom: 12px;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--text);
+  }
+
+  .body {
+    max-width: 62ch;
+    color: var(--text);
+  }
+
+  .body + .body {
+    margin-top: 16px;
+  }
+
+  .case-media {
+    margin-top: 40px;
+  }
+
+  .full + .full {
+    margin-top: 16px;
+  }
+
+  .screens {
+    display: flex;
+    gap: 16px;
+    max-width: var(--col);
+  }
+
+  .screen {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 260px;
+  }
+
+  .screen-media {
+    width: 100%;
+    height: auto;
+    outline: 1px solid var(--line);
+    outline-offset: -1px;
+  }
+
+  @media (max-width: 719px) {
+    .screens {
+      max-width: none;
+      margin-inline: -20px;
+      padding-inline: 20px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+    }
+
+    .screen {
+      flex: 0 0 min(260px, 70vw);
+      scroll-snap-align: start;
+    }
+  }
+
+  @media (min-width: 960px) {
+    .case {
+      /* Column 1 spans the .col left offset minus the .bleed gutter, so column 2 starts exactly at .col. */
+      grid-template-columns: calc(max(20px, 26.25vw) - clamp(20px, 3vw, 48px)) minmax(0, 1fr);
+    }
+
+    .label {
+      grid-column: 1;
+      grid-row: 1 / span 2;
+      position: sticky;
+      top: calc(var(--header-h) + 24px);
+      align-self: start;
+      margin-bottom: 0;
+    }
+
+    .label-title {
+      display: block;
+      margin-top: 4px;
+    }
+
+    /* Desktop shows the title in the sticky label; the h2 stays for screen readers. */
+    .title {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .text {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .case-media {
+      grid-column: 2;
+      grid-row: 2;
+      margin-top: 40px;
+    }
+  }
+</style>

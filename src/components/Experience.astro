@@ -1,0 +1,763 @@
+---
+/*
+ * Experience (home only). Companies are headlines on one shared time axis. The active row opens on scroll and
+ * shows its description, stack and an ASCII-resolving photo. /about keeps Timeline.astro.
+ * Data: experience[] in lib/data.ts. Period math: lib/period.ts (throws on a bad period, so the build fails).
+ * Without JS, under reduced motion, or after teardown the markup is the final state: every row open.
+ */
+import { experience } from '../lib/data';
+import { axisFor, formatDuration, formatRange, parsePeriod, percentOf } from '../lib/period';
+
+const now = new Date();
+const spans = experience.map((item) => parsePeriod(item.period, now));
+const axis = axisFor(spans, now);
+const at = (value: number): string => percentOf(value, axis).toFixed(3);
+
+const rows = experience.map((item, i) => {
+  const span = spans[i];
+  return {
+    item,
+    span,
+    range: formatRange(item.period),
+    duration: formatDuration(span),
+    left: at(span.start),
+    width: (percentOf(span.end, axis) - percentOf(span.start, axis)).toFixed(3),
+    photo: item.assets?.[0],
+    portrait: item.assetAspect === '9/16',
+  };
+});
+import StackChips from './StackChips.astro';
+---
+
+<section class="experience" aria-labelledby="exp-heading" data-experience>
+  <div class="track" data-exp-track>
+    <div class="stick" data-exp-stick>
+      <header class="head" data-exp-head>
+        <h2 id="exp-heading" class="heading muted" data-roll>Experience</h2>
+        <div class="axis t-mono muted" aria-hidden="true">
+          {axis.years.map((year) => <span style={`left:${at(year)}%`}>{year}</span>)}
+        </div>
+      </header>
+
+      <ol class="rows">
+        {
+          rows.map(({ item, span, range, duration, left, width, photo, portrait }) => (
+            <li class="row" data-row>
+              <div class="top" data-top>
+                <div class="when t-mono muted">
+                  <span class="range">
+                    {range.from}&nbsp;&ndash;&nbsp;{range.to}
+                  </span>
+                  {span.ongoing ? <span class="now">Now</span> : <span class="dur">{duration}</span>}
+                </div>
+                <div class="copy-head">
+                  <h3 class="company" data-roll>{item.company}</h3>
+                  <p class="role muted">{item.role}</p>
+                </div>
+                <div class="gantt" aria-hidden="true">
+                  <span class="base"></span>
+                  <span class={span.ongoing ? 'bar is-now' : 'bar'} data-bar style={`left:${left}%;width:${width}%`}></span>
+                </div>
+              </div>
+
+              <div class="more" data-more>
+                <div class="detail">
+                  <p class="desc">{item.description}</p>
+                  <StackChips tags={item.stack} />
+                </div>
+                {photo && (
+                  <figure class={portrait ? 'photo is-portrait' : 'photo'} data-photo>
+                    <img src={photo} alt={`${item.company}: ${item.role}`} loading="lazy" decoding="async" />
+                    <canvas aria-hidden="true"></canvas>
+                  </figure>
+                )}
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </div>
+  <a class="more" href="/about" data-swap>More about me</a>
+</section>
+
+<style>
+  /* Columns: when 180 | copy 1fr | gantt 300. The gantt column is the time axis. */
+  /* Follows the work stack directly, so it carries its own top spacing. */
+  .experience {
+    padding-block: var(--space-section);
+  }
+
+  .more {
+    display: inline-block;
+    margin-top: 40px;
+    color: var(--text);
+  }
+
+  .head {
+    display: grid;
+    grid-template-columns: 180px minmax(0, 1fr) 300px;
+    align-items: end;
+    padding-bottom: 20px;
+  }
+
+  .heading {
+    grid-column: 1 / 3;
+    margin: 0;
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.6;
+  }
+
+  .axis {
+    grid-column: 3;
+    position: relative;
+    height: 18px;
+  }
+
+  .axis span {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+
+  .top {
+    display: grid;
+    grid-template-columns: 180px minmax(0, 1fr) 300px;
+    grid-template-areas: 'when copy gantt';
+    align-items: start;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+  }
+
+  .when {
+    grid-area: when;
+    padding-right: 24px;
+    padding-top: 2px;
+  }
+
+  .range {
+    display: block;
+    white-space: nowrap;
+  }
+
+  .dur {
+    display: block;
+    margin-top: 4px;
+  }
+
+  .now {
+    display: inline-block;
+    margin-top: 4px;
+    padding: 0 6px;
+    background: var(--accent);
+    color: #000;
+    line-height: 1.6;
+  }
+
+  .copy-head {
+    grid-area: copy;
+    min-width: 0;
+    padding-right: 24px;
+  }
+
+  .company {
+    margin: 0;
+    font-size: clamp(22px, 2vw, 28px);
+    font-weight: 500;
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    color: var(--text);
+  }
+
+  .role {
+    margin: 2px 0 0;
+  }
+
+  .gantt {
+    grid-area: gantt;
+    position: relative;
+    height: 34px;
+  }
+
+  .base {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    background: var(--line);
+  }
+
+  .bar {
+    position: absolute;
+    top: calc(50% - 2px);
+    height: 4px;
+    background: var(--text);
+    transform-origin: left center;
+  }
+
+  .bar.is-now {
+    background: var(--accent);
+  }
+
+  .more {
+    display: grid;
+    grid-template-columns: 180px minmax(0, 1fr) 300px;
+    align-items: start;
+    padding-top: 18px;
+  }
+
+  .detail {
+    grid-column: 2;
+    min-width: 0;
+    padding-right: 24px;
+  }
+
+  .desc {
+    max-width: 430px;
+  }
+
+  .photo {
+    position: relative;
+    grid-column: 3;
+    justify-self: start;
+    width: 100%;
+    max-width: 300px;
+    aspect-ratio: 300 / 190;
+    margin: 0;
+    overflow: hidden;
+    background: var(--bg);
+    outline: 1px solid var(--line);
+    outline-offset: -1px;
+  }
+
+  /* Vyvo: a phone screenshot keeps its 9:16 shape, same height as the landscape frames. */
+  .photo.is-portrait {
+    width: auto;
+    max-width: none;
+    height: 190px;
+    aspect-ratio: 9 / 16;
+  }
+
+  .photo img,
+  .photo canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .photo img {
+    object-fit: cover;
+  }
+
+  .photo canvas {
+    pointer-events: none;
+  }
+
+  /* Scripted modes only (classes set by the script). Rows clip their detail while they change height. */
+  .is-pinned .stick {
+    position: sticky;
+  }
+
+  .is-pinned .row,
+  .is-flow .row {
+    overflow: clip;
+  }
+
+  .is-flow .row {
+    transition: height var(--dur-base) var(--ease-out);
+  }
+
+  .is-flow .more {
+    opacity: 0;
+    transition: opacity var(--dur-base) var(--ease-out);
+  }
+
+  .is-flow .row.is-open .more {
+    opacity: 1;
+  }
+
+  .is-flow .bar {
+    transform: scaleX(0);
+    transition: transform var(--dur-slow) var(--ease-out);
+  }
+
+  .is-flow .row.is-open .bar {
+    transform: scaleX(1);
+  }
+
+  @media (max-width: 899px) {
+    .head {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .heading,
+    .axis {
+      grid-column: 1;
+    }
+
+    .top {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: 'when' 'copy' 'gantt';
+    }
+
+    .when,
+    .copy-head {
+      padding-right: 0;
+    }
+
+    .when {
+      margin-bottom: 8px;
+    }
+
+    .gantt {
+      margin-top: 16px;
+    }
+
+    .more {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .detail,
+    .photo {
+      grid-column: 1;
+    }
+
+    .detail {
+      padding-right: 0;
+    }
+
+    .photo {
+      margin-top: 18px;
+    }
+  }
+</style>
+
+<script>
+  import gsap from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  import type Lenis from 'lenis';
+  import { DUR, EASE_OUT } from '../lib/motion';
+  import {
+    backingRatio,
+    cellHashes,
+    drawCover,
+    gridFor,
+    paintAscii,
+    sampleLuminance,
+    smoothstep,
+    type Grid,
+    type Palette,
+  } from '../lib/ascii-image';
+
+  /*
+   * Experience controller. Two modes, decided at mount, motion only:
+   * - pinned (>= 900px and the viewport fits the block): a CSS sticky block inside a track that is
+   *   innerHeight + (n - 1) * STEP tall. s = progress * (n - 1), read from the track's position in the scroll handler.
+   *   Open amounts are a triangle over s, so they always sum to 1 and the block height never changes.
+   *   No ScrollTrigger pin and no layout feedback: the scroll handler reads geometry, then writes styles.
+   * - flow (under 900px, or the viewport is too short): natural flow. Each row opens once when its top crosses 70%
+   *   of the viewport. Its photo resolves once and its bar draws once.
+   * Teardown on astro:before-swap restores every inline style and class this file set.
+   */
+
+  type LenisWindow = Window & { __lenis?: Lenis };
+
+  const DESKTOP_QUERY = '(min-width: 900px)';
+  const REDUCE_QUERY = '(prefers-reduced-motion: reduce)';
+  const SCHEME_QUERY = '(prefers-color-scheme: dark)';
+  const STEP = 170; // px of scroll per row in the pinned sequence (five rows: about 680px)
+  const FIT_MARGIN = 48; // px the pinned block needs in the viewport below the site header
+  const FLOW_ROOT_MARGIN = '0px 0px -30% 0px'; // a flow row opens when its top crosses 70% of the viewport
+  const PIN_ENTER_THRESHOLD = 0.25; // share of the block that must be visible to start the first bar
+  const RESOLVE_STEPS = 60; // a photo repaints only when its resolve amount moves by 1/60
+  const FLOW_RESOLVE_S = 0.7; // flow: one-time resolve of a photo
+  const BAR_LEAD = 1.15; // a bar starts drawing 1.15 rows before its row is active
+
+  interface Photo {
+    frame: HTMLElement;
+    canvas: HTMLCanvasElement;
+    img: HTMLImageElement;
+    index: number;
+    ctx: CanvasRenderingContext2D | null;
+    grid: Grid | null;
+    lum: Float32Array | null;
+    hashes: Float32Array | null;
+    width: number; // CSS size at the last sample
+    height: number;
+    step: number; // last painted step (0..RESOLVE_STEPS), -1 = never painted
+    res: number; // resolve amount: 0 is all ASCII, 1 is the real photo
+  }
+
+  interface Row {
+    el: HTMLElement;
+    top: HTMLElement;
+    more: HTMLElement;
+    bar: HTMLElement;
+    photo: Photo | null;
+    height: number; // last written height in px, to skip redundant writes
+    opened: boolean; // flow mode only
+  }
+
+  let cleanups: Array<() => void> = [];
+  let tweens: gsap.core.Tween[] = [];
+
+  function teardown(): void {
+    for (const fn of cleanups) fn();
+    cleanups = [];
+    for (const tween of tweens) tween.kill();
+    tweens = [];
+  }
+
+  function clamp(value: number, min: number, max: number): number {
+    return Math.min(max, Math.max(min, value));
+  }
+
+  function headerHeight(): number {
+    const value = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h'));
+    return Number.isFinite(value) ? value : 0;
+  }
+
+  function readPalette(): Palette {
+    const style = getComputedStyle(document.documentElement);
+    return {
+      bg: style.getPropertyValue('--bg').trim() || '#0b0c0b',
+      fg: style.getPropertyValue('--text').trim() || '#ededed',
+      font: style.getPropertyValue('--font-mono').trim() || 'monospace',
+      inverted: style.getPropertyValue('color-scheme').trim() === 'light',
+    };
+  }
+
+  function mount(root: HTMLElement, desktop: boolean): void {
+    const track = root.querySelector<HTMLElement>('[data-exp-track]');
+    const stick = root.querySelector<HTMLElement>('[data-exp-stick]');
+    const head = root.querySelector<HTMLElement>('[data-exp-head]');
+    const els = Array.from(root.querySelectorAll<HTMLElement>('[data-row]'));
+    if (!track || !stick || !head || els.length === 0) return;
+    const n = els.length;
+
+    const rows: Row[] = [];
+    els.forEach((el, index) => {
+      const top = el.querySelector<HTMLElement>('[data-top]');
+      const more = el.querySelector<HTMLElement>('[data-more]');
+      const bar = el.querySelector<HTMLElement>('[data-bar]');
+      if (!top || !more || !bar) return;
+      const figure = el.querySelector<HTMLElement>('[data-photo]');
+      const canvas = figure?.querySelector('canvas') ?? null;
+      const img = figure?.querySelector('img') ?? null;
+      const photo: Photo | null =
+        figure && canvas && img
+          ? { frame: figure, canvas, img, index, ctx: null, grid: null, lum: null, hashes: null, width: 0, height: 0, step: -1, res: 0 }
+          : null;
+      rows.push({ el, top, more, bar, photo, height: -1, opened: false });
+    });
+
+    let palette = readPalette();
+    let base = 0; // collapsed row height: the headline block, measured
+    let extra = 0; // detail height: the detail block, measured
+    let mode: 'pinned' | 'flow' = 'flow';
+    let alive = true;
+    let frame = 0;
+    let layoutDirty = true;
+    let focused = -1;
+    let entered = false;
+    const entry = { p: 0 };
+
+    const listen = (target: EventTarget, type: string, fn: EventListener, options?: AddEventListenerOptions): void => {
+      target.addEventListener(type, fn, options);
+      cleanups.push(() => target.removeEventListener(type, fn, options));
+    };
+
+    /* ---------- Measure and geometry ---------- */
+
+    // The top block and the detail block are in flow and not clipped, so their natural heights do not depend on the
+    // row heights we write. Measuring them directly avoids expanding every row at init.
+    const measure = (): void => {
+      base = Math.max(...rows.map((r) => r.top.offsetHeight));
+      extra = Math.max(...rows.map((r) => r.more.offsetHeight));
+    };
+
+    const pinnedHeight = (): number => head.offsetHeight + rows.length * base + extra;
+
+    const fitsPinned = (): boolean =>
+      window.innerHeight - headerHeight() >= pinnedHeight() + FIT_MARGIN;
+
+    const setHeight = (r: Row, px: number): void => {
+      const value = Math.round(px * 100) / 100;
+      if (value === r.height) return;
+      r.height = value;
+      r.el.style.height = `${value}px`;
+    };
+
+    const applyPinnedGeometry = (): void => {
+      const hdr = headerHeight();
+      const innerH = pinnedHeight();
+      stick.style.top = `${hdr + Math.max(0, (window.innerHeight - hdr - innerH) / 2)}px`;
+      track.style.height = `${innerH + (n - 1) * STEP}px`;
+      ScrollTrigger.refresh(); // the track height changes the document height
+    };
+
+    const applyFlowHeights = (): void => {
+      for (const r of rows) setHeight(r, r.opened ? base + extra : base);
+    };
+
+    /* ---------- Photos ---------- */
+
+    const paintPhoto = (photo: Photo, res: number): void => {
+      photo.res = clamp(res, 0, 1);
+      if (!photo.ctx || !photo.grid || !photo.lum || !photo.hashes) return;
+      const step = Math.round(photo.res * RESOLVE_STEPS);
+      if (step === photo.step) return;
+      photo.step = step;
+      paintAscii(photo.ctx, photo.grid, photo.lum, photo.hashes, step / RESOLVE_STEPS, palette);
+    };
+
+    // Samples the photo for its current frame size. Runs on load and when the frame size changes.
+    const sizePhoto = (photo: Photo): void => {
+      const width = photo.frame.clientWidth;
+      const height = photo.frame.clientHeight;
+      if (width === 0 || height === 0) return;
+      if (photo.lum && width === photo.width && height === photo.height) return;
+      const { img } = photo;
+      if (!img.complete || img.naturalWidth === 0) return; // the load listener calls this again
+      const grid = gridFor(width, height);
+      const lum = sampleLuminance(grid, (ctx) => drawCover(ctx, img, 0, 0, grid.cols, grid.rows, width / height));
+      if (!lum) return;
+      const ratio = backingRatio(width, window.devicePixelRatio || 1);
+      photo.canvas.width = Math.round(width * ratio);
+      photo.canvas.height = Math.round(height * ratio);
+      const ctx = photo.canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.setTransform(photo.canvas.width / width, 0, 0, photo.canvas.height / height, 0, 0);
+      photo.ctx = ctx;
+      photo.grid = grid;
+      photo.lum = lum;
+      photo.hashes = cellHashes(grid, photo.index);
+      photo.width = width;
+      photo.height = height;
+      photo.step = -1;
+      paintPhoto(photo, photo.res);
+    };
+
+    /* ---------- Pinned: scroll drives s ---------- */
+
+    // s from the track's position. Clamped, so before and after the sticky range it holds at the end rows.
+    const readS = (): number => {
+      const trackTop = track.getBoundingClientRect().top;
+      const stickTop = parseFloat(stick.style.top) || 0;
+      const progress = clamp((stickTop - trackTop) / Math.max(1, (n - 1) * STEP), 0, 1);
+      return clamp(progress * (n - 1), 0, n - 1);
+    };
+
+    const paintPinned = (s: number): void => {
+      rows.forEach((r, i) => {
+        const dist = Math.abs(i - s);
+        const open = i === focused ? 1 : Math.max(0, 1 - dist);
+        setHeight(r, base + extra * open);
+        r.el.style.setProperty('--open', open.toFixed(3));
+        r.more.style.opacity = smoothstep(0.35, 0.9, open).toFixed(3);
+        r.top.style.opacity = (0.42 + 0.58 * smoothstep(1.1, 0.3, dist)).toFixed(3);
+        let draw = clamp(s - i + BAR_LEAD, 0, 1);
+        if (i === 0) draw *= entry.p; // the first bar waits for the block to enter the viewport
+        r.bar.style.transform = `scaleX(${draw.toFixed(3)})`;
+        if (r.photo) paintPhoto(r.photo, smoothstep(0.25, 0.95, open));
+      });
+    };
+
+    const enterPinned = (): void => {
+      if (entered) return;
+      entered = true;
+      tweens.push(gsap.to(entry, { p: 1, duration: DUR.slow, ease: EASE_OUT, onUpdate: schedule }));
+    };
+
+    /* ---------- Flow: open once ---------- */
+
+    const openRow = (r: Row): void => {
+      if (r.opened) return;
+      r.opened = true;
+      r.el.classList.add('is-open');
+      setHeight(r, base + extra);
+      const { photo } = r;
+      if (photo) {
+        tweens.push(
+          gsap.to(photo, {
+            res: 1,
+            duration: FLOW_RESOLVE_S,
+            ease: EASE_OUT,
+            onUpdate: () => paintPhoto(photo, photo.res),
+          }),
+        );
+      }
+    };
+
+    /* ---------- Frame loop ---------- */
+
+    // One frame for scroll and layout changes. Layout is refreshed first, then the scroll position is read and painted.
+    const tick = (): void => {
+      frame = 0;
+      if (!alive) return;
+      if (layoutDirty) {
+        layoutDirty = false;
+        refresh();
+        if (!alive) return;
+      }
+      if (mode === 'pinned') paintPinned(readS());
+    };
+
+    const schedule = (): void => {
+      if (frame === 0 && alive) frame = requestAnimationFrame(tick);
+    };
+
+    const invalidate = (): void => {
+      layoutDirty = true;
+      schedule();
+    };
+
+    // A change that flips the mode (for example the viewport got too short) remounts the block.
+    const refresh = (): void => {
+      measure();
+      const wantPinned = desktop && fitsPinned();
+      if (wantPinned !== (mode === 'pinned')) {
+        init();
+        return;
+      }
+      if (mode === 'pinned') applyPinnedGeometry();
+      else applyFlowHeights();
+      for (const r of rows) if (r.photo) sizePhoto(r.photo);
+    };
+
+    /* ---------- Mount ---------- */
+
+    measure();
+    mode = desktop && fitsPinned() ? 'pinned' : 'flow';
+    root.classList.add(mode === 'pinned' ? 'is-pinned' : 'is-flow');
+    cleanups.push(() => root.classList.remove('is-pinned', 'is-flow'));
+
+    if (mode === 'pinned') {
+      const enter = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((e) => e.isIntersecting)) enterPinned();
+        },
+        { threshold: PIN_ENTER_THRESHOLD },
+      );
+      enter.observe(root);
+      cleanups.push(() => enter.disconnect());
+    } else {
+      const rowIO = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            const row = rows.find((r) => r.el === entry.target);
+            if (row) {
+              openRow(row);
+              rowIO.unobserve(entry.target);
+            }
+          }
+        },
+        { rootMargin: FLOW_ROOT_MARGIN, threshold: 0 },
+      );
+      for (const r of rows) rowIO.observe(r.el);
+      cleanups.push(() => rowIO.disconnect());
+    }
+
+    for (const r of rows) {
+      if (!r.photo) continue;
+      const { photo } = r;
+      if (!photo.img.complete || photo.img.naturalWidth === 0) {
+        listen(photo.img, 'load', () => sizePhoto(photo));
+      }
+    }
+
+    const ro = new ResizeObserver(() => invalidate());
+    for (const r of rows) {
+      ro.observe(r.top);
+      ro.observe(r.more);
+      if (r.photo) ro.observe(r.photo.frame);
+    }
+    cleanups.push(() => ro.disconnect());
+
+    listen(window, 'scroll', schedule, { passive: true });
+    listen(window, 'resize', invalidate, { passive: true });
+    const lenis = (window as LenisWindow).__lenis;
+    if (lenis) {
+      lenis.on('scroll', schedule);
+      cleanups.push(() => lenis.off('scroll', schedule));
+    }
+
+    // Focus inside a collapsed row's detail opens that row (there are no links there today).
+    listen(root, 'focusin', (event) => {
+      const index = rows.findIndex((r) => r.more.contains(event.target as Node));
+      focused = index;
+      if (index >= 0 && mode === 'flow') openRow(rows[index]);
+      schedule();
+    });
+    listen(root, 'focusout', () => {
+      focused = -1;
+      schedule();
+    });
+
+    const onTheme = (): void => {
+      palette = readPalette();
+      for (const r of rows) {
+        if (!r.photo) continue;
+        r.photo.step = -1;
+        paintPhoto(r.photo, r.photo.res);
+      }
+    };
+    const scheme = window.matchMedia(SCHEME_QUERY);
+    scheme.addEventListener('change', onTheme);
+    cleanups.push(() => scheme.removeEventListener('change', onTheme));
+    const themeObserver = new MutationObserver(onTheme);
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    cleanups.push(() => themeObserver.disconnect());
+
+    void document.fonts.ready.then(() => {
+      if (alive) invalidate();
+    });
+
+    cleanups.push(() => {
+      alive = false;
+      cancelAnimationFrame(frame);
+      frame = 0;
+      for (const r of rows) {
+        r.el.style.height = '';
+        r.el.style.removeProperty('--open');
+        r.el.classList.remove('is-open');
+        r.top.style.opacity = '';
+        r.more.style.opacity = '';
+        r.bar.style.transform = '';
+        if (r.photo) {
+          r.photo.canvas.width = 0;
+          r.photo.canvas.height = 0;
+          r.photo.ctx = null;
+        }
+      }
+      track.style.height = '';
+      stick.style.top = '';
+      if (mode === 'pinned') ScrollTrigger.refresh();
+    });
+
+    if (mode === 'pinned') applyPinnedGeometry();
+    else applyFlowHeights();
+    invalidate();
+  }
+
+  function init(): void {
+    teardown();
+    if (window.matchMedia(REDUCE_QUERY).matches) return; // static: the markup is the final state
+    const root = document.querySelector<HTMLElement>('[data-experience]');
+    if (!root) return;
+    mount(root, window.matchMedia(DESKTOP_QUERY).matches);
+  }
+
+  for (const query of [DESKTOP_QUERY, REDUCE_QUERY]) {
+    window.matchMedia(query).addEventListener('change', () => init());
+  }
+
+  document.addEventListener('astro:page-load', init);
+  document.addEventListener('astro:before-swap', teardown);
+</script>

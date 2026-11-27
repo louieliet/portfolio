@@ -1,0 +1,256 @@
+---
+import { renderWaveFrame } from '../lib/wave';
+
+/*
+ * AsciiField: the hero object, a wave field of ASCII glyphs (math in src/lib/wave.ts).
+ * - The field fills the free height of the hero and the full width of the column. The client measures the
+ *   wrapper and derives the grid (cols, rows) from a probe glyph, then re-renders on resize (ResizeObserver,
+ *   one rAF per burst). Grid is capped at MAX_COLS x MAX_ROWS.
+ * - Before JS, the server renders a 134 x 40 frame (a desktop column). The wrapper is sized by its CSS height
+ *   (40em), so the box keeps its size and nothing shifts. The wrapper clips, so a narrow phone never overflows.
+ * - Fine pointers add a ripple that follows the cursor. Touch devices get the plain wave.
+ * - Reduced motion paints one static frame at the measured size and starts no loop.
+ * The pre is absolutely positioned: its text never changes the wrapper's size.
+ */
+const firstFrame = renderWaveFrame(0, null, 1, 1, 134, 40);
+---
+
+<div class="ascii-field" data-ascii-wrap>
+  <span class="probe" aria-hidden="true" data-ascii-probe>0000000000</span>
+  <pre class="ascii" aria-hidden="true" data-ascii-field data-arrive="0">{firstFrame}</pre>
+</div>
+
+<style>
+  .ascii-field {
+    position: relative;
+    /* 60% of the hero's free area in both directions, on the leading edge, sitting right above the text.
+     * Free height is the hero (viewport minus header) minus the text block and paddings (about 200px). */
+    flex: 0 0 auto;
+    width: 60%;
+    min-height: 160px;
+    height: calc((100vh - var(--header-h) - 200px) * 0.6);
+    height: calc((100dvh - var(--header-h) - 200px) * 0.6);
+    margin: auto auto 24px 0;
+    overflow: clip;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1;
+  }
+
+  .ascii {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    overflow: clip;
+    contain: strict;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    color: var(--text);
+    white-space: pre;
+    user-select: none;
+  }
+
+  /* Hidden probe: ten identical glyphs measure the cell width and height. Never displayed. */
+  .probe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    visibility: hidden;
+    white-space: pre;
+    pointer-events: none;
+  }
+
+  /* Narrow columns keep the full width (60% would be too small to read); the height still shrinks. */
+  @media (max-width: 719px) {
+    .ascii-field {
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 519px) {
+    .ascii-field {
+      font-size: 9px;
+    }
+  }
+</style>
+
+<script>
+  import { renderWaveFrame, type Pointer } from '../lib/wave';
+  import { scrollEnergy } from '../lib/motion';
+
+  /*
+   * One loop per field. A field draws only while it is on screen and the tab is visible.
+   * Init on astro:page-load, full teardown on astro:before-swap.
+   * Scroll energy (smoothed, from motion.ts) raises the amplitude and the phase speed by up to 2.2x.
+   * data-reveal (0..1) is the load draw written by motion.ts: rows below it stay blank.
+   */
+
+  const SPEED = 1.8; // wave phase per second (the mockup advanced 0.03 per 60 fps frame)
+  const ENERGY_GAIN = 1.2; // energy = 1 + ENERGY_GAIN * |scroll velocity|, so the field peaks at 2.2x
+  const MAX_COLS = 160; // ultra-wide windows stop here: at most 160 x 60 = 9600 cells per frame
+  const MAX_ROWS = 60;
+  const REDUCE_QUERY = '(prefers-reduced-motion: reduce)';
+
+  interface Cell {
+    w: number; // px per glyph column
+    h: number; // px per row
+  }
+
+  interface Grid {
+    cols: number;
+    rows: number;
+  }
+
+  let cleanups: Array<() => void> = [];
+
+  function teardown(): void {
+    for (const fn of cleanups) fn();
+    cleanups = [];
+  }
+
+  function revealOf(el: HTMLElement): number {
+    const value = Number(el.dataset.reveal ?? 1);
+    return Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 1;
+  }
+
+  function clampCount(value: number, max: number): number {
+    return Math.min(max, Math.max(1, Math.floor(value)));
+  }
+
+  /** Cell size from the probe: its width over its glyph count, its height as one line. Read once, after the font. */
+  function measureCell(probe: HTMLElement): Cell | null {
+    const glyphs = probe.textContent?.length ?? 0;
+    const rect = probe.getBoundingClientRect();
+    if (glyphs === 0 || rect.width <= 0 || rect.height <= 0) return null;
+    return { w: rect.width / glyphs, h: rect.height };
+  }
+
+  function mount(el: HTMLElement, wrap: HTMLElement, probe: HTMLElement, fine: boolean, reduce: boolean): void {
+    let pointer: Pointer | null = null;
+    let inView = false;
+    let frame = 0; // id of the pending animation frame, 0 when the loop is stopped
+    let phase = 0;
+    let last = 0;
+    let cell: Cell | null = null;
+    let grid: Grid | null = null;
+    let resizeFrame = 0;
+    let alive = true;
+
+    // Nothing is painted until the grid is known, so the server frame stays in place before measurement.
+    const paint = (energy: number): void => {
+      if (!grid) return;
+      el.textContent = renderWaveFrame(phase, pointer, energy, revealOf(el), grid.cols, grid.rows);
+    };
+
+    const draw = (now: number): void => {
+      const dt = last ? Math.min((now - last) / 1000, 0.1) : 0;
+      last = now;
+      const energy = 1 + ENERGY_GAIN * Math.abs(scrollEnergy());
+      phase += dt * SPEED * energy;
+      paint(energy);
+      frame = requestAnimationFrame(draw);
+    };
+
+    // Reads the wrapper, derives cols and rows, and repaints once when the grid changed and no loop is running.
+    // Under reduced motion this is the only paint, so the static frame is drawn at the measured size.
+    const measure = (): void => {
+      if (!alive || !cell) return;
+      const box = wrap.getBoundingClientRect();
+      const next: Grid = {
+        cols: clampCount(box.width / cell.w, MAX_COLS),
+        rows: clampCount(box.height / cell.h, MAX_ROWS),
+      };
+      if (grid && grid.cols === next.cols && grid.rows === next.rows) return;
+      grid = next;
+      pointer = null;
+      if (frame === 0) paint(1);
+    };
+
+    const onResize = (): void => {
+      if (resizeFrame) return;
+      resizeFrame = requestAnimationFrame(() => {
+        resizeFrame = 0;
+        measure();
+      });
+    };
+    const resizeObserver = new ResizeObserver(onResize);
+    resizeObserver.observe(wrap);
+
+    // Start only when the field is visible and the tab is visible; stop as soon as either fails.
+    const sync = (): void => {
+      if (reduce) return;
+      const run = inView && !document.hidden;
+      if (run && frame === 0) {
+        frame = requestAnimationFrame(draw);
+      } else if (!run && frame !== 0) {
+        cancelAnimationFrame(frame);
+        frame = 0;
+      }
+    };
+
+    const onMove = (event: PointerEvent): void => {
+      if (!cell) return;
+      const rect = el.getBoundingClientRect();
+      // Pointer in cell units of the live grid. Glyph cells are the measured size, so the ripple matches the glyphs.
+      pointer = {
+        x: (event.clientX - rect.left) / cell.w,
+        y: (event.clientY - rect.top) / cell.h,
+      };
+    };
+    const onLeave = (): void => {
+      pointer = null;
+    };
+
+    let io: IntersectionObserver | null = null;
+    if (!reduce) {
+      io = new IntersectionObserver(
+        (entries) => {
+          inView = entries[entries.length - 1]?.isIntersecting ?? false;
+          sync();
+        },
+        { threshold: 0 },
+      );
+      io.observe(el);
+      document.addEventListener('visibilitychange', sync);
+    }
+    if (fine) {
+      el.addEventListener('pointermove', onMove);
+      el.addEventListener('pointerleave', onLeave);
+    }
+
+    // The cell is measured once the webfont is in, so the probe reports the final glyph size.
+    void document.fonts.ready.then(() => {
+      if (!alive) return;
+      cell = measureCell(probe);
+      measure();
+    });
+
+    cleanups.push(() => {
+      alive = false;
+      cancelAnimationFrame(frame);
+      frame = 0;
+      if (resizeFrame) cancelAnimationFrame(resizeFrame);
+      resizeFrame = 0;
+      resizeObserver.disconnect();
+      io?.disconnect();
+      document.removeEventListener('visibilitychange', sync);
+      el.removeEventListener('pointermove', onMove);
+      el.removeEventListener('pointerleave', onLeave);
+    });
+  }
+
+  function init(): void {
+    teardown();
+    const reduce = window.matchMedia(REDUCE_QUERY).matches;
+    const fine = window.matchMedia('(pointer: fine)').matches;
+    document.querySelectorAll<HTMLElement>('[data-ascii-wrap]').forEach((wrap) => {
+      const el = wrap.querySelector<HTMLElement>('[data-ascii-field]');
+      const probe = wrap.querySelector<HTMLElement>('[data-ascii-probe]');
+      if (el && probe) mount(el, wrap, probe, fine && !reduce, reduce);
+    });
+  }
+
+  document.addEventListener('astro:page-load', init);
+  document.addEventListener('astro:before-swap', teardown);
+</script>

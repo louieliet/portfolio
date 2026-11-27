@@ -1,262 +1,111 @@
-# Editorial Brutalist Design System ❋
+# Design System
 
-This document outlines the architectural patterns, design engineering principles, and code structures used to create the premium "Editorial Magazine / Brutalist" look and feel for this site. Use this as a playbook to replicate this aesthetic across other repositories.
+Source of truth for tokens, type, layout, and motion. Code lives in `src/styles/global.css`.
+Look: quiet, narrow column, hierarchy by color (not size). Neutral gray, no cream or beige.
 
-## 1. Core Philosophy & Aesthetic
+## Tokens
 
-*   **No Cards, No Containers:** Content lives directly on the background. We rely on negative space and typography to create hierarchy, not borders or boxes.
-*   **Asymmetry & Grid:** Layouts deliberately avoid perfect symmetry. Using CSS Grid with off-center alignments creates an editorial, poster-like feel.
-*   **Monumental Typography:** Headlines are massive, treating letters as graphic shapes.
-*   **Tactile Interactions:** Micro-interactions (hover states, active states) must feel expensive, smooth, and responsive.
-*   **Cinematic Motion:** Scroll-driven animations are used to tell a story (scrollytelling), not just for the sake of moving things.
+| Token | Light | Dark |
+|---|---|---|
+| `--bg` | `#F4F4F4` | `#0B0C0B` |
+| `--text` | `#0C0C0C` | `#EDEDED` |
+| `--muted` | `#6B6B6B` | `#8A8A8C` |
+| `--line` | black 8% | white 8% |
+| `--accent` | `#F5D04A` (both themes) | same |
 
----
+Theme: `data-theme` on `<html>`, set by the head script (stored choice, else system). Light is the
+default on `:root`; dark follows the system only when no `data-theme` is set. `color-scheme` follows the theme.
 
-## 2. Design System Tokens (CSS Variables)
+Other tokens: `--font-sans`, `--font-serif`, `--font-mono`, `--col` (880px), `--header-h` (56px),
+`--space-section` (`clamp(96px, 14vh, 180px)`), `--ease-out` (`cubic-bezier(0.16, 1, 0.3, 1)`).
 
-We use a "Deep Dark Mode" approach. It's not pure black, but a very dark gray `#0a0a0a` that prevents eye strain while keeping high contrast with off-white text `#f5f5f5`.
+Accent is used only for: the active work label bar and its index dot, the iOS builder and co-founder role effects, `::selection`, the "Now" chip and ongoing bar in Experience, and link underline on hover.
 
-```css
-:root {
-  /* Palette */
-  --bg: #0a0a0a;
-  --text: #f5f5f5;
-  --text-muted: #888888;
-  --border-light: rgba(255, 255, 255, 0.1);
+## Type scale
 
-  /* Typography */
-  --font-sans: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-display: "Satoshi", var(--font-sans);
-  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+- Body and UI: 15px / 1.6, General Sans (200-700 variable).
+- `.t-lead`: 22-26px fluid, line-height 1.3, tracking -0.01em. Opening sentences.
+- `.t-display`: `clamp(44px, 6vw, 80px)`, weight 500, tracking -0.03em, line-height 1. Names, case titles.
+- `.t-mono`: 12.5px Geist Mono, tabular numbers. Metadata, clock, labels.
+- `.t-serif`: Instrument Serif italic. Accents only.
+- `.muted`: `--muted` color.
 
-  /* Motion */
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --ease-liquid: cubic-bezier(0.77, 0, 0.175, 1);
-}
-```
+## Layout rules
 
----
+- `.col`: content column, max 880px. From 960px it starts at `26.25vw` (504px at 1920). Below 960px, 20px gutters.
+- `.bleed`: full width, `clamp(20px, 3vw, 48px)` gutters. Use for full-bleed media.
+- `.section`: vertical padding `--space-section`. `.rule`: 1px separator in `--line`.
+- Radius 0. No shadows. No cards: separate with 1px rules and whitespace.
+- Header is fixed, 56px, `--bg` at 85% with backdrop blur. Layout pads the body by its height.
+- Below 720px: clock hidden, nav stays right.
 
-## 3. Typography Architecture
+## Motion rules
 
-The key to editorial design is fluid typography and strict control over text blocks.
+Source of truth: `src/lib/motion.ts` (header comment has the full contract). Components do not set their own timings.
 
-*   **Headlines (`h1`, `h2`):** Use `clamp()` for monumental sizing that scales perfectly without media query breakpoints.
-*   **Tracking (Letter-spacing):** Tight letter-spacing (`-0.02em`, `-0.04em`) makes large text look more cohesive and block-like.
-*   **Line-height:** Tight leading (`1`, `1.1`) for headlines, relaxed leading (`1.5`, `1.6`) for body text.
+- One entrance ease `power3.out` (CSS `--ease-out`). One hover ease `power3.inOut` (CSS `--ease-inout`).
+- Three durations: `fast` 0.3s, `base` 0.45s, `slow` 0.8s (CSS `--dur-fast`, `--dur-base`, `--dur-slow`). Line stagger 0.08s.
+- Animate only transform and opacity. The theme circle also animates `clip-path`.
+- Everything is created inside `gsap.matchMedia()` under `(prefers-reduced-motion: no-preference)`. Under reduced motion nothing is split, hidden or animated.
+- Lenis is created on `astro:page-load` and driven by `gsap.ticker`, so ScrollTrigger shares its clock. Destroyed on `astro:before-swap`. Not created under reduced motion. `window.__lenis` is still set.
+- `initMotion()` / `destroyMotion()` run on page load and before swap.
+- Line roll: `data-roll` (text rises from behind a mask while rotating on X, 0.45s, stagger 0.08). `data-roll="slow"` is 0.8s, stagger 0.12. `data-roll-delay="0.2"` adds a delay. Below the fold it fires once at `top 85%`. Used on headings, titles and the case h1.
+- Hover and press: four gestures, one per kind of target. Tokens on `:root` in `global.css`: `--ease-hover` (`cubic-bezier(0.23, 1, 0.32, 1)`), `--ease-pop` (`cubic-bezier(0.34, 1.56, 0.64, 1)`), `--dur-hover-in` 240ms, `--dur-hover-out` 160ms, `--dur-press` 120ms. Every hover is gated by `(hover: hover) and (pointer: fine)`. Movement is also gated by `(prefers-reduced-motion: no-preference)`; under reduced motion hovers change colour or opacity only. Exit is always faster than enter. Transitions name their properties; no `transition: all`.
+- Gesture 1, text links (`data-swap`): the letters of the link slide up one line in a clipped cell, staggered 12ms per character (capped at 10). `initMotion` wraps the text nodes only; element children (counts, `sup`) stay. Used on header nav, the work index, the footer links row, "More about me" and the case "Back" label. Sibling dimming: while one link in a `.dim` group is hovered or focus-visible, the others go to `--muted` (150ms). The `aria-current` item is never dimmed. Keyboard focus shows the same dimming without the letter move. Accessible name: `aria-label` on a bare `<a>`, otherwise an `.sr-only` copy.
+- Gesture 1b, inline links (default for every `<a>`): a 1px `currentColor` underline draws in from the left on hover and focus-visible, and retracts on leave. Links that are not running text opt out with `data-no-inl` (cards, the header name, the skip link, next project, the case "Back" pill).
+- Gesture 2, work cards: on hover of a card whose resolve is complete (`is-settled`, set by the script at the threshold where the ASCII overlay clears) the media settles to `scale(1.02)` with the individual `scale` property (it multiplies with the scroll transform, and the overlay is already gone so nothing misaligns). The label bar slides the chips up and fades them, and slides in "View case" with an arrow (200ms, 40ms delay). A cursor label "View case" follows the pointer over the media only (one shared pill, `position: fixed`, rAF lerp, 14px offset, fine pointers and motion only). Press: `scale(0.99)`.
+- Gesture 3, big calls (footer "Get in touch", next project name): an accent wipe sweeps across the text (280ms in, 200ms out) through a `.wipe` copy that is a sibling of the split text, not inside it. `data-magnetic` on a wrapper drifts it up to 6px toward the pointer (lerped, eased back on leave, fine pointers only). Press: `scale(0.98)`. Footer copy feedback is a 3px blur crossfade (200ms) between "Copy email" and "Copied" or "Copy failed".
+- Gesture 4, small controls: the theme dot scales to 1.25 on hover (`--ease-pop`, 160ms) and presses to 0.92. No other hover motion.
+- Press (`:active`) rules: cards 0.99, big calls 0.98, small controls 0.92 to 0.96. Never on disabled elements and never on inline text links.
+- Load choreography: `data-arrive="<seconds>"` marks first-viewport items. First visit in a session plays the full version (about 1.1s). Later navigations play the short version (everything rolls together at 0.3s).
+- `data-arrive` is the only CSS-hidden state (`html.js [data-arrive]`). It has a 2s failsafe, so text shows if JS never runs.
+- The one pinned chapter: `data-story` ("How I work", Story.astro). Desktop (>= 900px) with motion only. The stage pins under the header for 200% of a viewport (`scrub` 0.5). Words light up with scroll, each beat owning a third of the progress. The ASCII block dissolves noise, wireframe, product. Limits: one pin on the home, no snap, no pin on mobile or reduced motion. Under 900px each beat lights once on entry. Reduced motion and no JS show all beats lit with the product frame.
+- Timeline rail (/about only): `data-timeline` draws a 1px rail down the rows (scrubbed `--draw`), and each row lights as the rail passes it. Without JS the rail is fully drawn and every row is lit.
+- Experience (home, `Experience.astro`): desktop with motion and a viewport that fits the block (`innerHeight - header >= block + 48px`) uses a CSS sticky block, not a ScrollTrigger pin. The track is about 680px of scroll for five rows (`STEP` 170px per row). Scroll sets `s`, the open amount per row is a triangle over `s` (sums to 1, so the block height is constant), and detail opacity, ASCII resolve and bars follow it. Under 900px or a short viewport: natural flow, each row opens once at 70% of the viewport. Reduced motion and no JS: every row open, real photos.
+- Footer: one arrival schedule at `top 85%`, once. The dither field (`DitherField.astro`, WebGL) runs only while the footer is in view and the tab is visible. Under reduced motion it draws one static frame, with no loop and no pointer glow. No WebGL: the footer shows its plain `--bg`.
+- Stack velocity: smoothed scroll velocity sets `--v` on the work stack (up to 6deg tilt, 1.5% stretch) and scales the hero field (up to 2.2x amplitude and speed). Exactly 0 at rest.
+- Work stack resolve (desktop, motion only): `res = smoothstep(0.62, 0.1, |p|)` per card. The media moves `-9%` of its frame height per unit of `p` and settles from 1.08x to 1x. The ASCII overlay dissolves bottom to top as `res` rises. Repaints only when `res` moves by 1/60.
+- Work stack flat resolve (under 900px): each card resolves once, 700ms, when 35% of it is in view. Then its canvas is cleared for good.
+- Theme dot: circle reveal from the dot (0.65s) through `document.startViewTransition`. Instant under reduced motion or without the API.
+- Page transition ("the card opens", `src/lib/page-transition.ts`). Names, direction classes, timings and the fallback:
+  - Names. A plain click or Enter on a home card (or on the Next project block) names, for that navigation only: the media `vt-cover`, the label name `vt-title` and the label bar `vt-bar`. The case page carries the static names: the hero `vt-cover` and the h1 `vt-title`. Names are set in a capture-phase click, before ClientRouter prepares the navigation, and cleared in `astro:after-swap`. Each name exists once per document at snapshot time.
+  - Forward (card or next -> case). The cover and title groups take 650ms on `cubic-bezier(0.77, 0, 0.175, 1)`. The cover snapshots are `object-fit: cover` and cross-fade in 200ms, so the picture never stretches. The title snapshots size from the height (`width: auto`), so the text scales from its leading edge and is never squashed; the colour change is their cross-fade. The label bar folds left over 220ms (`clip-path`, no counterpart). Other home pieces leave in 150ms (root old). The new page fades in over 250ms after a 150ms delay (root new). Case pieces that the shared shot does not carry (kicker, lead, meta, overview, Back) fade up from 420ms, 70ms stagger, through `buildLateArrivals()`. The hero and h1 are shown as they are and never roll (`data-vt-keep`, `data-vt-late`, `html[data-vt-arrive]`, set in `astro:after-swap`). The card's video playhead moves to the case hero when the src matches (sessionStorage, read once).
+  - Way back, the card travel (case -> home: browser back, the Back pill, or any link home from a case). The case hero shrinks back into its card and the case title returns to the card's label, in 520ms on `cubic-bezier(0.77, 0, 0.175, 1)` (`html.vt-back`, never under reduced motion). The old snapshot is the case hero and h1 (static names). The new one is the landing card: `vt-cover` on its media, `vt-title` on its label name, `data-vt-landing`, `is-active`, `is-settled`, `--p 0`, `--res 1`, and `loading="eager"` `decoding="sync"` on its image, so it is flat and resolved from the first frame.
+  - Late fade rule. The old snapshots of the return stay fully visible for the whole travel (`animation: none; opacity: 1`), and the new ones fade in over the last part (`vt-fade-in` 180ms, from 320ms). Why: the landing picture may not be decoded at the first frame. A fade from the start would show an empty or blank card. The title's colour change (`--text` to black on the accent bar) resolves in that late fade.
+  - Return root. The case-only pieces leave in 120ms (old root), and the home pieces come back after a 220ms delay over 300ms (new root), so they reappear around the landing card. The header does not move (`site-header`).
+  - Centring and order. In `astro:after-swap` the card is centred on the un-enhanced layout and marked as landing. `astro:page-load` then runs motion init (the Story pin spacer and the Experience sticky track), and `settleReturnCard` re-centres the card in the same task (Lenis `immediate`). The card's viewport position is the same before and after the layout change, so the live new-state group does not move. Nothing rolls again (`html[data-vt-return]`), and the first viewport is already on screen.
+  - Clean-up. The landing names and marker end 700ms after the swap (longer than the 520ms travel), on the next `astro:before-preparation`, and at the start of the next card click. A name never survives into the next navigation.
+  - Fallback (the SAFE path, `html[data-vt="back"]`): a plain 200ms root cross-fade with the card centred, no shared element. Used only for reduced motion, no View Transitions support, the theme switch, a card id that is not on the page, and an arrival at home from anything other than a case page (no travel and no centring, as before).
+  - Case -> case. Next project, then browser back to the previous case: `astro:before-preparation` strips the static names of the case being left, so the change is a plain cross-fade. The hero is not morphed into the previous hero.
+  - Back pill. When the page before the case was home it calls `history.back()`. Otherwise it calls `navigate('/')`, not the `/#work-{id}` href: a hash URL makes Astro's `moveToLocation` do a full page load, so the travel would not run.
+  - Why not the shared element in the first place (kept for reference): Astro runs `astro:page-load` after the swap callback resolves and after `runScripts()`, and ScrollTrigger refreshes on rAF, so the layout the snapshot sees can differ from the final one. The viewport-centred card and the live new group are what make the travel correct despite that. See the comment in `page-transition.ts`.
+  - Off. Under reduced motion no names are set (the global reduced-motion block makes the cross-fades instant). Without `document.startViewTransition` nothing is named. The way-back names are the landing card's only. During the theme switch (`html.theme-switching`) no name exists: the header and the static case names are cleared, so the circle is the only transition.
+  - Header. It is `transition:persist` and named `site-header`, so it does not cross-fade or move during a page travel. Its `aria-current` is synced on each swap.
+- Entrances for non-text blocks: `.reveal` fades in and rises 12px over 600ms `--ease-out`, stagger with `--i` (60ms steps). Visible without JS.
+- Video loops (`.mp4`): muted, play only while on screen, never under reduced motion (the poster stays).
+- Reduced motion: every item above is off. Transitions and animations collapse to ~0ms, text and arrivals show immediately.
 
-```css
-h1 {
-  font-family: var(--font-display);
-  /* Scales from 92px on mobile to 280px on massive screens */
-  font-size: clamp(92px, 15.5vw, 280px);
-  line-height: 0.85;
-  letter-spacing: -0.04em;
-  text-transform: uppercase;
-}
-```
+## Components (one line each)
 
----
-
-## 4. Architectural Layout Patterns
-
-To achieve full-bleed (edge-to-edge) sections mixed with constrained content, the HTML structure is critical.
-
-### The "Body vs. Page-Shell" Pattern
-Elements that need to span `100vw` or stick to the viewport (like the Hero or Scrollytelling pins) must sit **outside** of any max-width container, directly inside the `<body>`.
-
-```html
-<body>
-  <header class="site-header">...</header>
-  
-  <!-- Full-bleed Hero -->
-  <section class="hero">...</section>
-  
-  <!-- Full-bleed Pinned Scrollytelling -->
-  <section class="scrollytelling-scene">...</section>
-
-  <!-- Constrained Content -->
-  <main class="page-shell">
-    <section class="narrative-band">...</section>
-  </main>
-</body>
-```
-
-### The Manifesto Hero
-A full-screen, sticky hero that gets covered by subsequent content.
-*   `position: sticky; top: 0;` keeps it in place.
-*   `height: 100dvh;` ensures it covers the full viewport.
-*   `z-index: 1;` ensures the `.page-shell` (which has a higher z-index and solid background) scrolls *over* it.
-
----
-
-## 5. Advanced CSS Techniques
-
-### The "Camaleonic" Sticky Header
-To make the header visible over both dark images and the solid black background, we use blend modes.
-
-```css
-.site-header {
-  position: fixed;
-  mix-blend-mode: difference; /* Inverts color based on background */
-  z-index: 999;
-}
-```
-
-### Animated Liquid Texture (SVG Filter)
-Instead of heavy videos, we use lightweight SVG math filters combined with CSS/GSAP animation.
-
-```html
-<!-- Inject at bottom of body -->
-<svg style="display: none;">
-  <filter id="liquid-filter">
-    <feTurbulence type="fractalNoise" baseFrequency="0.015 0.04" numOctaves="3" result="noise" />
-    <feDisplacementMap in="SourceGraphic" in2="noise" scale="30" xChannelSelector="R" yChannelSelector="G" />
-  </filter>
-</svg>
-```
-```css
-/* Apply to an image */
-.bg-image-liquid {
-  filter: grayscale(100%) contrast(1.2) url(#liquid-filter);
-}
-```
-
----
-
-## 6. Button Design Engineering (Emil Kowalski Philosophy)
-
-Buttons must feel tactile. We implemented a reusable `<Button>` component (`src/components/Button.astro`) that handles complex DOM structures required for premium motion.
-
-### The "Liquid Fill" Hover
-Instead of changing the background color directly, we scale a pseudo-element for a directional wipe effect.
-
-```css
-.button {
-  position: relative;
-  overflow: hidden;
-}
-.button::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  transform: scaleX(0);
-  transform-origin: right;
-  transition: transform 400ms var(--ease-liquid);
-}
-.button:hover::before {
-  transform: scaleX(1);
-  transform-origin: left;
-}
-```
-
-### The "Endless Slide" Arrow Swap
-We stack two SVGs vertically inside an `overflow: hidden` mask. On hover, we translate the container up.
-
-```html
-<span class="button-icon-inner">
-  <span><svg>...</svg></span> <!-- Arrow 1 -->
-  <span><svg>...</svg></span> <!-- Arrow 2 -->
-</span>
-```
-```css
-.button:hover .button-icon-inner {
-  transform: translateY(-25%); /* Slides the first out and the second in */
-}
-```
-
-### Accessibility Wrapper
-Motion should only occur for users who have a mouse and haven't requested reduced motion.
-
-```css
-@media (hover: hover) and (pointer: fine) {
-  /* All hover states go here */
-}
-```
-
----
-
-## 7. Motion & Scroll Behavior (GSAP & Lenis)
-
-### Smooth Scrolling Setup
-We use `Lenis` for smooth scrolling, synced meticulously with `ScrollTrigger`. We use a custom easing curve for a slightly "heavier" premium feel.
-
-```javascript
-const lenis = new Lenis({
-  duration: 1.2,
-  easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-});
-lenis.on("scroll", ScrollTrigger.update);
-```
-
-### Hardware Acceleration
-Always animate `transform` and `opacity`. Never animate `top`, `left`, `width`, or `height` (except in specific `clip-path` edge cases) to maintain 60fps.
-
-### Scrollytelling Pinning
-To create a "sticky" scene where animations happen while the user scrolls, use `ScrollTrigger` with `pin: true`.
-
-```javascript
-const tl = gsap.timeline({
-  scrollTrigger: {
-    trigger: ".scrollytelling-scene",
-    start: "top top",
-    end: "+=180%", // Keep pinned for 1.8x the height of the viewport
-    scrub: true,
-    pin: true,
-    pinSpacing: true, // Crucial: adds padding so next content doesn't overlap early
-  }
-});
-
-// Animate clip-path to open up a view
-tl.fromTo(".image-mask", 
-  { clipPath: "polygon(30% 30%, 70% 30%, 70% 70%, 30% 70%)" },
-  { clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)" }
-);
-```
-
----
-
-## 8. Section-by-Section Breakdown
-
-To truly replicate this look and feel, you must understand the architectural purpose behind each section.
-
-### 8.1 The "Camaleonic" Nav Bar (`.site-header`)
-*   **Purpose:** Provide constant navigation without interrupting the visual flow, regardless of what scrolls underneath it.
-*   **Architecture:** Removed from the document flow (`position: fixed`).
-*   **Visual Trick:** We use `mix-blend-mode: difference`. If the background image is light, the text automatically turns dark. If it passes over the deep dark mode background, it turns white. This avoids writing complex JS to track scroll position and swap CSS variables. We also integrate our `<Button data-size="micro">` here for consistent interaction.
-
-### 8.2 The Manifesto Hero (`.hero`)
-*   **Purpose:** Deliver a massive, magazine-cover first impression.
-*   **Architecture:** It lives outside the main `.page-shell`. It uses `position: sticky; top: 0;` so instead of being pushed up by the scroll, it stays frozen in place. The rest of the site (which has a solid background and higher z-index) simply scrolls *over* it, covering it up like a curtain.
-*   **Composition:** A 4K background image darkened via CSS filters (`brightness`, `contrast`). The word "EMOTIONAL" is sized using `clamp()` to act as a colossal graphic element rather than just a word.
-*   **Motion:** A GSAP scrub animation that slowly fades out (`opacity: 0`) and moves down (`y: 100`) the text as the user starts scrolling, shifting focus to the incoming content.
-
-### 8.3 The Narrative Band (`.narrative-band`)
-*   **Purpose:** The transition point. It's the "cover" that slides over the Hero.
-*   **Architecture:** This is the beginning of our `.page-shell` container. It has a solid Deep Dark background to hide the sticky Hero behind it.
-*   **Composition:** Highly asymmetrical. We use CSS Grid to push the text entirely to the right (`grid-column: 7 / -1` on large screens), leaving a massive block of negative space on the left. This screams "editorial".
-
-### 8.4 The Scrollytelling Scene (`.scrollytelling-scene`)
-*   **Purpose:** To make the user *feel* the problem we are solving through interactive discovery.
-*   **Architecture:** Like the Hero, this lives *outside* the constrained `.page-shell` to easily achieve full `100vw` width without CSS hacks. We use GSAP `ScrollTrigger` with `pin: true` to lock the section in place while the user scrolls.
-*   **Composition & Motion:**
-    *   **The Mask:** We start with a small square (`clipPath`) in the center revealing an abstract texture.
-    *   **The Dolly Zoom:** As you scroll, the mask expands to `100% 100%`, and the texture scales slightly, creating a cinematic dolly effect.
-    *   **The Typography:** Massive text ("WE REVEAL / THE FEELING") slides in from opposite sides (`x: -100` and `x: 100`) to meet in the middle.
-*   **The Premium Detail:** The abstract liquid texture is NOT a video. It's a CSS `filter: url(#liquid-filter)` referencing an inline SVG with `<feTurbulence>`. We use GSAP to animate the `baseFrequency` of the turbulence. Result: A stunning liquid effect at 60fps with zero network overhead.
-
-### 8.5 Output & Layer Scenes (`.output-scene`, `.layer-scene`)
-*   **Purpose:** Explain the technical features (the "how").
-*   **Architecture:** We avoid the typical SaaS "3 white cards with shadows". We stay in Deep Dark Mode.
-*   **Composition:** We mix monumental sans-serif typography with small, mono-spaced "code" blocks. We use subtle `1px` borders (`var(--border-light)`) to define areas instead of solid background boxes, maintaining the raw, brutalist feel.
-
-### 8.6 The Friction Loop (`.loop-scene`)
-*   **Purpose:** List common problems the product solves.
-*   **Architecture:** A rigid but invisible grid.
-*   **Composition:** We use CSS Grid (`grid-template-columns: repeat(3, 1fr)`) to create columns. However, there are no borders separating them. Only the raw typography (title in white, description in gray) creates the structure.
-
-### 8.7 Install CTA (`.install-scene`)
-*   **Purpose:** The final conversion point.
-*   **Architecture:** Brutal simplicity. Centered content, massive margins.
-*   **Composition:** A huge headline, a raw terminal command block, and our premium `<Button>`. By removing all visual noise, we force the user's attention onto the button and its liquid/arrow-swap micro-interactions.
+- `Layout.astro`: head and SEO, theme script, ClientRouter, Lenis and reveal init, skip link, Header, `<main>`, Footer.
+- `Header.astro`: fixed bar: name, clock, Work (count), About, Resume, theme dot. `transition:persist`: the same node across navigations, `aria-current` synced on each swap.
+- `Clock.astro`: "CDMX, 11:12 pm, 18°C" live time and Open-Meteo temperature. `[data-clock]`, any count per page. The colon blinks (opacity, 1s steps).
+- `src/lib/motion.ts`: the motion system. Rules, durations, the `data-*` contract, `initMotion` / `destroyMotion`, theme switch, roll helpers.
+- `Footer.astro`: "Get in touch" copies the email, links row, "Now building", clock, copyright. Min height `clamp(420px, 62vh, 620px)`, meta row pinned to the bottom. Muted copy is `color-mix(text 72%, bg)`.
+- `DitherField.astro`: gray ordered-dither field (Bayer 8x8, 4 levels, 3 CSS px cells) behind the footer. Raw WebGL, no deps. Ink is `mix(bg, text, k)` read from the tokens: k 0.40 dark, 0.38 light. Renders at 1x CSS px, scaled with `image-rendering: pixelated`. Pointer glow on fine pointers only.
+- `Story.astro`: "How I work" chapter, rendered on the home between Hero and WorkStack. Three beats from `personalInfo.story`, plus signs, and the ASCII block.
+- `src/lib/ascii-story.ts`: pure functions for the chapter's ASCII block: noise, wireframe, product, and the blend `renderStoryFrame(progress, t)`.
+- `StackChips.astro`: a technology list as chips (name always, logo when available). Shared by Experience (home) and Timeline (about).
+- `src/lib/tech-icons.ts`: logo paths (Simple Icons, CC0) for the stack chips. A chip always keeps its name; the logo is added only when the technology has a clear one, drawn with `currentColor`.
+- `Experience.astro`: home "Experience". Companies as headlines (`h3`) on one shared time axis (gantt bars, years in mono). The active row opens on scroll: description, stack chips, and the first asset as a 300x190 ASCII-resolving photo (9:16 assets keep their shape at 190px tall). Motion modes are described under Motion rules.
+- `src/lib/period.ts`: period math for Experience: parse "Mon YYYY - Mon YYYY|Present", range text, duration text, and the shared axis. Throws on a bad period so the build fails.
+- `Timeline.astro`: year, company and role rows, with the `data-timeline` rail. Used by /about only.
+- `Hero.astro`: home intro, first viewport: at least `100dvh - var(--header-h)` tall. `AsciiField` sits on the leading edge right above the text (60% of the column width and 60% of the free height), leaving the rest of the area empty; the name with `RoleWord` and the now/previously lines sit at the bottom (padding-bottom `clamp(28px, 6vh, 64px)`). Bottom-right scroll cue ("Scroll" plus a 1px, 24px line), `aria-hidden`, fades on opacity once the page scrolls 80px.
+- `AsciiField.astro`: ASCII wave field at 60% of the `.col` width and 60% of the hero's free height, leading aligned (full width under 720px; 11px glyphs, 9px under 520px, min 160px). The grid is measured: cell size from a hidden probe (read once after fonts), cols/rows from a ResizeObserver, capped at 160x60. SSR frame is 134x40 in a box of the same size, so nothing shifts. Loop only when on screen and visible; reduced motion paints one static frame at the measured size. Math in `src/lib/wave.ts` (`renderWaveFrame(t, pointer, energy, reveal, cols, rows)`).
+- `RoleWord.astro`: rotating role inside the intro, 3.2s dwell. Four entrances (wireframe, ASCII resolve, spring pop, cursor highlight). Width reserved for the longest role.
+- `WorkStack.astro`: home work list as a perspective card stack. Tilt from `--p`; ASCII resolve per card (canvas overlay, `--res`); media settles inside its frame (`.stage`); sticky index at 1100px and up; only the active card plays video, once resolved. A plain click on a card starts the card travel (names, overlay cleared).
+- `src/lib/ascii-image.ts`: pure maths and canvas painting for the WorkStack ASCII resolve (resolve amount, cell hash and sweep, glyph ramp, cover sampling, device cap).
+- `Media.astro`: image or muted looping `.mp4` with `.webp` poster; optional `viewTransitionName` (a static inline name, marked `data-vt-static`). Used by the case pages.
+- `src/lib/page-transition.ts`: the card travel and the way back: names, direction attributes, the video playhead handoff, the return-card centring. Called from `Layout.astro` (before-swap, after-swap), `WorkStack.astro`, `NextProject.astro` and the Back pill in `projects/[slug].astro`.
+- `src/styles/global.css`: tokens, reset, `@font-face`, type utilities, `.col`/`.bleed`, `.reveal`.
+- `src/lib/data.ts`: content, `heroShot` (a still for the case page, shown as a figure under the overview when it differs from the card's media and poster), `ProjectItem.card` (home stack: kind, media, chips; `card.media[0]` is also the case hero), `personalInfo.roles/now/previously/intro/facts/funFact`, `periodYear()`.

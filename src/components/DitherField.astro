@@ -1,0 +1,283 @@
+<!--
+  DitherField: gray ordered-dither field, drawn with raw WebGL. Decorative: aria-hidden, no pointer events.
+  Place it as the first child of a positioned parent (the footer). The canvas fills that parent.
+  Backing store is 1x CSS px. The shader snaps to 3 CSS px cells and image-rendering: pixelated scales the
+  canvas, so cells stay exact at DPR 1 and 2 and cost a quarter of a DPR-2 render.
+  No WebGL, a failed shader or no JS: the canvas stays transparent and the parent shows its own background.
+-->
+<canvas class="dither" aria-hidden="true" data-dither></canvas>
+
+<style>
+  .dither {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    image-rendering: pixelated;
+  }
+</style>
+
+<script>
+  const REDUCE_QUERY = '(prefers-reduced-motion: reduce)';
+  const FINE_QUERY = '(pointer: fine)';
+  const STATIC_TIME = 12; // seconds: the one frame drawn under reduced motion
+  const EASE_MS = 120; // pointer easing time constant
+  // ink = bg + k * (text - bg). Dark is 0.40, not 0.60: at 0.60 the pointer peak fails 4.5:1 for --text.
+  const INK_MIX = { dark: 0.4, light: 0.38 };
+
+  const VERT = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
+  const FRAG = `#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+uniform vec2 uRes;uniform float uTime;uniform vec2 uMouse;uniform float uGlow;uniform vec3 uBg;uniform vec3 uInk;
+const float CELL=3.;
+float hash(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
+float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
+  return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}
+float fbm(vec2 p){float a=.5,s=0.;for(int i=0;i<4;i++){s+=a*noise(p);p=p*2.03+vec2(11.7,3.1);a*=.5;}return s;}
+float b2(vec2 a){a=floor(a);return fract(a.x/2.+a.y*a.y*.75);}
+float b4(vec2 a){return b2(.5*a)*.25+b2(a);}
+float b8(vec2 a){return b4(.5*a)*.25+b2(a);}
+void main(){
+  vec2 cell=floor(gl_FragCoord.xy/CELL);
+  vec2 uv=(cell+.5)*CELL/uRes;
+  vec2 a=vec2(uRes.x/uRes.y,1.);
+  vec2 p=uv*a;
+  float t=uTime*.06;
+  vec2 q=p*2.6;
+  q+=vec2(fbm(q+t),fbm(q-t+7.))*.9;
+  float f=smoothstep(.22,.82,fbm(q+vec2(t*.6,-t)));
+  vec2 d=p-uMouse*a;
+  f+=.34*uGlow*exp(-dot(d,d)/.03);
+  f*=(1.-smoothstep(.5,1.,uv.y))*.62;
+  f=clamp(floor((f+(b8(cell)-.5)/3.)*3.+.5)/3.,0.,1.);
+  gl_FragColor=vec4(mix(uBg,uInk,f),1.);
+}`;
+
+  type Uniform = 'uRes' | 'uTime' | 'uMouse' | 'uGlow' | 'uBg' | 'uInk';
+
+  let current: { canvas: HTMLCanvasElement; dispose: () => void } | null = null;
+
+  // Any valid CSS colour, normalised by a 1px 2D canvas. Returns [r, g, b] in 0..1.
+  function toRgb(probe: CanvasRenderingContext2D, css: string): number[] {
+    probe.fillStyle = '#000';
+    probe.fillStyle = css.trim();
+    probe.clearRect(0, 0, 1, 1);
+    probe.fillRect(0, 0, 1, 1);
+    const d = probe.getImageData(0, 0, 1, 1).data;
+    return [d[0] / 255, d[1] / 255, d[2] / 255];
+  }
+
+  function compile(gl: WebGLRenderingContext, type: number, src: string): WebGLShader | null {
+    const shader = gl.createShader(type);
+    if (!shader) return null;
+    gl.shaderSource(shader, src);
+    gl.compileShader(shader);
+    return gl.getShaderParameter(shader, gl.COMPILE_STATUS) ? shader : null;
+  }
+
+  function mount(canvas: HTMLCanvasElement): () => void {
+    const footer = canvas.parentElement;
+    const probe = document.createElement('canvas').getContext('2d');
+    if (!footer || !probe) return () => undefined;
+
+    const root = document.documentElement;
+    const reduce = matchMedia(REDUCE_QUERY).matches;
+    const fine = !reduce && matchMedia(FINE_QUERY).matches;
+    let gl: WebGLRenderingContext | null = null;
+    let u: Record<Uniform, WebGLUniformLocation | null> | null = null;
+    let stopped = false;
+    let inView = false;
+    let raf = 0;
+    let pending = 0;
+    let clock = 0; // animated ms; advances only while the loop runs, so a pause does not jump
+    let last = 0;
+    let px = 0.5;
+    let py = 0.5;
+    let tx = 0.5;
+    let ty = 0.5;
+    let glow = 0;
+    let over = false;
+
+    function applyColors(): void {
+      if (!gl || !u || !probe) return;
+      const style = getComputedStyle(root);
+      const k = style.getPropertyValue('color-scheme').trim() === 'dark' ? INK_MIX.dark : INK_MIX.light;
+      const bg = toRgb(probe, style.getPropertyValue('--bg'));
+      const text = toRgb(probe, style.getPropertyValue('--text'));
+      const ink = bg.map((c, i) => c + (text[i] - c) * k);
+      gl.uniform3f(u.uBg, bg[0], bg[1], bg[2]);
+      gl.uniform3f(u.uInk, ink[0], ink[1], ink[2]);
+    }
+
+    function build(): boolean {
+      gl = null;
+      const ctx = canvas.getContext('webgl', { antialias: false, powerPreference: 'low-power' });
+      if (!ctx || ctx.isContextLost()) return false;
+      const vs = compile(ctx, ctx.VERTEX_SHADER, VERT);
+      const fs = compile(ctx, ctx.FRAGMENT_SHADER, FRAG);
+      const program = ctx.createProgram();
+      if (!vs || !fs || !program) return false;
+      ctx.attachShader(program, vs);
+      ctx.attachShader(program, fs);
+      ctx.linkProgram(program);
+      if (!ctx.getProgramParameter(program, ctx.LINK_STATUS)) return false;
+      ctx.useProgram(program);
+      ctx.bindBuffer(ctx.ARRAY_BUFFER, ctx.createBuffer());
+      ctx.bufferData(ctx.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), ctx.STATIC_DRAW);
+      const at = ctx.getAttribLocation(program, 'p');
+      ctx.enableVertexAttribArray(at);
+      ctx.vertexAttribPointer(at, 2, ctx.FLOAT, false, 0, 0);
+      const loc = (name: Uniform) => ctx.getUniformLocation(program, name);
+      u = { uRes: loc('uRes'), uTime: loc('uTime'), uMouse: loc('uMouse'), uGlow: loc('uGlow'), uBg: loc('uBg'), uInk: loc('uInk') };
+      gl = ctx;
+      applyColors();
+      return true;
+    }
+
+    function resize(): void {
+      const w = Math.max(1, Math.round(canvas.clientWidth));
+      const h = Math.max(1, Math.round(canvas.clientHeight));
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+      }
+    }
+
+    function draw(time: number): void {
+      if (!gl || !u || stopped) return;
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.uniform2f(u.uRes, canvas.width, canvas.height);
+      gl.uniform1f(u.uTime, time);
+      gl.uniform2f(u.uMouse, px, py);
+      gl.uniform1f(u.uGlow, glow);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+    }
+
+    // Reduced motion draws one fixed frame. Resize and theme repaints reuse it.
+    function paint(): void {
+      draw(reduce ? STATIC_TIME : clock / 1000);
+    }
+
+    function frame(now: number): void {
+      const dt = Math.min(Math.max(now - last, 0), 100);
+      last = now;
+      clock += dt;
+      const k = 1 - Math.exp(-dt / EASE_MS);
+      px += (tx - px) * k;
+      py += (ty - py) * k;
+      glow += ((over ? 1 : 0) - glow) * k;
+      draw(clock / 1000);
+      raf = requestAnimationFrame(frame);
+    }
+
+    // The loop runs only while the footer is on screen, the tab is visible and motion is allowed.
+    function sync(): void {
+      const run = inView && !reduce && !stopped && !document.hidden && gl !== null;
+      if (run && raf === 0) {
+        last = performance.now();
+        raf = requestAnimationFrame(frame);
+      } else if (!run && raf !== 0) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      }
+    }
+
+    function onMove(e: PointerEvent): void {
+      const r = canvas.getBoundingClientRect();
+      tx = (e.clientX - r.left) / r.width;
+      ty = 1 - (e.clientY - r.top) / r.height;
+      if (!over) {
+        px = tx;
+        py = ty;
+        over = true;
+      }
+    }
+
+    function onLeave(): void {
+      over = false;
+    }
+
+    function onLost(e: Event): void {
+      e.preventDefault();
+      stopped = true;
+      sync();
+    }
+
+    function onRestored(): void {
+      stopped = false;
+      if (build()) {
+        resize();
+        paint();
+        sync();
+      }
+    }
+
+    build();
+    resize(); // size the backing store before the first loop frame; the ResizeObserver repeats it
+    const io = new IntersectionObserver((entries) => {
+      inView = entries.some((entry) => entry.isIntersecting);
+      sync();
+    });
+    io.observe(footer);
+    const ro = new ResizeObserver(() => {
+      if (pending) return;
+      pending = requestAnimationFrame(() => {
+        pending = 0;
+        resize();
+        paint();
+      });
+    });
+    ro.observe(canvas);
+    const mo = new MutationObserver(() => {
+      applyColors();
+      paint();
+    });
+    mo.observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+    document.addEventListener('visibilitychange', sync);
+    if (fine) {
+      footer.addEventListener('pointermove', onMove, { passive: true });
+      footer.addEventListener('pointerleave', onLeave);
+    }
+    canvas.addEventListener('webglcontextlost', onLost);
+    canvas.addEventListener('webglcontextrestored', onRestored);
+    sync();
+
+    return () => {
+      cancelAnimationFrame(raf);
+      cancelAnimationFrame(pending);
+      io.disconnect();
+      ro.disconnect();
+      mo.disconnect();
+      document.removeEventListener('visibilitychange', sync);
+      footer.removeEventListener('pointermove', onMove);
+      footer.removeEventListener('pointerleave', onLeave);
+      canvas.removeEventListener('webglcontextlost', onLost);
+      canvas.removeEventListener('webglcontextrestored', onRestored);
+      gl?.getExtension('WEBGL_lose_context')?.loseContext();
+      gl = null;
+      u = null;
+    };
+  }
+
+  function teardown(): void {
+    current?.dispose();
+    current = null;
+  }
+
+  // Idempotent per canvas: the module runs init once, and astro:page-load may fire for the same canvas.
+  function init(): void {
+    const canvas = document.querySelector<HTMLCanvasElement>('canvas[data-dither]');
+    if (current && current.canvas === canvas) return;
+    teardown();
+    if (canvas) current = { canvas, dispose: mount(canvas) };
+  }
+
+  document.addEventListener('astro:page-load', init);
+  document.addEventListener('astro:before-swap', teardown);
+  init();
+</script>

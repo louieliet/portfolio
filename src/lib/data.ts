@@ -18,6 +18,15 @@ export interface ExperienceItem {
   highlight?: boolean;
 }
 
+// One card in the home work stack. "wide": the first clip or still fills the frame.
+// "phones": up to three portrait screens side by side. Media paths must exist under public/;
+// a .mp4 entry needs a .webp poster beside it.
+export interface ProjectCard {
+  kind: "wide" | "phones";
+  media: string[];
+  chips: string[]; // 2 to 4 short tags
+}
+
 export interface ProjectItem {
   id: string;
   name: string;
@@ -32,6 +41,12 @@ export interface ProjectItem {
   link?: string;
   linkLabel?: string;
   images?: string[];
+  // Still image for the case page hero (falls back to images[0]). Must exist under public/.
+  heroShot?: string;
+  card: ProjectCard; // home work stack card
+  appStoreUrl?: string; // App Store listing; the case Outcome links the status to it
+  metric?: string; // real result, shown first in the case Outcome row
+  metricLabel?: string;
   imageAspect?: "9/16";
   coverAspect?: "16/9"; // cases list card and detail hero; default frame is 4/3
   badge?: { label: string; text: string };
@@ -46,6 +61,11 @@ export const personalInfo = {
   name: "Emiliano Montes Gómez",
   role: "Product Designer and Engineer",
   tagline: "I build scalable web and mobile products with strong UX foundations.",
+  // Role words for the hero RoleWord rotation. Keep in sync with src/components/RoleWord.astro.
+  roles: ["product designer", "design engineer", "iOS builder", "co-founder"],
+  now: "Building Luma and products at Feeble",
+  previously: "Previously iLuk.ai, Vyvo Tech, & UPocket.",
+  intro: "I design and build web and iOS products end to end, from Figma to production.",
   location: "Mexico City, Mexico",
   email: "emilianomg2003@hotmail.com",
   linkedin: "https://www.linkedin.com/in/emiliano-mg/",
@@ -93,7 +113,23 @@ export const personalInfo = {
       "I read about cognitive psychology, behavioral design, and design theory.",
       "I still play video games, but now I analyze them from a UX perspective."
     ]
-  }
+  },
+  // "How I work" chapter on the home (src/components/Story.astro). One beat per entry, read in order.
+  story: [
+    "Good products start before the first screen.",
+    "I think the product through, design it, iterate, and code it myself.",
+    "Then I polish until it feels as good as it works.",
+  ] satisfies string[]
+}
+
+/**
+ * Year shown on timelines. "Now" for an ongoing period ("... - Present"), otherwise the trailing
+ * 4-digit year. Falls back to the raw period string when no year is found, so nothing renders blank.
+ */
+export function periodYear(period: string): string {
+  if (/present\s*$/i.test(period)) return "Now";
+  const match = period.match(/(\d{4})\s*$/);
+  return match ? match[1] : period;
 }
 
 export const stack = {
@@ -176,9 +212,12 @@ export const projects = [
     link: "https://www.lumaproductivity.app/",
     linkLabel: "Visit Luma",
     images: ["/projects/luma-cover.svg"],
+    heroShot: "/projects/luma/day-home.webp",
+    card: { kind: "wide", media: ["/projects/luma-cover.svg"], chips: ["iOS", "App Store", "Co-founder"] },
     imageAspect: "9/16",
     mascot: { mov: "/projects/luma/odi-flower.mov", webm: "/projects/luma/odi-flower.webm", poster: "/projects/luma/odi-flower-still.webp" },
-    badge: { label: "Status", text: "Private beta, join the waitlist" },
+    badge: { label: "Status", text: "Live on the App Store" },
+    appStoreUrl: "https://apps.apple.com/us/app/luma-productivity/id6818345062",
     category: "Mobile",
     sections: [
       { id: "why-luma", title: "Why Luma", body: ["Most days end up split across four apps: reminders in one, notes in another, habits and to-dos somewhere else. Luma puts all of it in one calm iPhone app."], media: { kind: "screens", images: ["/projects/luma/day-home.mp4"] } },
@@ -188,7 +227,7 @@ export const projects = [
       { id: "offline", title: "Built to work offline", body: ["Luma works offline and syncs when you are back online. The app is native Swift, and Convex runs the backend and sync."], media: { kind: "screens", images: ["/projects/luma/det-offline.mp4"] } },
       { id: "shared", title: "Better together", body: ["Luma Shared puts to-dos, reminders, habits and notes in front of up to five people, including notes you write together. It is part of Luma Pro."], media: { kind: "screens", images: ["/projects/luma/together-list.mp4"] } },
       { id: "team", title: "The team", body: ["I co-founded Luma with Iñaki Sigüenza. We share product design and development, from the flows and interface to the Swift app and the Convex backend. Fernanda Rosas leads illustration and animation."], media: { kind: "screens", images: ["/projects/luma/team-emi.mp4", "/projects/luma/team-inaki.mp4", "/projects/luma/team-fer.mp4"] } },
-      { id: "status", title: "Where it is now", body: ["Luma is in private beta. The waitlist is open at lumaproductivity.app."] }
+      { id: "status", title: "Where it is now", body: ["Luma is live on the App Store. It is free to download, and Luma Pro is an in-app purchase that adds urgent alarms and shared lists."] }
     ]
   },
   {
@@ -204,6 +243,8 @@ export const projects = [
     link: "https://www.iluk.ai/",
     linkLabel: "Visit iLuk.ai",
     images: ["/projects/iluk-cover.webp"],
+    heroShot: "/projects/iluk-landing/hero.webp",
+    card: { kind: "wide", media: ["/projects/iluk-landing/scroll-story.mp4"], chips: ["Web", "AI", "Fintech"] },
     badge: { label: "Status", text: "Live at iluk.ai" },
     category: "Web",
     sections: [
@@ -228,6 +269,8 @@ export const projects = [
     link: "https://bloomley.luishomeserver.com/",
     linkLabel: "Visit Bloomley",
     images: ["/projects/bloomley-cover.webp"],
+    heroShot: "/projects/bloomley/hero.webp",
+    card: { kind: "wide", media: ["/projects/bloomley/hero.mp4"], chips: ["Web", "Wellbeing"] },
     badge: { label: "Status", text: "In development" },
     category: "Web",
     sections: [
@@ -253,6 +296,8 @@ export const projects = [
     link: "https://apps.apple.com/mx/app/upocket/id6736629315",
     linkLabel: "View on the App Store",
     images: ["/projects/upocket/overview.webp"],
+    heroShot: "/projects/upocket/overview.webp",
+    card: { kind: "wide", media: ["/projects/upocket/overview.webp"], chips: ["iOS", "SwiftUI", "App Store"] },
     coverAspect: "16/9",
     badge: { label: "Status", text: "On the App Store" },
     category: "Mobile",
@@ -268,6 +313,7 @@ export const projects = [
     subtitle: "STEM Career Recommender",
     metric: "1st place",
     metricLabel: "Swift Changemakers Hackathon 2025, Bosch Challenge",
+    coverAspect: "16/9",
     description: "Built an iOS vocational guidance app focused on promoting STEM careers through a gender-bias-free test, interactive flows, and a recommendation model using 16 personalities, multiple intelligences, and NLP.",
     overview: "NeuraPath helps students discover STEM career paths through a mobile experience that combines personality signals, learning preferences, and lightweight game interactions. The app was built during the National Swift Changemakers Hackathon 2025 for the Bosch Challenge.",
     focus: "The focus was product design and iOS execution: shaping the recommendation flow, designing fast and engaging interactions, and building the SwiftUI experience that connects assessment, career matching, and university enrollment actions.",
@@ -275,6 +321,8 @@ export const projects = [
     stack: ["SwiftUI", "NLP", "ML", "Forms", "Career Matching"],
     year: "2025",
     images: ["/projects/neurapathcover.png", "/projects/neurapath01.png", "/projects/neurapath02.png", "/projects/neurapath03.png", "/projects/neurapath04.png", "/projects/neurapath05.png", "/projects/neurapath06.png", "/projects/neurapath07.png"],
+    heroShot: "/projects/neurapathcover.png",
+    card: { kind: "wide", media: ["/projects/neurapathcover.png"], chips: ["iOS", "Hackathon winner"] },
     badge: { label: "Award", text: "1st place, National Swift Changemakers Hackathon 2025 (Bosch Challenge)" },
     category: "Mobile",
     sections: [
@@ -291,12 +339,15 @@ export const projects = [
     subtitle: "Identity-Based Wellness App",
     metric: "1st place",
     metricLabel: "iOS Lab UP x Windsurf hackathon",
+    coverAspect: "16/9",
     description: "Winner of the iOS Lab Universidad Panamericana + Windsurf hackathon. Built a wellness app that moves beyond dashboards and metric overload by asking who you want to be today, then reinforcing that identity through 2-minute micro-actions, XP, and the seven dimensions of wellness.",
     overview: "Wellty is a wellness app that reframes self-care around identity instead of metrics. Rather than starting with dashboards, the experience asks who the user wants to be that day and turns that intention into short, actionable habits.",
     focus: "The product focus was designing a behavior loop that feels lightweight but meaningful: identity selection, 2-minute actions, XP feedback, and progress across the seven dimensions of wellness. I designed and built the SwiftUI experience with local persistence.",
     role: "Product Designer & iOS Builder",
     stack: ["SwiftUI", "iOS", "Wellness UX", "Gamification", "Local Persistence"],
     year: "2025",
+    heroShot: "/projects/welltycover.png",
+    card: { kind: "wide", media: ["/projects/welltycover.png"], chips: ["iOS", "Hackathon winner"] },
     images: ["/projects/welltycover.png", "/projects/wellty01.png", "/projects/wellty02.png", "/projects/wellty03.png", "/projects/wellty04.png", "/projects/wellty05.png", "/projects/wellty06.png", "/projects/wellty07.png", "/projects/wellty09.png", "/projects/wellty10.png", "/projects/wellty11.png", "/projects/wellty12.png", "/projects/wellty13.png"],
     category: "Mobile",
     sections: [
@@ -308,7 +359,7 @@ export const projects = [
       { id: "outcome", title: "Outcome", body: ["Wellty won 1st place at the iOS Lab Universidad Panamericana x Windsurf hackathon."] }
     ]
   }
-]
+] satisfies ProjectItem[]
 
 export const certifications = [
   { name: "Unity Essentials Pathway", issuer: "Unity", year: 2023 },

@@ -1,0 +1,58 @@
+---
+/*
+ * StackChips: a technology list as chips. Each chip always shows its name; a logo sits before it when
+ * the technology has a clear one (src/lib/tech-icons.ts), drawn in the text colour.
+ * Used by Experience (home) and Timeline (about). Props: { tags: string[] }
+ */
+import { techIcons } from '../lib/tech-icons';
+
+interface Props {
+  tags: string[];
+}
+
+const { tags } = Astro.props;
+---
+
+<ul class="stack t-mono">
+  {
+    tags.map((tag) => (
+      <li>
+        {techIcons[tag] && (
+          <svg class="tech" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d={techIcons[tag]} />
+          </svg>
+        )}
+        {tag}
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .stack li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 8px;
+    border: 1px solid var(--line);
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+
+  .tech {
+    flex: none;
+    width: 12px;
+    height: 12px;
+    fill: currentColor;
+  }
+</style>

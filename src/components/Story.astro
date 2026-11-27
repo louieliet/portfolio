@@ -1,0 +1,156 @@
+---
+import { personalInfo } from '../lib/data';
+import { renderStoryProduct } from '../lib/ascii-story';
+
+/*
+ * Story: the "How I work" chapter, rendered on the home between Hero and WorkStack.
+ * - Three beats, in DOM order. Screen readers read them in order at all times.
+ * - Desktop with motion (>= 900px): the stage pins under the header and scroll lights the words
+ *   (motion.ts, mountStoryPinned). The plus signs come alive only there (.is-pinned).
+ * - Under 900px with motion: no pin. Each beat lights once when it enters (mountStoryFlow).
+ * - Reduced motion and no JS: all beats fully lit, the PRODUCT frame.
+ * The ASCII block, the plus signs are decorative and aria-hidden.
+ */
+const beats = personalInfo.story;
+const frame = renderStoryProduct();
+---
+
+<section class="story" data-story aria-labelledby="story-label">
+  <div class="stage" data-story-stage>
+    <div class="copy">
+      <div class="head">
+        <p id="story-label" class="label t-mono muted">How I work</p>
+      </div>
+
+      <div class="beats">
+        {
+          beats.map((text, i) => (
+            <>
+              {i > 0 && (
+                <span class="plus" data-story-plus aria-hidden="true">+</span>
+              )}
+              <p class="beat" data-story-beat>{text}</p>
+            </>
+          ))
+        }
+      </div>
+    </div>
+
+    <div class="visual">
+      <pre class="ascii" aria-hidden="true" data-story-ascii>{frame}</pre>
+      <p class="caption t-mono muted" data-story-caption aria-hidden="true">product</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .story {
+    margin-bottom: clamp(48px, 8vh, 96px);
+  }
+
+  .stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: clamp(32px, 5vw, 72px);
+    align-items: center;
+    min-height: calc(100dvh - var(--header-h));
+    padding-block: 24px;
+  }
+
+  .copy {
+    min-width: 0;
+  }
+
+  .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: clamp(24px, 4vh, 40px);
+  }
+
+  .label {
+    margin: 0;
+  }
+
+  .beat {
+    margin: 0;
+    font-size: clamp(24px, 2.1vw, 30px);
+    line-height: 1.22;
+    letter-spacing: -0.015em;
+    color: var(--text);
+  }
+
+  .story :global(.story-word) {
+    display: inline-block;
+  }
+
+  .plus {
+    display: block;
+    margin: clamp(10px, 1.6vh, 16px) 0;
+    font-size: clamp(22px, 1.9vw, 26px);
+    line-height: 1;
+    color: var(--muted);
+  }
+
+  .is-pinned .plus {
+    opacity: 0.25;
+    transition:
+      opacity var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out);
+  }
+
+  .is-pinned .plus.is-on {
+    opacity: 1;
+    color: var(--accent);
+  }
+
+  .visual {
+    display: grid;
+    justify-items: start;
+    gap: 12px;
+  }
+
+  .ascii {
+    margin: 0;
+    width: 46ch;
+    max-width: 100%;
+    overflow: hidden;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1;
+    color: var(--text);
+    white-space: pre;
+    user-select: none;
+  }
+
+  .caption {
+    margin: 0;
+    font-size: 12.5px;
+  }
+
+  @media (max-width: 899px) {
+    .stage {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      min-height: 0;
+      padding-block: 0;
+      gap: 40px;
+    }
+
+    .beat {
+      font-size: 24px;
+    }
+
+    .ascii {
+      font-size: 9px;
+    }
+  }
+
+  @media (max-width: 419px) {
+    .ascii {
+      font-size: 8px;
+    }
+  }
+</style>

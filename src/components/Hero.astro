@@ -1,0 +1,79 @@
+---
+import AsciiField from './AsciiField.astro';
+import RoleWord from './RoleWord.astro';
+import { personalInfo } from '../lib/data';
+
+/*
+ * Hero: the first viewport. At least the full viewport height (below the header): the ASCII wave field takes the
+ * free height on top, and the text block (name and two muted lines) sits at the bottom. Everything is body
+ * size (15px); hierarchy comes from colour, not type scale. The role word is RoleWord, which ends with the period.
+ * The scroll cue sits at the bottom right, in the bottom padding. It fades once the page scrolls 80px (motion.ts).
+ */
+---
+
+<section class="col hero">
+  <AsciiField />
+
+  <h1 class="name" data-roll data-arrive="0.15" aria-label="Emiliano Montes, product designer">Emiliano Montes, <RoleWord /></h1>
+  <p class="muted" data-roll data-arrive="0.3">{personalInfo.now}</p>
+  <p class="muted prev" data-roll data-arrive="0.3">{personalInfo.previously}</p>
+  <div class="scroll-cue" data-arrive="0.9" data-scroll-cue aria-hidden="true">
+    <span class="cue-inner">
+      <span class="t-mono muted">Scroll</span>
+      <span class="cue-line"></span>
+    </span>
+  </div>
+</section>
+
+<style>
+  /* Full viewport height below the header. dvh tracks the mobile browser bar; vh is the fallback. */
+  .hero {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - var(--header-h));
+    min-height: calc(100dvh - var(--header-h));
+    padding-top: 24px;
+    padding-bottom: clamp(28px, 6vh, 64px);
+  }
+
+  /* Bottom right, inside the bottom padding, so it never covers the text. Opacity only. */
+  .scroll-cue {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+  }
+
+  .cue-inner {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    transition: opacity var(--dur-fast) var(--ease-out);
+  }
+
+  .cue-line {
+    width: 1px;
+    height: 24px;
+    background: var(--muted);
+  }
+
+  .scroll-cue.is-faded .cue-inner {
+    opacity: 0;
+  }
+
+  .name {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.6;
+  }
+
+  .hero p {
+    margin: 0;
+  }
+
+  .prev {
+    margin-top: 2px;
+  }
+
+</style>

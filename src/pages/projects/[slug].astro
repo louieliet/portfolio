@@ -2,8 +2,13 @@
 import type { GetStaticPaths } from 'astro';
 import { existsSync } from 'node:fs';
 import Layout from '../../layouts/Layout.astro';
-import { projects } from '@/lib/data';
-import ProjectPageClient from '../../components/project-page-client';
+import Media from '../../components/Media.astro';
+import CaseMeta from '../../components/CaseMeta.astro';
+import CaseSection from '../../components/CaseSection.astro';
+import CaseOutcome from '../../components/CaseOutcome.astro';
+import NextProject from '../../components/NextProject.astro';
+import { projects, type ProjectItem } from '@/lib/data';
+import { VT_COVER, VT_TITLE } from '../../lib/page-transition';
 
 export const getStaticPaths = (() => {
   return projects.map((project) => ({
@@ -19,6 +24,25 @@ const hasOgCrop = existsSync(new URL(`../../../public${ogPath}`, import.meta.url
 // WhatsApp and Facebook do not render SVG og:images, so svg covers fall back to the default /og.jpg.
 const cover = project.images?.[0];
 const coverImage = cover && !cover.endsWith(".svg") ? cover : undefined;
+
+// Typed view of the static data (data.ts is inferred as plain strings).
+const item = project as ProjectItem;
+const allProjects = projects as ProjectItem[];
+const nextIndex = allProjects.findIndex((p) => p.id === item.id) + 1;
+const next = allProjects[nextIndex % allProjects.length];
+
+// The hero is the same media as the home card, so the card travel lands on it. A still that differs from the card
+// (and from a clip's poster) is kept as a figure below the overview, so no image is lost.
+const heroSrc = item.card.media[0];
+const heroPoster = heroSrc.replace(/\.mp4$/, ".webp");
+const heroShot = item.heroShot && item.heroShot !== heroSrc && item.heroShot !== heroPoster ? item.heroShot : undefined;
+
+// Screens gallery: images beyond the cover that neither the hero nor a section already shows.
+const usedInSections = new Set<string>((item.sections ?? []).flatMap((s) => s.media?.images ?? []));
+const gallery = (item.images ?? []).slice(1).filter((src) => src !== heroSrc && src !== heroShot && !usedInSections.has(src));
+
+const mascot = item.mascot;
+const alt = `${item.name} cover`;
 ---
 
 <Layout
@@ -28,7 +52,270 @@ const coverImage = cover && !cover.endsWith(".svg") ? cover : undefined;
   imageAlt={`${project.name} cover`}
   imageWidth={hasOgCrop ? 1200 : undefined}
   imageHeight={hasOgCrop ? 630 : undefined}
-  theme="light"
 >
-  <ProjectPageClient project={project} client:load />
+  <article class="case-page">
+    <div class="col case-head">
+      <p class="t-mono muted" data-vt-late>{item.category} / {item.year}</p>
+      <div class="title-row">
+        <h1
+          class="t-display"
+          data-roll="slow"
+          data-arrive="0"
+          data-vt-keep
+          data-vt-static
+          style={`view-transition-name: ${VT_TITLE}`}
+        >{item.name}</h1>
+        {
+          mascot && (
+            <video
+              class="mascot"
+              autoplay
+              muted
+              loop
+              playsinline
+              aria-hidden="true"
+              poster={mascot.poster}
+              data-case-mascot
+            >
+              <source src={mascot.mov} type='video/quicktime; codecs="hvc1"' />
+              <source src={mascot.webm} type="video/webm" />
+            </video>
+          )
+        }
+      </div>
+      <p class="t-lead description" data-roll data-arrive="0.15" data-vt-late>{item.description}</p>
+    </div>
+
+    <div data-vt-late>
+      <CaseMeta project={item} />
+    </div>
+
+    {
+      heroSrc && (
+        <div class="bleed hero reveal" data-arrive="0.5" data-vt-keep>
+          <Media class="hero-wide" src={heroSrc} alt={alt} loading="eager" viewTransitionName={VT_COVER} />
+        </div>
+      )
+    }
+
+    <div class="col overview" data-vt-late>
+      <p>{item.overview}</p>
+      <p class="muted">{item.focus}</p>
+    </div>
+
+    {
+      heroShot && (
+        <figure class="case-shot reveal">
+          <Media src={heroShot} alt={`${item.name}: ${item.subtitle}`} loading="lazy" />
+        </figure>
+      )
+    }
+
+    {(item.sections ?? []).map((s, i) => (
+      <CaseSection section={s} index={i} projectName={item.name} />
+    ))}
+
+    {
+      gallery.length > 0 && (
+        <div class="bleed gallery" role="region" aria-label="Screens" tabindex="0">
+          {gallery.map((src, i) => (
+            <Media
+              class="gallery-item"
+              src={src}
+              alt={`${item.name} screen ${i + 1} of ${gallery.length}`}
+              loading="lazy"
+            />
+          ))}
+        </div>
+      )
+    }
+
+    <CaseOutcome project={item} />
+    <NextProject project={next} />
+
+    <a class="back t-mono" href={`/#work-${item.id}`} data-case-back data-no-inl data-vt-late>
+      <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path
+          d="M19 12H5M11 6l-6 6 6 6"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+      <span data-swap>Back</span>
+    </a>
+  </article>
 </Layout>
+
+<style>
+  .case-head {
+    padding-top: 96px;
+  }
+
+  .title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 24px;
+    margin-top: 16px;
+  }
+
+  .mascot {
+    flex: none;
+    width: auto;
+    height: 72px;
+  }
+
+  .description {
+    margin-top: 24px;
+  }
+
+  .hero {
+    margin-top: clamp(48px, 8vh, 96px);
+    padding-inline: 0;
+  }
+
+  /* The hero is the card's media at full bleed, capped in height. */
+  .hero-wide {
+    width: 100%;
+    max-height: 86vh;
+    object-fit: cover;
+  }
+
+  .overview {
+    padding-block: clamp(56px, 8vh, 96px);
+  }
+
+  .overview p + p {
+    margin-top: 16px;
+  }
+
+  /* The old hero still: from the content column start to the right gutter, like a section's full media. */
+  .case-shot {
+    margin: clamp(56px, 8vh, 96px) 20px 0;
+  }
+
+  .case-shot :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  @media (min-width: 960px) {
+    .case-shot {
+      margin-left: max(20px, 26.25vw);
+      margin-right: clamp(20px, 3vw, 48px);
+    }
+  }
+
+  .gallery {
+    display: flex;
+    gap: 16px;
+    height: clamp(320px, 60vh, 640px);
+    margin-top: clamp(56px, 8vh, 96px);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+  }
+
+  .gallery .gallery-item {
+    flex: none;
+    width: auto;
+    height: 100%;
+    scroll-snap-align: start;
+  }
+
+  .back {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    z-index: 50;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--text);
+    color: var(--bg);
+    text-decoration: none;
+    transform: translateX(-50%);
+    transition:
+      opacity 300ms var(--ease-out),
+      visibility 300ms;
+  }
+
+  .back.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+  }
+
+  @media (max-width: 719px) {
+    .case-head {
+      padding-top: 72px;
+    }
+
+    .mascot {
+      height: 56px;
+    }
+  }
+</style>
+
+<script>
+  /*
+   * Case page behaviour, re-run on every client navigation.
+   * - Mascot: autoplays, but stays on its poster under reduced motion.
+   * - Back link: hidden while the site footer is on screen.
+   * - Back link: when the page before this case was home, history.back() restores the home entry (its scroll and
+   *   the card travel in page-transition.ts). Otherwise navigate('/') goes home through the same travel: the card
+   *   of this case is centred and becomes the landing card. The href (/#work-{id}) is only the no-JS target: a
+   *   hash URL makes Astro do a full page load.
+   * Every lookup is guarded, because this listener stays registered after leaving a case page.
+   */
+  import { navigate } from 'astro:transitions/client';
+  import { isPlainActivation, previousIsHome } from '../../lib/page-transition';
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let footerObserver: IntersectionObserver | null = null;
+
+  // Module-level and registered once. Astro sees preventDefault and does not navigate.
+  document.addEventListener(
+    'click',
+    (event) => {
+      if (!isPlainActivation(event)) return;
+      const back = (event.target as Element | null)?.closest('[data-case-back]');
+      if (!back) return;
+      event.preventDefault();
+      if (previousIsHome()) history.back();
+      else void navigate('/');
+    },
+    { capture: true },
+  );
+
+  function setup(): void {
+    footerObserver?.disconnect();
+    footerObserver = null;
+
+    if (reduceMotion.matches) {
+      document.querySelectorAll<HTMLVideoElement>('video[data-case-mascot]').forEach((video) => video.pause());
+    }
+
+    const back = document.querySelector<HTMLElement>('[data-case-back]');
+    const footer = document.querySelector('footer');
+    if (!back || !footer || !('IntersectionObserver' in window)) return;
+
+    footerObserver = new IntersectionObserver(
+      ([entry]) => {
+        back.classList.toggle('is-hidden', entry.isIntersecting);
+      },
+      { threshold: 0 },
+    );
+    footerObserver.observe(footer);
+  }
+
+  document.addEventListener('astro:page-load', setup);
+  document.addEventListener('astro:before-swap', () => {
+    footerObserver?.disconnect();
+    footerObserver = null;
+  });
+</script>

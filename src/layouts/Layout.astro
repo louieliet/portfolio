@@ -1,11 +1,19 @@
 ---
-import '../styles/globals.css';
-import { AppInit } from '../components/app-init';
-import { ScrollProgress } from '../components/scroll-progress';
-import ScrollRestoration from '../components/scroll-restoration';
+import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
 import Header from '../components/Header.astro';
-import Interactions from '../components/interactions.astro';
-import DitherBg from '../components/dither-bg.astro';
+import Footer from '../components/Footer.astro';
+
+/*
+ * CONTRACT for pages:
+ *   <Layout title? description? image? imageAlt? imageWidth? imageHeight?>
+ *     ...page content (rendered inside <main id="main">)
+ *   </Layout>
+ * Layout renders Header and Footer. Pages must not render their own <header>/<footer>.
+ * Elements with class "reveal" fade in on scroll (see global.css). Set --i for stagger.
+ * window.__lenis exposes the smooth scroller (undefined under reduced motion).
+ * Header is persisted (transition:persist), so it is not re-rendered between pages.
+ */
 
 interface Props {
   title?: string;
@@ -14,7 +22,6 @@ interface Props {
   imageAlt?: string;
   imageWidth?: number;
   imageHeight?: number;
-  theme?: "light" | "dark";
 }
 
 const {
@@ -24,7 +31,6 @@ const {
   imageAlt = title,
   imageWidth,
   imageHeight,
-  theme = "dark",
 } = Astro.props;
 
 const pageUrl = new URL(Astro.url.pathname, Astro.site);
@@ -36,12 +42,12 @@ const height = isDefaultImage ? 630 : imageHeight;
 ---
 
 <!doctype html>
-<html lang="en" class="lenis lenis-smooth">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/GeneralSans-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={pageUrl.href} />
@@ -58,67 +64,162 @@ const height = isDefaultImage ? 630 : imageHeight;
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={imageUrl.href} />
+
+    <!-- Blocking theme script: runs before first paint to avoid a flash. Sets html.js for no-JS-safe reveals. -->
+    <script is:inline>
+      (function () {
+        var root = document.documentElement;
+        root.classList.add('js');
+        var theme = 'light';
+        try {
+          var stored = localStorage.getItem('theme');
+          if (stored === 'light' || stored === 'dark') {
+            theme = stored;
+          } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            theme = 'dark';
+          }
+        } catch (e) {
+          if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) theme = 'dark';
+        }
+        root.setAttribute('data-theme', theme);
+      })();
+    </script>
+
+    <ClientRouter />
   </head>
-  <body class={theme === "light" ? "theme-light" : undefined}>
-    <!-- Camaleonic Header -->
+  <body>
+    <a class="skip-link" href="#main" data-no-inl>Skip to content</a>
     <Header />
-
-    <!-- React Islands for Global Logic -->
-    <AppInit client:load />
-    <ScrollProgress client:load />
-    <ScrollRestoration client:load />
-
-    <!-- Main Content Slot -->
-    <slot />
-
-    <!-- Custom cursor + magnetic targets (fine pointers only) -->
-    <Interactions />
-
-    <!-- Animated dither texture over every chapter -->
-    <DitherBg />
-
-    <!-- SVG Filter for Liquid Texture injected at bottom of body -->
-    <svg width="0" height="0" aria-hidden="true" style="position: absolute; pointer-events: none;">
-      <filter id="liquid-filter">
-        <!-- Reduced numOctaves to 2 for massive CPU performance gain at initial load -->
-        <feTurbulence type="fractalNoise" baseFrequency="0.015 0.02" numOctaves="2" result="noise" />
-        <feDisplacementMap in="SourceGraphic" in2="noise" scale="30" xChannelSelector="R" yChannelSelector="B" />
-      </filter>
-    </svg>
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
 
     <script>
-      import { gsap } from "gsap";
-      
-      // Liquid breathing effect (SVG Filter animation) optimized
-      document.addEventListener("astro:page-load", () => {
-        const filter = document.querySelector("#liquid-filter feTurbulence");
-        if (filter) {
-          const liquidTween = gsap.to(filter, {
-            attr: { baseFrequency: "0.01 0.03" },
-            duration: 8,
-            ease: "sine.inOut",
-            yoyo: true,
-            repeat: -1,
-            paused: true
-          });
+      import Lenis from 'lenis';
+      import { destroyMotion, initMotion, settleReturnCard, startScrollClock } from '../lib/motion';
+      import { applyAfterSwap, prepareNavigation, rememberSwap } from '../lib/page-transition';
 
-          const filteredElements = document.querySelectorAll(".hero-section, .bg-image-liquid");
-          if ("IntersectionObserver" in window && filteredElements.length > 0) {
-            const observer = new IntersectionObserver((entries) => {
-              const isVisible = entries.some(entry => entry.isIntersecting);
-              if (isVisible) {
-                requestAnimationFrame(() => liquidTween.resume());
-              } else {
-                liquidTween.pause();
-              }
-            }, { threshold: 0.01 });
+      /*
+       * One module for the whole site. Runs once; re-initialises on every client navigation
+       * (astro:page-load), tears down before the swap (astro:before-swap).
+       * Lenis is driven by gsap.ticker (see startScrollClock), so ScrollTrigger and Lenis share one clock.
+       * Card travel (WorkStack, NextProject) and the way back are in lib/page-transition.ts: before-preparation ends a
+       * return travel and strips case names, before-swap records the URL being left, after-swap applies the transition
+       * state before the new snapshot is taken.
+       */
 
-            filteredElements.forEach(el => observer.observe(el));
-          } else {
-            liquidTween.resume();
-          }
+      type LenisWindow = Window & { __lenis?: Lenis };
+      const w = window as LenisWindow;
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+      let lenis: Lenis | null = null;
+      let stopClock: () => void = () => {};
+      let revealObserver: IntersectionObserver | null = null;
+
+      function resolveTheme(): 'light' | 'dark' {
+        try {
+          const stored = localStorage.getItem('theme');
+          if (stored === 'light' || stored === 'dark') return stored;
+        } catch {
+          // Storage blocked: fall through to system preference.
         }
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+
+      function applyTheme(): void {
+        document.documentElement.setAttribute('data-theme', resolveTheme());
+      }
+
+      function startLenis(): void {
+        if (reduceMotion.matches) return;
+        lenis = new Lenis({ duration: 1.1 });
+        w.__lenis = lenis;
+        stopClock = startScrollClock(lenis);
+      }
+
+      function stopLenis(): void {
+        stopClock();
+        stopClock = () => {};
+        lenis?.destroy();
+        lenis = null;
+        w.__lenis = undefined;
+      }
+
+      function observeReveals(): void {
+        revealObserver?.disconnect();
+        revealObserver = null;
+        const items = document.querySelectorAll<HTMLElement>('.reveal');
+        if (reduceMotion.matches || !('IntersectionObserver' in window)) {
+          items.forEach((el) => el.classList.add('is-in'));
+          return;
+        }
+        revealObserver = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (!entry.isIntersecting) continue;
+              entry.target.classList.add('is-in');
+              revealObserver?.unobserve(entry.target);
+            }
+          },
+          { rootMargin: '0px 0px -10% 0px', threshold: 0.01 },
+        );
+        items.forEach((el) => revealObserver?.observe(el));
+      }
+
+      // The before-swap event carries the URL being left (from); the card travel and the way back read it.
+      interface SwapEvent extends Event {
+        from: URL;
+      }
+
+      // Fires before the old snapshot is taken. Ends a return travel still in place and strips the names that would
+      // pair a case with another case (page-transition.ts prepareNavigation).
+      interface PreparationEvent extends Event {
+        from: URL;
+        to: URL;
+      }
+
+      document.addEventListener('astro:before-preparation', (event) => {
+        const nav = event as PreparationEvent;
+        prepareNavigation(nav.from, nav.to);
       });
+
+      document.addEventListener('astro:before-swap', (event) => {
+        rememberSwap((event as SwapEvent).from);
+        destroyMotion();
+        stopLenis();
+        revealObserver?.disconnect();
+        revealObserver = null;
+      });
+
+      // ClientRouter swaps the <html> attributes, so restore the js flag and theme on the new page. Then the card
+      // travel state (page-transition.ts) is applied before the new snapshot is taken.
+      document.addEventListener('astro:after-swap', () => {
+        document.documentElement.classList.add('js');
+        applyTheme();
+        applyAfterSwap();
+      });
+
+      document.addEventListener('astro:page-load', () => {
+        stopLenis();
+        startLenis();
+        initMotion();
+        settleReturnCard(lenis);
+        observeReveals();
+      });
+
+      // Follow the system theme live while the user has not chosen one.
+      window
+        .matchMedia('(prefers-color-scheme: dark)')
+        .addEventListener('change', () => {
+          let stored: string | null = null;
+          try {
+            stored = localStorage.getItem('theme');
+          } catch {
+            // Storage blocked: treat as no stored choice.
+          }
+          if (stored !== 'light' && stored !== 'dark') applyTheme();
+        });
     </script>
   </body>
 </html>

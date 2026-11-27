@@ -1,0 +1,137 @@
+---
+import type { ExperienceItem } from '@/lib/data';
+import { periodYear } from '../lib/data';
+
+/*
+ * Timeline. SHARED with the about page: props are a fixed contract.
+ *   items: ExperienceItem[]   rows to render
+ *   detailed?: boolean        also show full period, description and stack
+ *   heading?: string          optional heading in .muted
+ * Root carries no .col or .section; the page wraps it.
+ * Left column: year (periodYear). "Now" renders as the accent chip.
+ */
+interface Props {
+  items: ExperienceItem[];
+  detailed?: boolean;
+  heading?: string;
+}
+
+const { items, detailed = false, heading } = Astro.props;
+import StackChips from './StackChips.astro';
+---
+
+<div class="timeline" data-timeline>
+  {heading && <h2 class="heading muted" data-roll>{heading}</h2>}
+
+  <div class="rows-wrap">
+  <span class="draw" data-timeline-draw aria-hidden="true"></span>
+  <ol class="rows">
+    {
+      items.map((item, i) => {
+        const when = periodYear(item.period);
+        const isNow = when === 'Now';
+        return (
+          <li class="row reveal" style={`--i:${i + 1}`}>
+            <div class="when">
+              {isNow ? <span class="chip">Now</span> : <span class="year t-mono muted">{when}</span>}
+            </div>
+            <div class="body">
+              <p class="company">{item.company}</p>
+              <p class="role muted">{item.role}</p>
+              {detailed && (
+                <>
+                  <p class="period t-mono muted">{item.period}</p>
+                  <p class="desc muted">{item.description}</p>
+                  <StackChips tags={item.stack} />
+                </>
+              )}
+            </div>
+          </li>
+        );
+      })
+    }
+  </ol>
+  </div>
+</div>
+
+<style>
+  .heading {
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+
+  .rows-wrap {
+    position: relative;
+  }
+
+  .rows {
+    display: block;
+  }
+
+  /* 1px rail in the gap between the year column (88px) and the content (24px gap), centred at 100px.
+   * Without JS --draw stays 1 and the line is fully drawn. motion.ts sets --draw 0 to 1 on scroll. */
+  .draw {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 99.5px;
+    width: 1px;
+    background: var(--muted);
+    transform-origin: top center;
+    transform: scaleY(var(--draw, 1));
+  }
+
+  /* JS adds .is-drawing: rows dim until the rail passes them. The Now chip keeps its accent and does not dim. */
+  .is-drawing .row > .body,
+  .is-drawing .row > .when > .year {
+    opacity: 0.45;
+    transition: opacity 200ms ease;
+  }
+
+  .is-drawing .row.is-lit > .body,
+  .is-drawing .row.is-lit > .when > .year {
+    opacity: 1;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    column-gap: 24px;
+    padding-block: 18px;
+    border-top: 1px solid var(--line);
+  }
+
+  .row:last-child {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .when {
+    padding-top: 2px;
+  }
+
+  .chip {
+    display: inline-block;
+    padding: 1px 6px;
+    background: var(--accent);
+    color: #000;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.6;
+  }
+
+  .company {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .period {
+    margin-top: 6px;
+  }
+
+  .desc {
+    margin-top: 10px;
+    max-width: 60ch;
+  }
+</style>

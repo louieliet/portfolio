@@ -1,0 +1,191 @@
+---
+import Clock from './Clock.astro';
+import DitherField from './DitherField.astro';
+import { personalInfo } from '../lib/data';
+
+/*
+ * Site footer: "Get in touch" copies the email (button) and offers a real mailto link.
+ * Links row, then "Now building" on the left and the clock on the right.
+ */
+const mailto = `mailto:${personalInfo.email}`;
+---
+
+<footer class="site-footer bleed">
+  <DitherField />
+  <div class="col">
+    <div class="cta">
+      <!-- The wipe is a sibling of the split text, not inside it, so the line roll never touches it. -->
+      <span class="mag" data-magnetic>
+        <button class="get-in-touch t-display wipe-trigger" type="button" data-copy-email={personalInfo.email}>
+          <span class="big"><span class="cta-text" data-roll="slow">Get in touch</span><span class="wipe" aria-hidden="true">Get in touch</span></span>
+          <!-- The reply crossfades from "Copy email" to "Copied" or "Copy failed" for 2s; aria-live announces it. -->
+          <span class="copy-label t-mono muted" data-copy-label aria-live="polite">
+            <span class="copy-idle">Copy email</span>
+            <span class="copy-reply" data-copy-reply></span>
+          </span>
+        </button>
+      </span>
+      <p class="email">
+        <a href={mailto}>{personalInfo.email}</a>
+      </p>
+    </div>
+
+    <ul class="links dim">
+      <li><a href={personalInfo.linkedin} target="_blank" rel="noopener" data-swap>LinkedIn</a></li>
+      <li><a href={personalInfo.github} target="_blank" rel="noopener" data-swap>GitHub</a></li>
+      <li><a href={mailto} data-swap>Email</a></li>
+    </ul>
+
+    <div class="meta">
+      <p class="t-mono">
+        <span class="muted">Now building:</span>
+        <a href="/projects/luma">Luma</a>
+      </p>
+      <Clock />
+    </div>
+
+    <p class="copyright t-mono muted">(c) 2026 Emiliano Montes</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    position: relative;
+    isolation: isolate;
+    overflow: clip;
+    display: flex;
+    flex-direction: column;
+    min-height: clamp(420px, 62vh, 620px);
+    border-top: 1px solid var(--line);
+    padding-block: clamp(64px, 10vh, 120px) 40px;
+  }
+
+  /* The DitherField canvas is the first child (z-index 0). Content sits above it. */
+  .site-footer > .col {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Muted copy sits on the dither field, so it is lifted from --muted. Clock is a child component, hence :global. */
+  .site-footer .muted,
+  .site-footer :global([data-clock]) {
+    color: var(--text);
+  }
+
+  /* Magnetic wrapper: shrink to the button so the pull area is the heading and its label. */
+  .cta .mag {
+    display: block;
+    width: max-content;
+  }
+
+  .get-in-touch {
+    display: block;
+    text-align: left;
+    transition: scale var(--dur-press) var(--ease-hover);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .get-in-touch:active {
+      scale: 0.98;
+    }
+  }
+
+  /* Inline-block keeps the copy label on the same line as the heading. */
+  .cta-text {
+    display: inline-block;
+  }
+
+  /* Copy feedback: two stacked spans in one grid cell; the reply blurs in as the idle text blurs out (200ms). */
+  .copy-label {
+    display: inline-grid;
+    margin-left: 12px;
+    vertical-align: middle;
+    font-size: 13px;
+    letter-spacing: 0.01em;
+  }
+
+  .copy-label > span {
+    grid-area: 1 / 1;
+    transition:
+      opacity 200ms ease,
+      filter 200ms ease,
+      transform 200ms var(--ease-hover);
+  }
+
+  .copy-reply {
+    opacity: 0;
+    filter: blur(3px);
+    transform: translateY(4px);
+  }
+
+  .copy-label.is-done .copy-idle {
+    opacity: 0;
+    filter: blur(3px);
+    transform: translateY(-4px);
+  }
+
+  .copy-label.is-done .copy-reply {
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+
+  .email {
+    margin-top: 20px;
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 28px;
+    margin-top: 40px;
+    margin-bottom: 64px; /* minimum gap above the meta row, which is pushed to the bottom */
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px 24px;
+    margin-top: auto;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+  }
+
+  .copyright {
+    margin-top: 40px;
+  }
+</style>
+
+<script>
+  const RESET_MS = 2000;
+  let resetTimer: number | undefined;
+
+  // Delegated on document so it survives client navigations.
+  document.addEventListener('click', async (event) => {
+    const target = event.target as Element | null;
+    const button = target?.closest<HTMLButtonElement>('[data-copy-email]');
+    if (!button) return;
+
+    const label = button.querySelector<HTMLElement>('[data-copy-label]');
+    const reply = label?.querySelector<HTMLElement>('[data-copy-reply]');
+    if (!label || !reply) return;
+
+    let message = 'Copied';
+    try {
+      await navigator.clipboard.writeText(button.dataset.copyEmail ?? '');
+    } catch {
+      message = 'Copy failed';
+    }
+
+    reply.textContent = message;
+    label.classList.add('is-done');
+    window.clearTimeout(resetTimer);
+    resetTimer = window.setTimeout(() => {
+      label.classList.remove('is-done');
+    }, RESET_MS);
+  });
+</script>

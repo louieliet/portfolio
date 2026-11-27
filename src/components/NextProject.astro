@@ -1,0 +1,114 @@
+---
+/*
+ * NextProject: full-width link to the following case study, closing the page.
+ * The peek under the title is the next project's first media (the poster for a clip), tilted back like the home stack
+ * and cropped by the block. Clicking the block is a card travel (lib/page-transition.ts): the peek is the cover and the
+ * name is the title. The current case page drops its own hero and h1 names for that navigation.
+ * Flat (no tilt, no crop) under 900px and under reduced motion.
+ */
+import type { ProjectItem } from '@/lib/data';
+
+interface Props {
+  project: ProjectItem;
+}
+
+const { project } = Astro.props;
+const href = `/projects/${project.id}`;
+const first = project.card.media[0];
+const peek = first.endsWith('.mp4') ? first.replace(/\.mp4$/, '.webp') : first;
+---
+
+<section class="bleed next" aria-label="Next project">
+  <a class="link wipe-trigger" href={href} data-no-inl data-next-link>
+    <span class="t-mono muted">Next project</span>
+    <span class="name t-display" data-next-title>
+      <span class="mag" data-magnetic>
+        <span class="big">{project.name}<span class="wipe" aria-hidden="true">{project.name}</span></span>
+      </span>
+    </span>
+    <span class="muted">{project.subtitle}</span>
+    <span class="peek-wrap" aria-hidden="true">
+      <img class="peek" src={peek} alt="" loading="lazy" decoding="async" data-next-cover />
+    </span>
+  </a>
+</section>
+
+<style>
+  .next {
+    border-top: 1px solid var(--line);
+    overflow: clip;
+  }
+
+  .link {
+    display: block;
+    padding-block: clamp(56px, 10vh, 112px);
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .name {
+    display: block;
+    margin-block: 16px 12px;
+  }
+
+  .peek-wrap {
+    display: block;
+    margin-top: clamp(40px, 7vh, 72px);
+  }
+
+  .peek {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    background: color-mix(in srgb, var(--text) 5%, transparent);
+    outline: 1px solid var(--line);
+    outline-offset: -1px;
+  }
+
+  /* Press on the name, whichever part of the row is pressed. Motion only. */
+  .big {
+    transition: scale var(--dur-press) var(--ease-hover);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .link:active .big {
+      scale: 0.98;
+    }
+  }
+
+  /* The peek leans back like a home card. The block clips its lower part (overflow: clip on .next). */
+  @media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+    .peek-wrap {
+      perspective: 1400px;
+      margin-bottom: -18%;
+    }
+
+    .peek {
+      transform: rotateX(24deg);
+      transform-origin: 50% 100%;
+    }
+  }
+</style>
+
+<script>
+  import { beginTravel, isPlainActivation } from '../lib/page-transition';
+
+  /*
+   * Module-level capture listener: registered once, and it survives client navigations. Only a plain left click (or
+   * Enter on the link) starts a travel. Modifier clicks and middle clicks keep the browser's own behaviour.
+   */
+  document.addEventListener(
+    'click',
+    (event) => {
+      if (!isPlainActivation(event)) return;
+      const link = (event.target as Element | null)?.closest<HTMLAnchorElement>('a[data-next-link]');
+      if (!link) return;
+      beginTravel(link.href, {
+        cover: link.querySelector<HTMLElement>('[data-next-cover]'),
+        title: link.querySelector<HTMLElement>('[data-next-title]'),
+      });
+    },
+    { capture: true },
+  );
+</script>

@@ -1,0 +1,111 @@
+---
+import Layout from '../layouts/Layout.astro';
+import DotPortrait from '../components/DotPortrait.astro';
+import Timeline from '../components/Timeline.astro';
+import { experience, personalInfo } from '../lib/data';
+
+const paragraphs = personalInfo.about.history
+  .split(/\n\s*\n/)
+  .map((paragraph) => paragraph.trim())
+  .filter(Boolean);
+---
+
+<Layout title="About | Emiliano Montes" description={personalInfo.intro}>
+  <div class="col page">
+    <section class="intro">
+      <DotPortrait src="/projects/me-portrait.jpg" alt="Portrait of Emiliano Montes" size={200} />
+      <h1 data-roll data-arrive="0">A little about me.</h1>
+      {paragraphs.map((paragraph, i) =>
+        i === 0 ? (
+          // The first paragraph is the lead of the load choreography.
+          <p class="bio" data-roll data-arrive="0.15">{paragraph}</p>
+        ) : (
+          <p class="bio reveal" style={`--i: ${i + 1}`}>{paragraph}</p>
+        ),
+      )}
+      <p class="t-mono muted reveal" style="--i: 4">{personalInfo.location}</p>
+    </section>
+
+    <section class="block">
+      <Timeline items={experience} detailed heading="Experience" />
+    </section>
+
+    <section class="block" aria-labelledby="education-heading">
+      <h2 id="education-heading" class="sub" data-roll>Education</h2>
+      <ol class="edu">
+        {personalInfo.about.education.map((item, i) => (
+          <li class="reveal" style={`--i: ${i}`}>
+            <span class="t-mono muted">{item.year}</span>
+            <span>
+              <span class="edu-degree">{item.degree}</span>
+              <span class="muted">{item.institution}</span>
+            </span>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+  </div>
+</Layout>
+
+<style>
+  .page {
+    padding-top: 96px;
+    padding-bottom: 120px;
+  }
+
+  /* Sections are separated by space alone. */
+  .block {
+    margin-top: clamp(80px, 11vh, 120px);
+  }
+
+  .intro h1 {
+    margin-top: 32px;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.6;
+    color: var(--text);
+  }
+
+  .bio {
+    margin-top: 16px;
+    max-width: 62ch;
+    color: var(--muted);
+  }
+
+  .intro .t-mono {
+    margin-top: 16px;
+  }
+
+  .sub {
+    margin: 0 0 24px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  /* Education rows share the timeline's grid: year at left, text at right. */
+  .edu {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .edu li {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    gap: 24px;
+    padding-block: 16px;
+    border-top: 1px solid var(--line);
+  }
+
+  .edu-degree {
+    display: block;
+    color: var(--text);
+  }
+
+  @media (max-width: 599px) {
+    .edu li {
+      grid-template-columns: 80px minmax(0, 1fr);
+      gap: 16px;
+    }
+  }
+</style>

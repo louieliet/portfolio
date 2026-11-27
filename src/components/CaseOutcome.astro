@@ -1,0 +1,107 @@
+---
+/*
+ * CaseOutcome: facts built only from project data. No metrics are invented; `metric` is used only when the data has it.
+ * Status: badge text, or "Shipped {year}". Platform: category and first stack item.
+ * Stack: full stack list. Live: host of the project link, when one exists.
+ * Each fact shows its value large (primary) with the label under it (muted).
+ */
+import type { ProjectItem } from '@/lib/data';
+
+interface Props {
+  project: ProjectItem;
+}
+
+interface Fact {
+  label: string;
+  value: string;
+  href?: string;
+}
+
+const { project } = Astro.props;
+
+const facts: Fact[] = [
+  { label: 'Status', value: project.badge?.text ?? `Shipped ${project.year}`, href: project.appStoreUrl },
+  { label: 'Platform', value: [project.category, project.stack[0]].filter(Boolean).join(' / ') },
+  { label: 'Stack', value: project.stack.join(', ') },
+];
+
+// A real result (e.g. a hackathon placement) leads the row when the data has one.
+if (project.metric) {
+  facts.unshift({ label: project.metricLabel ?? 'Result', value: project.metric });
+}
+
+if (project.link) {
+  facts.push({ label: 'Live', value: new URL(project.link).host, href: project.link });
+}
+---
+
+<section class="col outcome" aria-labelledby="outcome-heading">
+  <h2 id="outcome-heading" class="t-mono muted" data-roll>Outcome</h2>
+  <dl class="facts">
+    {
+      facts.map((fact) => (
+        <div class="fact">
+          <dt class="t-mono muted">{fact.label}</dt>
+          <dd class="t-lead">
+            {fact.href ? (
+              <a href={fact.href} target="_blank" rel="noopener">
+                {fact.value}
+              </a>
+            ) : (
+              fact.value
+            )}
+          </dd>
+        </div>
+      ))
+    }
+  </dl>
+</section>
+
+<style>
+  .outcome {
+    padding-block: clamp(56px, 8vh, 96px);
+  }
+
+  h2 {
+    margin: 0;
+  }
+
+  /* 1px --line rules: the grid gap shows the background between cells. */
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1px;
+    margin-top: 24px;
+    background: var(--line);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .fact {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 8px;
+    min-width: 0;
+    padding: 24px 0;
+    background: var(--bg);
+  }
+
+  dt,
+  dd {
+    margin: 0;
+  }
+
+  dd {
+    overflow-wrap: anywhere;
+  }
+
+  dd a {
+    color: var(--text);
+  }
+
+  @media (max-width: 719px) {
+    .facts {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

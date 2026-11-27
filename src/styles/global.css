@@ -1,0 +1,683 @@
+/*
+ * Global styles. Vanilla CSS, no framework.
+ *
+ * CONTRACT (other coders build on this file; do not rename tokens or classes):
+ *
+ * Tokens (defined on :root, overridden per theme):
+ *   --bg, --text, --muted, --line, --accent
+ *   --font-sans, --font-serif, --font-mono
+ *   --col            max width of the content column (880px)
+ *   --header-h       fixed header height
+ *   --space-section  vertical rhythm between sections
+ *   --ease-out       the one easing used for entrances
+ *
+ * Layout:
+ *   .col             content column, offset to the left on wide screens
+ *   .bleed           full width with fluid gutters (for full-bleed media)
+ *   .section         vertical section padding (--space-section)
+ *   .rule            1px separator in --line
+ *
+ * Type:
+ *   .t-lead          22-26px fluid opening sentence
+ *   .t-display       clamp(44px, 6vw, 80px) display, used for names and case titles
+ *   .t-mono          12.5px mono metadata, tabular numbers
+ *   .t-serif         Instrument Serif italic accent
+ *   .muted           --muted color
+ *
+ * Motion:
+ *   .reveal          entrance for non-text blocks; hidden only when html.js is set (no-JS safe).
+ *                    Set --i on the element for stagger (60ms steps).
+ *                    JS adds .is-in when the element enters the viewport.
+ *   --dur-fast/base/slow, --ease-inout   mirrors of the motion.ts constants (0.3 / 0.45 / 0.8s).
+ *   --ease-hover, --ease-pop, --dur-hover-in, --dur-hover-out, --dur-press   hover and press (DESIGN_SYSTEM.md).
+ *   data-roll, data-arrive, data-swap, data-magnetic, data-story: the motion contract, documented in
+ *                    src/lib/motion.ts. Only html.js [data-arrive] hides anything before JS runs (2s failsafe).
+ *   data-vt-keep, data-vt-late, data-vt-static, html[data-vt], html[data-vt-arrive], html[data-vt-return],
+ *   html.vt-back, [data-vt-landing]: the card travel and the way back, documented in src/lib/page-transition.ts.
+ *   data-no-inl      opts an <a> out of the default inline underline (cards, CTAs, swap links, the header name).
+ *
+ * Utilities:
+ *   .sr-only         visually hidden, still read by screen readers
+ *   .skip-link       first focusable element in Layout
+ */
+
+/* ---------- Fonts ---------- */
+
+@font-face {
+  font-family: "General Sans";
+  src: url("/fonts/GeneralSans-Variable.woff2") format("woff2");
+  font-weight: 200 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/fonts/GeistMono-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Instrument Serif";
+  src: url("/fonts/InstrumentSerif-Italic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* ---------- Tokens ---------- */
+
+:root,
+:root[data-theme="light"] {
+  --bg: #f4f4f4;
+  --text: #0c0c0c;
+  --muted: #6b6b6b;
+  --line: rgb(0 0 0 / 8%);
+  --accent: #f5d04a;
+  color-scheme: light;
+}
+
+/* Dark follows the system only when no explicit theme is stored. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b0c0b;
+    --text: #ededed;
+    --muted: #8a8a8c;
+    --line: rgb(255 255 255 / 8%);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0b0c0b;
+  --text: #ededed;
+  --muted: #8a8a8c;
+  --line: rgb(255 255 255 / 8%);
+  color-scheme: dark;
+}
+
+:root {
+  --font-sans: "General Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Instrument Serif", Georgia, serif;
+  --font-mono: "Geist Mono", ui-monospace, Menlo, Consolas, monospace;
+
+  --col: 880px;
+  --header-h: 56px;
+  --space-section: clamp(96px, 14vh, 180px);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1); /* CSS mirror of GSAP power3.inOut */
+  --dur-fast: 300ms;
+  --dur-base: 450ms;
+  --dur-slow: 800ms;
+  /* Hover and press (see DESIGN_SYSTEM.md, Hover and press). Exit is always faster than enter. */
+  --ease-hover: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-hover-in: 240ms;
+  --dur-hover-out: 160ms;
+  --dur-press: 120ms;
+  --radius: 0;
+}
+
+/* ---------- Reset ---------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: var(--header-h);
+}
+
+body {
+  min-height: 100vh;
+  padding-top: var(--header-h);
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+img,
+video,
+picture,
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+  border-radius: var(--radius);
+  box-shadow: none;
+}
+
+button {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ---------- Links ---------- */
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/*
+ * Gesture 1b, inline links: a 1px currentColor underline drawn from the left on hover and focus-visible.
+ * Links that are not running text opt out with data-no-inl; data-swap links have their own gesture.
+ * Specificity is zero on purpose (:where), so a component's own background or decoration always wins.
+ */
+:where(a:not([data-swap], [data-no-inl])) {
+  /* No padding: an inline-block link keeps its box, so the underline sits on the bottom edge and changes no layout. */
+  background: linear-gradient(currentColor, currentColor) right bottom / 0 1px no-repeat;
+  transition: background-size var(--dur-hover-out) var(--ease-hover);
+}
+
+:where(a:not([data-swap], [data-no-inl])):focus-visible {
+  background-size: 100% 1px;
+  background-position: left bottom;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :where(a:not([data-swap], [data-no-inl]):hover) {
+    background-size: 100% 1px;
+    background-position: left bottom;
+    transition: background-size var(--dur-hover-in) var(--ease-hover);
+  }
+}
+
+/* ---------- Focus and selection ---------- */
+
+:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: var(--accent);
+  color: #000;
+}
+
+/* ---------- Type ---------- */
+
+.t-lead {
+  font-size: clamp(22px, 1.4vw + 16px, 26px);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.t-display {
+  font-size: clamp(44px, 6vw, 80px);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.t-mono {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.t-serif {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+/* ---------- Layout ---------- */
+
+/* Content column: 20px gutter on small screens; from 960px it starts at 26.25vw (504px at 1920). */
+.col {
+  margin-inline: 20px;
+  max-width: var(--col);
+}
+
+@media (min-width: 960px) {
+  .col {
+    margin-left: max(20px, 26.25vw);
+    margin-right: 20px;
+  }
+}
+
+/* Full-bleed: no max width, fluid gutters. */
+.bleed {
+  width: 100%;
+  padding-inline: clamp(20px, 3vw, 48px);
+}
+
+.section {
+  padding-block: var(--space-section);
+}
+
+.rule {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 0;
+}
+
+/* ---------- Reveal (entrance motion) ---------- */
+
+.reveal {
+  transition:
+    opacity 600ms var(--ease-out),
+    transform 600ms var(--ease-out);
+  transition-delay: calc(var(--i, 0) * 60ms);
+}
+
+/* Hidden only when the head script has set html.js, so no-JS visitors see everything. */
+.js .reveal {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.js .reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* First-viewport arrivals: hidden only once html.js is set, so the first paint never shows them early.
+   motion.ts sets an inline visibility: visible on each one in the same task that sets its start state.
+   The failsafe shows them after 2s if the script never runs. */
+html.js [data-arrive] {
+  visibility: hidden;
+  animation: arrive-failsafe 0s linear 2s both;
+}
+
+@keyframes arrive-failsafe {
+  to {
+    visibility: visible;
+  }
+}
+
+/* Gesture 1: text links (letter swap). data-swap. motion.ts (mountSwap) wraps each text node in .swap-word,
+   one .swap-char per grapheme. A cell holds two stacked faces; the second sits one line below the first. */
+.swap-word {
+  display: inline-flex;
+  white-space: pre;
+}
+
+.swap-char {
+  position: relative;
+  display: block;
+  height: 1lh;
+  overflow: clip;
+  /* Descenders and accents sit outside the line box. The clip is widened by this margin so they are not cut. */
+  overflow-clip-margin: 0.16em;
+}
+
+.swap-face {
+  display: block;
+  height: 1lh;
+  transition: transform var(--dur-hover-out) var(--ease-hover);
+}
+
+.swap-face + .swap-face {
+  position: absolute;
+  top: 100%;
+  left: 0;
+}
+
+/* Hover: every face moves up one line. Enter is slower than leave, and each cell waits its own --i (12ms steps). */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  [data-swap]:hover .swap-face {
+    transform: translateY(-100%);
+    transition: transform var(--dur-hover-in) var(--ease-hover) calc(var(--i, 0) * 12ms);
+  }
+}
+
+/* Sibling dimming (.dim groups: header nav, work index, footer links). While one link is hovered or
+   focus-visible, the others go to --muted. The aria-current item is never dimmed, so its marker keeps its colour. */
+.dim a {
+  transition: color 150ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .dim:has(a:hover) a:not(:hover):not([aria-current]) {
+    color: var(--muted);
+  }
+}
+
+.dim:has(a:focus-visible) a:not(:focus-visible):not([aria-current]) {
+  color: var(--muted);
+}
+
+/* Gesture 3: big calls. .big wraps the text; .wipe is an aria-hidden copy that sweeps in over it when its
+   .wipe-trigger is hovered or focus-visible. The copy is a sibling of any data-roll text, not inside it,
+   so SplitText never splits or moves it. */
+.big {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.wipe {
+  position: absolute;
+  inset: -0.04em -0.12em;
+  padding: 0.04em 0.12em;
+  background: var(--accent);
+  color: #000;
+  white-space: nowrap;
+  pointer-events: none;
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 200ms var(--ease-hover);
+}
+
+.wipe-trigger:focus-visible .wipe {
+  clip-path: inset(0 0 0 0);
+  transition-duration: 280ms;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .wipe-trigger:hover .wipe {
+    clip-path: inset(0 0 0 0);
+    transition-duration: 280ms;
+  }
+}
+
+/* Cursor label (WorkStack): one shared pill. The stack script creates it and removes it on teardown. */
+.cursor-pill {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 60;
+  padding: 6px 10px;
+  background: var(--text);
+  color: var(--bg);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  scale: 0.9;
+  transition:
+    opacity var(--dur-hover-out) var(--ease-hover),
+    scale var(--dur-hover-out) var(--ease-hover);
+}
+
+.cursor-pill[data-on] {
+  opacity: 1;
+  scale: 1;
+  transition-duration: var(--dur-hover-in);
+}
+
+/* Cell for the odometer digits and the label roll: faces stack in one grid cell and the cell clips them,
+   so the cell keeps the width of its widest face and nothing shifts. */
+.roll-cell {
+  display: inline-grid;
+  overflow: clip;
+}
+
+.roll-cell > .cell-face {
+  grid-area: 1 / 1;
+  display: block;
+}
+
+/* Theme switch: the circle reveal is the only transition, so the default root cross-fade is off for this
+   view transition only. The class is removed when the transition finishes. */
+html.theme-switching::view-transition-old(root),
+html.theme-switching::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* ---------- Page transition: the card opens (lib/page-transition.ts) ----------
+   Names are set inline on a card click, or static on the case page (vt-cover on the hero, vt-title on the h1).
+   Only these rules and the root rules below run for a travel. The theme switch has neither: its root rules are
+   excluded by :not(.theme-switching), and the header name is off during it. Under reduced motion no names are set,
+   and the global reduced-motion block above wins for every pseudo-element. */
+
+::view-transition-group(vt-cover),
+::view-transition-group(vt-title),
+::view-transition-group(vt-bar) {
+  animation-duration: 650ms;
+  animation-timing-function: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+/* The picture never stretches while its box changes aspect: both snapshots fill the box with object-fit: cover. */
+::view-transition-old(vt-cover),
+::view-transition-new(vt-cover) {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  overflow: clip;
+  animation-duration: 200ms;
+}
+
+/* The label name (20px) grows to the case title (80px). Height sets the size and the width follows the aspect ratio,
+   so the text scales uniformly from its leading edge and is never squashed. The colour change is the default
+   cross-fade between the two snapshots. */
+::view-transition-old(vt-title),
+::view-transition-new(vt-title) {
+  height: 100%;
+  width: auto;
+}
+
+/* The origin card's bar folds to the left. It has no counterpart, so it only animates out. */
+::view-transition-old(vt-bar) {
+  animation: vt-bar-fold 220ms var(--ease-out) both;
+}
+
+@keyframes vt-bar-fold {
+  from {
+    clip-path: inset(0 0 0 0);
+  }
+
+  to {
+    clip-path: inset(0 100% 0 0);
+  }
+}
+
+/* Root: the other home pieces leave in 150ms, the new page comes in after a 150ms delay over 250ms. */
+html:not(.theme-switching)::view-transition-old(root) {
+  animation-duration: 150ms;
+}
+
+html:not(.theme-switching)::view-transition-new(root) {
+  animation-duration: 250ms;
+  animation-delay: 150ms;
+  animation-fill-mode: both;
+}
+
+/* The way back (html[data-vt="back"]): a plain 200ms root cross-fade, no travel. The case page's static names are
+   old-only groups here, so their fade is shortened to match the root. */
+html[data-vt='back']::view-transition-old(root),
+html[data-vt='back']::view-transition-new(root) {
+  animation-duration: 200ms;
+  animation-delay: 0ms;
+}
+
+html[data-vt='back']::view-transition-old(vt-title) {
+  animation-duration: 200ms;
+}
+
+/* The header never moves: its named snapshot is shown as is, with no cross-fade of its own. */
+::view-transition-old(site-header),
+::view-transition-new(site-header) {
+  animation: none;
+}
+
+/* Card travel into a case page (html[data-vt-arrive]). The hero and h1 are shown as they are, so the new snapshot has
+   them. The late pieces stay hidden until buildLateArrivals() fades them in (it removes this attribute when done). */
+html[data-vt-arrive] [data-vt-keep] {
+  visibility: visible;
+}
+
+html[data-vt-arrive] .reveal[data-vt-keep] {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
+html[data-vt-arrive] [data-vt-late] {
+  opacity: 0;
+}
+
+/* The way back by card (html.vt-back, set in lib/page-transition.ts when the card is on the page). The case hero and
+   title shrink back into their card and label in 520ms, on the same curve as the forward travel. The old snapshot stays
+   fully visible for the whole travel: the landing picture may not be decoded at the first frame, so the new one fades
+   in only over the last part (vt-fade-in from 320ms). Both snapshots keep the forward sizing rules above, so nothing is
+   squashed. The root: the case-only pieces leave in 120ms, and the home pieces come back after a 220ms delay, so they
+   reappear around the landing card. Reduced motion never gets here: no names are set, and the block below is skipped. */
+@media (prefers-reduced-motion: no-preference) {
+  html.vt-back:not(.theme-switching)::view-transition-group(vt-cover),
+  html.vt-back:not(.theme-switching)::view-transition-group(vt-title) {
+    animation-duration: 520ms;
+    animation-timing-function: cubic-bezier(0.77, 0, 0.175, 1);
+  }
+
+  html.vt-back:not(.theme-switching)::view-transition-old(vt-cover),
+  html.vt-back:not(.theme-switching)::view-transition-old(vt-title) {
+    animation: none;
+    opacity: 1;
+  }
+
+  html.vt-back:not(.theme-switching)::view-transition-new(vt-cover),
+  html.vt-back:not(.theme-switching)::view-transition-new(vt-title) {
+    animation: vt-fade-in 180ms 320ms both;
+  }
+
+  html.vt-back:not(.theme-switching)::view-transition-old(root) {
+    animation-duration: 120ms;
+    animation-delay: 0ms;
+  }
+
+  html.vt-back:not(.theme-switching)::view-transition-new(root) {
+    animation-duration: 300ms;
+    animation-delay: 220ms;
+    animation-fill-mode: both;
+  }
+}
+
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* The static case-page names (inline, so !important) are off during the theme switch, or the hero and title would
+   cross-fade instead of being revealed by the circle. */
+html.theme-switching [data-vt-static] {
+  view-transition-name: none !important;
+}
+
+/* ---------- Utilities ---------- */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  left: 20px;
+  top: -100px;
+  z-index: 100;
+  padding: 8px 12px;
+  background: var(--text);
+  color: var(--bg);
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
+/* ---------- Lenis base CSS (from Lenis docs) ---------- */
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* ---------- Reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .js .reveal {
+    opacity: 1;
+    transform: none;
+  }
+
+  html.js [data-arrive] {
+    visibility: visible;
+    animation: none;
+  }
+
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0.01ms !important;
+  }
+}

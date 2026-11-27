@@ -1,0 +1,130 @@
+<!--
+  Clock: "CDMX, 11:12 pm, 18°C". Live local time in Mexico City plus current temperature (Open-Meteo, no API key).
+  Contract: any number of instances per page. Selector is [data-clock], never an id.
+  Server renders "CDMX" so the layout does not jump. If the weather request fails, only the time shows.
+-->
+<span class="clock t-mono" data-clock>CDMX</span>
+
+<style>
+  .clock {
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+</style>
+
+<!-- Global on purpose: the colon span is created by the script, so scoped styles would not reach it. -->
+<style is:global>
+  /* The colon blinks in one-second steps. Opacity only; off under reduced motion. */
+  [data-clock] .colon {
+    animation: colon-blink 1s steps(1, end) infinite;
+  }
+
+  @keyframes colon-blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-clock] .colon {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  const TIME_ZONE = 'America/Mexico_City';
+  const WEATHER_URL =
+    'https://api.open-meteo.com/v1/forecast?latitude=19.43&longitude=-99.13&current=temperature_2m';
+  const CACHE_KEY = 'clock-weather-cdmx';
+  const CACHE_MS = 30 * 60 * 1000;
+  const TICK_MS = 30 * 1000;
+
+  const timeParts = new Intl.DateTimeFormat('en-US', {
+    timeZone: TIME_ZONE,
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+
+  // Built from parts so the output uses plain spaces and lowercase "pm" (no narrow no-break space).
+  function formatTime(date: Date): { hour: string; minute: string; period: string } {
+    const parts = timeParts.formatToParts(date);
+    const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? '';
+    return { hour: get('hour'), minute: get('minute'), period: get('dayPeriod').toLowerCase() };
+  }
+
+  type Cached = { at: number; temp: number };
+
+  function readCache(): Cached | null {
+    try {
+      const raw = sessionStorage.getItem(CACHE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as Partial<Cached>;
+      return typeof parsed.at === 'number' && typeof parsed.temp === 'number'
+        ? { at: parsed.at, temp: parsed.temp }
+        : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function writeCache(value: Cached): void {
+    try {
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify(value));
+    } catch {
+      // Storage blocked: the request simply repeats next navigation.
+    }
+  }
+
+  async function currentTemp(): Promise<number | null> {
+    const cached = readCache();
+    if (cached && Date.now() - cached.at < CACHE_MS) return cached.temp;
+    try {
+      const res = await fetch(WEATHER_URL);
+      if (!res.ok) return null;
+      const json = (await res.json()) as { current?: { temperature_2m?: unknown } };
+      const temp = json.current?.temperature_2m;
+      if (typeof temp !== 'number') return null;
+      writeCache({ at: Date.now(), temp });
+      return temp;
+    } catch {
+      return null;
+    }
+  }
+
+  let timer: number | undefined;
+  let weather: string | null = null;
+
+  // The colon is its own span so it can blink. The text content is still "CDMX, 11:12 pm, 18°C".
+  function render(): void {
+    const { hour, minute, period } = formatTime(new Date());
+    const suffix = weather ? `, ${weather}` : '';
+    document.querySelectorAll<HTMLElement>('[data-clock]').forEach((el) => {
+      const colon = document.createElement('span');
+      colon.className = 'colon';
+      colon.textContent = ':';
+      el.replaceChildren(`CDMX, ${hour}`, colon, `${minute} ${period}${suffix}`);
+    });
+  }
+
+  function stop(): void {
+    window.clearInterval(timer);
+    timer = undefined;
+  }
+
+  document.addEventListener('astro:page-load', () => {
+    stop();
+    weather = null;
+    render();
+    timer = window.setInterval(render, TICK_MS);
+    void currentTemp().then((temp) => {
+      if (temp === null) return;
+      weather = `${Math.round(temp)}°C`;
+      render();
+    });
+  });
+
+  document.addEventListener('astro:before-swap', stop);
+</script>
