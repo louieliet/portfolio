@@ -267,9 +267,12 @@ const alt = `${item.name} cover`;
    * - Mascot: autoplays, but stays on its poster under reduced motion.
    * - Back link: hidden while the site footer is on screen.
    * - Back link: when the page before this case was home, history.back() restores the home entry (its scroll and
-   *   the card landing in page-transition.ts). Otherwise the href (/#work-{id}) is followed.
+   *   the card travel in page-transition.ts). Otherwise navigate('/') goes home through the same travel: the card
+   *   of this case is centred and becomes the landing card. The href (/#work-{id}) is only the no-JS target: a
+   *   hash URL makes Astro do a full page load.
    * Every lookup is guarded, because this listener stays registered after leaving a case page.
    */
+  import { navigate } from 'astro:transitions/client';
   import { isPlainActivation, previousIsHome } from '../../lib/page-transition';
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -281,9 +284,10 @@ const alt = `${item.name} cover`;
     (event) => {
       if (!isPlainActivation(event)) return;
       const back = (event.target as Element | null)?.closest('[data-case-back]');
-      if (!back || !previousIsHome()) return;
+      if (!back) return;
       event.preventDefault();
-      history.back();
+      if (previousIsHome()) history.back();
+      else void navigate('/');
     },
     { capture: true },
   );

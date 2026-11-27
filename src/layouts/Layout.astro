@@ -98,14 +98,15 @@ const height = isDefaultImage ? 630 : imageHeight;
     <script>
       import Lenis from 'lenis';
       import { destroyMotion, initMotion, settleReturnCard, startScrollClock } from '../lib/motion';
-      import { applyAfterSwap, rememberSwap } from '../lib/page-transition';
+      import { applyAfterSwap, prepareNavigation, rememberSwap } from '../lib/page-transition';
 
       /*
        * One module for the whole site. Runs once; re-initialises on every client navigation
        * (astro:page-load), tears down before the swap (astro:before-swap).
        * Lenis is driven by gsap.ticker (see startScrollClock), so ScrollTrigger and Lenis share one clock.
-       * Card travel (WorkStack, NextProject) and the way back are in lib/page-transition.ts: before-swap records the
-       * URL being left, after-swap applies the transition state before the new snapshot is taken.
+       * Card travel (WorkStack, NextProject) and the way back are in lib/page-transition.ts: before-preparation ends a
+       * return travel and strips case names, before-swap records the URL being left, after-swap applies the transition
+       * state before the new snapshot is taken.
        */
 
       type LenisWindow = Window & { __lenis?: Lenis };
@@ -170,6 +171,18 @@ const height = isDefaultImage ? 630 : imageHeight;
       interface SwapEvent extends Event {
         from: URL;
       }
+
+      // Fires before the old snapshot is taken. Ends a return travel still in place and strips the names that would
+      // pair a case with another case (page-transition.ts prepareNavigation).
+      interface PreparationEvent extends Event {
+        from: URL;
+        to: URL;
+      }
+
+      document.addEventListener('astro:before-preparation', (event) => {
+        const nav = event as PreparationEvent;
+        prepareNavigation(nav.from, nav.to);
+      });
 
       document.addEventListener('astro:before-swap', (event) => {
         rememberSwap((event as SwapEvent).from);

@@ -14,7 +14,9 @@ import { projects } from '../lib/data';
  * - Under 900px and under reduced motion: flat cards. No-JS: flat cards, fully visible, no canvas.
  * - Opening a card (plain click or Enter): the card's ASCII overlay is cleared and settled, and the card's media,
  *   label name and label bar get view-transition names for the travel (lib/page-transition.ts). The names exist only
- *   during that navigation. After a way back, the card the reader left is settled from its first frame.
+ *   during that navigation. After a way back, the card the reader left is settled from its first frame (landing).
+ *   With the card travel back, the landing card is also marked data-vt-landing before this script runs, and its
+ *   picture is shown from the first frame (see the style block).
  */
 const isVideo = (src: string): boolean => src.endsWith('.mp4');
 const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
@@ -219,6 +221,16 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
    * the script removes it after the first paint or after a 1.5s failsafe, so a stuck script never hides media. */
   .stack.ascii-pending .stage {
     opacity: 0;
+  }
+
+  /* The landing card of a way back (data-vt-landing, set in lib/page-transition.ts) shows its real picture from the
+   * first frame: the pending hide is lifted for it, and its ASCII canvas stays off. */
+  .stack.ascii-pending [data-vt-landing] .stage {
+    opacity: 1;
+  }
+
+  [data-vt-landing] .ascii {
+    display: none;
   }
 
   .kind-wide .media {
@@ -660,6 +672,9 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
       if (active >= 0) {
         cards[active].item.classList.remove('is-active');
         indexLinks[active]?.removeAttribute('aria-current');
+      } else {
+        // First activation: a way back may have set is-active on the landing card, which is not always the nearest.
+        for (const card of cards) card.item.classList.remove('is-active');
       }
       active = next;
       cards[next].item.classList.add('is-active');

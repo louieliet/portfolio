@@ -32,8 +32,8 @@
  *   --ease-hover, --ease-pop, --dur-hover-in, --dur-hover-out, --dur-press   hover and press (DESIGN_SYSTEM.md).
  *   data-roll, data-arrive, data-swap, data-magnetic, data-story: the motion contract, documented in
  *                    src/lib/motion.ts. Only html.js [data-arrive] hides anything before JS runs (2s failsafe).
- *   data-vt-keep, data-vt-late, data-vt-static, html[data-vt], html[data-vt-arrive], html[data-vt-return]: the card
- *                    travel and the way back, documented in src/lib/page-transition.ts.
+ *   data-vt-keep, data-vt-late, data-vt-static, html[data-vt], html[data-vt-arrive], html[data-vt-return],
+ *   html.vt-back, [data-vt-landing]: the card travel and the way back, documented in src/lib/page-transition.ts.
  *   data-no-inl      opts an <a> out of the default inline underline (cards, CTAs, swap links, the header name).
  *
  * Utilities:
@@ -555,6 +555,52 @@ html[data-vt-arrive] .reveal[data-vt-keep] {
 
 html[data-vt-arrive] [data-vt-late] {
   opacity: 0;
+}
+
+/* The way back by card (html.vt-back, set in lib/page-transition.ts when the card is on the page). The case hero and
+   title shrink back into their card and label in 520ms, on the same curve as the forward travel. The old snapshot stays
+   fully visible for the whole travel: the landing picture may not be decoded at the first frame, so the new one fades
+   in only over the last part (vt-fade-in from 320ms). Both snapshots keep the forward sizing rules above, so nothing is
+   squashed. The root: the case-only pieces leave in 120ms, and the home pieces come back after a 220ms delay, so they
+   reappear around the landing card. Reduced motion never gets here: no names are set, and the block below is skipped. */
+@media (prefers-reduced-motion: no-preference) {
+  html.vt-back:not(.theme-switching)::view-transition-group(vt-cover),
+  html.vt-back:not(.theme-switching)::view-transition-group(vt-title) {
+    animation-duration: 520ms;
+    animation-timing-function: cubic-bezier(0.77, 0, 0.175, 1);
+  }
+
+  html.vt-back:not(.theme-switching)::view-transition-old(vt-cover),
+  html.vt-back:not(.theme-switching)::view-transition-old(vt-title) {
+    animation: none;
+    opacity: 1;
+  }
+
+  html.vt-back:not(.theme-switching)::view-transition-new(vt-cover),
+  html.vt-back:not(.theme-switching)::view-transition-new(vt-title) {
+    animation: vt-fade-in 180ms 320ms both;
+  }
+
+  html.vt-back:not(.theme-switching)::view-transition-old(root) {
+    animation-duration: 120ms;
+    animation-delay: 0ms;
+  }
+
+  html.vt-back:not(.theme-switching)::view-transition-new(root) {
+    animation-duration: 300ms;
+    animation-delay: 220ms;
+    animation-fill-mode: both;
+  }
+}
+
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 /* The static case-page names (inline, so !important) are off during the theme switch, or the hero and title would

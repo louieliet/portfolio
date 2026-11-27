@@ -1,5 +1,5 @@
 /*
- * Page transition: "the card opens" (home work card -> case hero) and the way back.
+ * Page transition: "the card opens" (home work card -> case hero) and the way back (case -> home card).
  *
  * FORWARD (card or next project -> case)
  * - A capture-phase click listener (WorkStack, NextProject) calls beginTravel() before ClientRouter prepares the
@@ -12,16 +12,27 @@
  *   vt-title on the h1), so the new snapshot has them without any JS.
  * - The video playhead of a card is handed to the case hero (sessionStorage, read once in applyAfterSwap).
  *
- * BACK (case -> home): the SAFE FALLBACK. No shared elements.
- * - html[data-vt="back"] makes the root cross-fade 200ms. Browser back and the Back pill (when the page before
- *   the case was home) both take this path, because the landing check runs in before-swap for any case -> home move.
- * - applyAfterSwap scrolls the home so the card is centred, using the un-enhanced layout (the same frame as the
- *   swap). The card id goes on html[data-vt-return]. motion.ts settleReturnCard() re-centres after motion init.
- * - Why not the shared element: Astro runs astro:page-load (initMotion, which adds the Story pin spacer and the
- *   Experience sticky track) only after the swap callback resolves, and ScrollTrigger refreshes on rAF. So the
- *   new-state snapshot and the target rect of the travelling media may be taken before the layout is final. The
- *   stack also hides its media (ascii-pending) until its first paint, and its images are lazy. None of this can be
- *   verified without a browser, so the way back stays a plain fade.
+ * BACK (case -> home): the card travel. Browser back and the Back pill both come here (the pill goes through
+ * navigate() when the page before the case was not home, so it is never a hash-URL hard load).
+ * - applyAfterSwap sets html[data-vt="return"] and the html.vt-back class, centres the card (html[data-vt-return])
+ *   and makes it the landing card: data-vt-landing, is-active, is-settled, --p 0, --res 1, an eager and sync image,
+ *   and the inline names vt-cover (media) and vt-title (label name). The case page's static names (hero, h1) are
+ *   still in the old snapshot, so the hero shrinks back into its card and the title returns to the label bar.
+ * - The travel CSS (global.css, html.vt-back, never under reduced motion) keeps the old snapshot fully visible and
+ *   fades the new one in late (vt-fade-in from 320ms). The landing picture may not be decoded at the first frame,
+ *   and a late fade keeps the old picture on screen until the new one is ready.
+ * - motion.ts settleReturnCard() re-centres the card after motion init, in the same task. The card keeps the same
+ *   viewport position before and after the layout change, so the live new-state group does not move.
+ * - The landing names and marker end in endReturnTravel(): 700ms after the swap (longer than the 520ms travel), on
+ *   the next astro:before-preparation, and at the start of beginTravel. A name never survives into the next
+ *   navigation.
+ * - Fallback (html[data-vt="back"]): a 200ms root cross-fade with the card centred. Used for reduced motion, no
+ *   View Transitions support, the theme switch, a card that is not on the page. Arriving at home from anything
+ *   other than a case page takes no travel and no centring, as before.
+ *
+ * CASE -> CASE (Next project, then browser back to the previous case): prepareNavigation() strips the static names
+ * of the case being left, so the old snapshot has no name to pair with the new page's names. The change is a plain
+ * cross-fade, not a morph of the hero into the previous hero.
  *
  * Everything is skipped under prefers-reduced-motion and when document.startViewTransition is missing. Names are
  * never assigned during the theme switch (html.theme-switching).
@@ -34,6 +45,10 @@ export const VT_BAR = 'vt-bar';
 const VIDEO_KEY = 'vt:video';
 const PREV_KEY = 'vt:prev';
 const CASE_PATH = /^\/projects\/([^/]+)\/?$/;
+// Longer than the 520ms return travel in global.css. The landing names are cleared after it.
+const RETURN_CLEAR_MS = 700;
+const RETURN_CLASS = 'vt-back';
+const LANDING_ATTR = 'data-vt-landing';
 
 export interface TravelNames {
   cover?: HTMLElement | null;
@@ -43,12 +58,16 @@ export interface TravelNames {
   video?: HTMLVideoElement | null;
 }
 
-// Inline names set by beginTravel, removed in applyAfterSwap.
+// Inline names set by beginTravel (forward), removed in applyAfterSwap and beginTravel.
 let named: HTMLElement[] = [];
+// Inline names set on the landing card (return travel). Separate, so a forward travel never clears them by mistake.
+let landingNamed: HTMLElement[] = [];
 // Pathname a card or Next click is travelling to; consumed by applyAfterSwap.
 let travel: string | null = null;
 // Paths of the swap in progress; set by rememberSwap, consumed by applyAfterSwap.
 let swapFrom: string | null = null;
+// Timer that ends the return travel (endReturnTravel).
+let returnTimer = 0;
 
 /** The case id for a case pathname, or null. */
 export function caseIdOf(pathname: string): string | null {
@@ -86,6 +105,7 @@ function clearNames(): void {
  * travel needs, and strips the static names of the page being left (so each name is unique at snapshot time).
  */
 export function beginTravel(href: string, names: TravelNames): void {
+  endReturnTravel();
   if (!travelAllowed()) return;
   clearNames();
   document.querySelectorAll<HTMLElement>('[data-vt-static]').forEach((el) => {
@@ -161,6 +181,83 @@ function handOffVideo(): void {
 }
 
 /**
+ * Makes the card the landing card of a return travel: the real picture from the first frame (no ASCII, no pending
+ * hide, eager image), the active and settled look, and the travel names on its media and label name.
+ */
+function landCard(item: HTMLElement): void {
+  item.setAttribute(LANDING_ATTR, '');
+  item.classList.add('is-active', 'is-settled');
+  item.style.setProperty('--p', '0');
+  item.style.setProperty('--res', '1');
+
+  const media = item.querySelector<HTMLElement>('.stage > .media');
+  if (media) {
+    // A video card keeps its poster as the visible frame. It does not wait for the clip.
+    if (media instanceof HTMLImageElement) {
+      media.loading = 'eager';
+      media.decoding = 'sync';
+    }
+    nameLanding(media, VT_COVER);
+  }
+  const label = item.querySelector<HTMLElement>('[data-label-name]');
+  if (label) nameLanding(label, VT_TITLE);
+}
+
+function nameLanding(el: HTMLElement, name: string): void {
+  el.style.setProperty('view-transition-name', name);
+  landingNamed.push(el);
+}
+
+/** Called from astro:after-swap on the way back: the fallback or the card travel, decided here. */
+function returnToHome(id: string): void {
+  const root = document.documentElement;
+  const card = document.getElementById(`work-${id}`);
+  root.setAttribute('data-vt-return', id);
+  if (card) window.scrollTo({ top: centreTop(card), behavior: 'instant' });
+
+  if (!card || !travelAllowed()) {
+    root.setAttribute('data-vt', 'back');
+    return;
+  }
+  root.setAttribute('data-vt', 'return');
+  root.classList.add(RETURN_CLASS);
+  landCard(card);
+  returnTimer = window.setTimeout(endReturnTravel, RETURN_CLEAR_MS);
+}
+
+/**
+ * Ends the return travel: removes the landing names and marker, and the html.vt-back class. Safe to call at any time.
+ * Runs 700ms after the swap, on every astro:before-preparation (so no name survives into the next navigation), and
+ * at the start of beginTravel.
+ */
+export function endReturnTravel(): void {
+  if (returnTimer) {
+    clearTimeout(returnTimer);
+    returnTimer = 0;
+  }
+  for (const el of landingNamed) el.style.removeProperty('view-transition-name');
+  landingNamed = [];
+  const root = document.documentElement;
+  root.classList.remove(RETURN_CLASS);
+  if (root.getAttribute('data-vt') === 'return') root.removeAttribute('data-vt');
+  document.querySelectorAll(`[${LANDING_ATTR}]`).forEach((el) => el.removeAttribute(LANDING_ATTR));
+}
+
+/**
+ * Called from astro:before-preparation for every navigation, before the browser takes the old snapshot. Ends any
+ * return travel still in place, and strips the static names of a case page that is left for another case (the
+ * old snapshot must not pair its hero with the new page's hero).
+ */
+export function prepareNavigation(from: URL, to: URL): void {
+  endReturnTravel();
+  if (caseIdOf(from.pathname) && to.pathname !== '/') {
+    document.querySelectorAll<HTMLElement>('[data-vt-static]').forEach((el) => {
+      el.style.removeProperty('view-transition-name');
+    });
+  }
+}
+
+/**
  * Called from astro:after-swap, after the new document is in place and before its snapshot. Resets every
  * transition attribute, then sets the ones this navigation needs.
  */
@@ -169,6 +266,7 @@ export function applyAfterSwap(): void {
   root.removeAttribute('data-vt');
   root.removeAttribute('data-vt-arrive');
   root.removeAttribute('data-vt-return');
+  endReturnTravel();
   clearNames();
 
   const from = swapFrom;
@@ -179,11 +277,7 @@ export function applyAfterSwap(): void {
 
   const fromCase = from ? caseIdOf(from) : null;
   if (fromCase && to === '/') {
-    // Back to home: the fallback cross-fade, then the home is scrolled to the card that was opened.
-    root.setAttribute('data-vt', 'back');
-    root.setAttribute('data-vt-return', fromCase);
-    const card = document.getElementById(`work-${fromCase}`);
-    if (card) window.scrollTo({ top: centreTop(card), behavior: 'instant' });
+    returnToHome(fromCase);
     return;
   }
 
