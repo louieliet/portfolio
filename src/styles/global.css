@@ -29,7 +29,7 @@
  *                    Set --i on the element for stagger (60ms steps).
  *                    JS adds .is-in when the element enters the viewport.
  *   --dur-fast/base/slow, --ease-inout   mirrors of the motion.ts constants (0.3 / 0.45 / 0.8s).
- *   data-roll, data-roll-hover, data-arrive, data-scrub: the motion contract, documented in src/lib/motion.ts.
+ *   data-roll, data-roll-hover, data-arrive, data-story: the motion contract, documented in src/lib/motion.ts.
  *                    Only html.js [data-arrive] hides anything before JS runs (first viewport, 2s failsafe).
  *
  * Utilities:

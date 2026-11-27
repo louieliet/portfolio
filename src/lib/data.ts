@@ -126,6 +126,12 @@ export const personalInfo = {
     "DUMMY: reemplazar fun fact two.", // DUMMY: reemplazar
     "DUMMY: reemplazar fun fact three.", // DUMMY: reemplazar
   ],
+  // "How I work" chapter on the home (src/components/Story.astro). One beat per entry, read in order.
+  story: [
+    "Good products start before the first screen.",
+    "I think the product through, design it, iterate, and code it myself.",
+    "Then I polish until it feels as good as it works.",
+  ] satisfies string[],
   // Four columns for the home "Approach" block and the about page. Work/Approach/Drive reuse real facts above.
   // Life is placeholder text; each line is marked DUMMY.
   facts: [

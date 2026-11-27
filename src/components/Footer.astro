@@ -10,6 +10,7 @@ const mailto = `mailto:${personalInfo.email}`;
 ---
 
 <footer class="site-footer bleed">
+  <p class="ghost" data-ghost aria-hidden="true">CONTACT</p>
   <div class="col">
     <div class="cta">
       <!-- The label swaps "Copy email" -> "Copied" for 2s; aria-live announces the change. -->
@@ -42,8 +43,37 @@ const mailto = `mailto:${personalInfo.email}`;
 
 <style>
   .site-footer {
+    position: relative;
+    overflow: clip;
     border-top: 1px solid var(--line);
     padding-block: clamp(64px, 10vh, 120px) 40px;
+  }
+
+  /* Decorative ghost word. It sits behind the content and is cropped by the footer's bottom edge.
+   * It is absolutely positioned, so it adds no height. motion.ts scrubs it up into place. */
+  .ghost {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -0.14em;
+    z-index: 0;
+    margin: 0;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: clamp(120px, 24vw, 420px);
+    line-height: 0.8;
+    letter-spacing: -0.04em;
+    text-align: center;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: color-mix(in srgb, var(--text) 5%, transparent);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .site-footer > .col {
+    position: relative;
+    z-index: 1;
   }
 
   .get-in-touch {

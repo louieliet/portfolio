@@ -53,8 +53,9 @@ Source of truth: `src/lib/motion.ts` (header comment has the full contract). Com
 - Hover roll: `data-roll-hover` on a link or label. Fine pointers only. The label rolls 90deg onto an aria-hidden copy in 0.3s.
 - Load choreography: `data-arrive="<seconds>"` marks first-viewport items. First visit in a session plays the full version (about 1.1s). Later navigations play the short version (everything rolls together at 0.3s).
 - `data-arrive` is the only CSS-hidden state (`html.js [data-arrive]`). It has a 2s failsafe, so text shows if JS never runs.
-- Scroll-lit words: `data-scrub` (Approach lead). Opacity 0.28 to 1 between `top 80%` and `top 35%`.
-- Footer: one arrival schedule at `top 85%`, once.
+- The one pinned chapter: `data-story` ("How I work", Story.astro). Desktop (>= 900px) with motion only. The stage pins under the header for 200% of a viewport (`scrub` 0.5). Words light up with scroll, each beat owning a third of the progress. The ASCII block dissolves noise, wireframe, product. Limits: one pin on the home, no snap, no pin on mobile or reduced motion. Under 900px each beat lights once on entry. Reduced motion and no JS show all beats lit with the product frame.
+- Timeline rail: `data-timeline` draws a 1px rail down the rows (scrubbed `--draw`), and each row lights as the rail passes it. Without JS the rail is fully drawn and every row is lit.
+- Footer: one arrival schedule at `top 85%`, once. The ghost word "CONTACT" (`data-ghost`) scrubs from 35% down to 0 and fades in as the footer enters. It is cropped by the footer, absolutely positioned, and adds no height.
 - Stack velocity: smoothed scroll velocity sets `--v` on the work stack (up to 6deg tilt, 1.5% stretch) and scales the hero field (up to 2.2x amplitude and speed). Exactly 0 at rest.
 - Theme dot: circle reveal from the dot (0.65s) through `document.startViewTransition`. Instant under reduced motion or without the API.
 - Entrances for non-text blocks: `.reveal` fades in and rises 12px over 600ms `--ease-out`, stagger with `--i` (60ms steps). Visible without JS.
@@ -67,7 +68,10 @@ Source of truth: `src/lib/motion.ts` (header comment has the full contract). Com
 - `Header.astro`: fixed bar: name, clock, Work (count), About, Resume, theme dot.
 - `Clock.astro`: "CDMX, 11:12 pm, 18°C" live time and Open-Meteo temperature. `[data-clock]`, any count per page. The colon blinks (opacity, 1s steps).
 - `src/lib/motion.ts`: the motion system. Rules, durations, the `data-*` contract, `initMotion` / `destroyMotion`, theme switch, roll helpers.
-- `Footer.astro`: "Get in touch" copies the email, links row, "Now building", clock, copyright.
+- `Footer.astro`: "Get in touch" copies the email, links row, "Now building", clock, copyright, and the decorative "CONTACT" ghost word.
+- `Story.astro`: "How I work" chapter, the first block of Approach. Three beats from `personalInfo.story`, plus signs, a counter and ticks (pinned only), and the ASCII block.
+- `src/lib/ascii-story.ts`: pure functions for the chapter's ASCII block: noise, wireframe, product, and the blend `renderStoryFrame(progress, t)`.
+- `Timeline.astro`: year, company and role rows, with the `data-timeline` rail. Shared by home and about.
 - `Hero.astro`: home intro at content height: `AsciiField`, name with `RoleWord`, now/previously lines, fun fact link.
 - `AsciiField.astro`: 46x18 ASCII wave field, the hero object. SSR t=0 frame; loop only when on screen and visible; static under reduced motion. Math in `src/lib/wave.ts`.
 - `RoleWord.astro`: rotating role inside the intro, 3.2s dwell. Four entrances (wireframe, ASCII resolve, spring pop, cursor highlight). Width reserved for the longest role.

@@ -19,9 +19,11 @@ interface Props {
 const { items, detailed = false, heading } = Astro.props;
 ---
 
-<div class="timeline">
+<div class="timeline" data-timeline>
   {heading && <h2 class="heading muted" data-roll>{heading}</h2>}
 
+  <div class="rows-wrap">
+  <span class="draw" data-timeline-draw aria-hidden="true"></span>
   <ol class="rows">
     {
       items.map((item, i) => {
@@ -48,6 +50,7 @@ const { items, detailed = false, heading } = Astro.props;
       })
     }
   </ol>
+  </div>
 </div>
 
 <style>
@@ -58,8 +61,37 @@ const { items, detailed = false, heading } = Astro.props;
     margin-bottom: 20px;
   }
 
+  .rows-wrap {
+    position: relative;
+  }
+
   .rows {
     display: block;
+  }
+
+  /* 1px rail in the gap between the year column (88px) and the content (24px gap), centred at 100px.
+   * Without JS --draw stays 1 and the line is fully drawn. motion.ts sets --draw 0 to 1 on scroll. */
+  .draw {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 99.5px;
+    width: 1px;
+    background: var(--muted);
+    transform-origin: top center;
+    transform: scaleY(var(--draw, 1));
+  }
+
+  /* JS adds .is-drawing: rows dim until the rail passes them. The Now chip keeps its accent and does not dim. */
+  .is-drawing .row > .body,
+  .is-drawing .row > .when > .year {
+    opacity: 0.45;
+    transition: opacity 200ms ease;
+  }
+
+  .is-drawing .row.is-lit > .body,
+  .is-drawing .row.is-lit > .when > .year {
+    opacity: 1;
   }
 
   .row {

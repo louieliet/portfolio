@@ -1,17 +1,16 @@
 ---
+import Story from './Story.astro';
 import { personalInfo } from '../lib/data';
 
 /*
- * Approach: one first-person statement, then the four fact groups from personalInfo.facts
- * (Work, Approach, Drive, Life) as numbered columns, then a link to the about page.
+ * Approach: the "How I work" chapter (Story, pinned on desktop), then the four fact groups from
+ * personalInfo.facts (Work, Approach, Drive, Life) as numbered columns, then a link to the about page.
  * Life lines are DUMMY placeholders in data.ts.
  */
-const statement =
-  'Good products start before the first screen. I like to be there from the first question to the last pixel.';
 ---
 
 <section class="col section" aria-label="Approach">
-  <p class="t-lead lead" data-scrub>{statement}</p>
+  <Story />
 
   <ul class="facts">
     {
@@ -33,11 +32,6 @@ const statement =
 </section>
 
 <style>
-  .lead {
-    max-width: 30em;
-    margin-bottom: clamp(48px, 8vh, 96px);
-  }
-
   .facts {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));

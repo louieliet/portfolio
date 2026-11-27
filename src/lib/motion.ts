@@ -19,8 +19,13 @@
  *                             data-roll (rolls at that time), data-ascii-field (row draw, 0.5s), a .card
  *                             (rises 40px, 0.8s), a .reveal block (gets .is-in at that time).
  * - data-roll-hover           hover roll on a link or label. Fine pointers only (CSS), wrapped by initMotion.
- * - data-scrub                scroll-lit words (opacity 0.28 to 1 between "top 80%" and "top 35%").
  * - data-ascii-field          the hero field. Its load reveal writes data-reveal (0..1) on the element.
+ * - data-story                the "How I work" chapter (Story.astro). Desktop with motion: ONE pinned chapter,
+ *                             scroll lights the words and drives the ASCII block (mountStoryPinned). Under 900px:
+ *                             each beat lights once on entry (mountStoryFlow). Reduced motion: static, all lit.
+ * - data-timeline             a Timeline. Its rail (data-timeline-draw) draws down on scroll and rows light as it
+ *                             passes (mountTimeline).
+ * - data-ghost                the footer's ghost word. Scrubbed up and faded in as the footer enters.
  * - Footer (.site-footer) runs its own once-only arrival schedule at "top 85%".
  *
  * LIFECYCLE
@@ -33,6 +38,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
 import type Lenis from 'lenis';
+import { renderStoryFrame, renderStoryProduct, storyStage } from './ascii-story';
 
 gsap.registerPlugin(ScrollTrigger, SplitText);
 
@@ -279,29 +285,6 @@ export function rollText(cell: HTMLElement, text: string, dir: -1 | 0 | 1, force
   });
 }
 
-/* ---------- Scroll-lit words ---------- */
-
-function mountScrub(el: HTMLElement): void {
-  const split = SplitText.create(el, {
-    type: 'words',
-    autoSplit: true,
-    onSplit(self) {
-      const words = self.words;
-      const tl = gsap
-        .timeline({ scrollTrigger: { trigger: el, start: 'top 80%', end: 'top 35%', scrub: 0.5 } })
-        .fromTo(
-          words,
-          { opacity: 0.28 },
-          { opacity: 1, duration: 0.1, ease: 'none', stagger: 0.9 / Math.max(words.length - 1, 1) },
-        );
-      timelines.push(tl);
-      scheduleRefresh();
-      return tl;
-    },
-  });
-  splits.set(el, split);
-}
-
 /* ---------- Arrivals: first viewport, one timeline ---------- */
 
 function buildArrivals(short: boolean): void {
@@ -414,6 +397,270 @@ function mountFooter(footer: HTMLElement): void {
   );
 }
 
+/* ---------- Timeline draws ---------- */
+
+/**
+ * The rail draws down the rows as the timeline scrolls through the viewport, and each row lights when the rail
+ * reaches its top. The scrub drives a proxy so the rail and the rows share one smoothed progress value.
+ */
+function mountTimeline(root: HTMLElement): void {
+  const draw = root.querySelector<HTMLElement>('[data-timeline-draw]');
+  const wrap = draw?.parentElement;
+  if (!draw || !wrap) return;
+  const rows = Array.from(root.querySelectorAll<HTMLElement>('.row'));
+  let tops: number[] = [];
+  const drive = { p: 0 };
+
+  root.classList.add('is-drawing');
+  root.style.setProperty('--draw', '0');
+  undo.push(() => {
+    root.classList.remove('is-drawing');
+    root.style.removeProperty('--draw');
+    for (const row of rows) row.classList.remove('is-lit');
+  });
+
+  const paint = (p: number): void => {
+    root.style.setProperty('--draw', p.toFixed(3));
+    const y = p * wrap.offsetHeight;
+    rows.forEach((row, i) => row.classList.toggle('is-lit', y >= tops[i]));
+  };
+
+  const scrubbed = gsap.timeline().to(drive, { p: 1, ease: 'none', onUpdate: () => paint(drive.p) });
+  timelines.push(scrubbed);
+  triggers.push(
+    ScrollTrigger.create({
+      trigger: root,
+      start: 'top 75%',
+      end: 'bottom 60%',
+      scrub: 0.5,
+      animation: scrubbed,
+      onRefresh: () => {
+        tops = rows.map((row) => row.offsetTop);
+        paint(drive.p);
+      },
+    }),
+  );
+}
+
+/* ---------- Footer ghost word ---------- */
+
+function mountFooterGhost(footer: HTMLElement): void {
+  const ghost = footer.querySelector<HTMLElement>('[data-ghost]');
+  if (!ghost) return;
+  const tl = gsap.timeline().fromTo(ghost, { yPercent: 35, opacity: 0 }, { yPercent: 0, opacity: 1, ease: 'none' });
+  timelines.push(tl);
+  triggers.push(
+    ScrollTrigger.create({
+      trigger: footer,
+      start: 'top bottom',
+      end: 'bottom bottom',
+      scrub: 0.5,
+      animation: tl,
+    }),
+  );
+}
+
+/* ---------- Story chapter ("How I work") ---------- */
+
+// Beat i owns scroll progress [i/3, i/3 + STORY_SPAN]. Inside that window word j starts at its own offset and
+// fades to full over STORY_FADE. The first word of beat 1 is always lit, so the section never looks empty.
+const STORY_SPAN = 0.26;
+const STORY_FADE = 0.06;
+const STORY_LIT_FLOOR = 0.22;
+const STORY_NOISE_SPEED = 1.8; // noise phase per second, the same rate as the hero field
+const STORY_PIN_QUERY = '(min-width: 900px) and (prefers-reduced-motion: no-preference)';
+const STORY_FLOW_QUERY = '(max-width: 899px) and (prefers-reduced-motion: no-preference)';
+
+// Bumped on every mount and on teardown. A shimmer loop or observer from an older mount sees the mismatch and stops.
+let storyRun = 0;
+
+interface StoryParts {
+  beats: HTMLElement[];
+  pluses: HTMLElement[];
+  ticks: HTMLElement[];
+  odo: HTMLElement;
+  caption: HTMLElement;
+  ascii: HTMLElement;
+}
+
+function clamp01(v: number): number {
+  return Math.min(1, Math.max(0, v));
+}
+
+function headerHeight(): number {
+  const value = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h'));
+  return Number.isFinite(value) ? value : 0;
+}
+
+function storyParts(root: HTMLElement): StoryParts | null {
+  const beats = Array.from(root.querySelectorAll<HTMLElement>('[data-story-beat]'));
+  const odo = root.querySelector<HTMLElement>('[data-story-odo]');
+  const caption = root.querySelector<HTMLElement>('[data-story-caption]');
+  const ascii = root.querySelector<HTMLElement>('[data-story-ascii]');
+  if (beats.length === 0 || !odo || !caption || !ascii) return null;
+  return {
+    beats,
+    pluses: Array.from(root.querySelectorAll<HTMLElement>('[data-story-plus]')),
+    ticks: Array.from(root.querySelectorAll<HTMLElement>('[data-story-tick]')),
+    odo,
+    caption,
+    ascii,
+  };
+}
+
+/** Splits one beat into words. aria: 'auto' keeps the whole sentence readable as one label. */
+function splitWords(beat: HTMLElement): HTMLElement[] {
+  splits.get(beat)?.revert();
+  splits.delete(beat);
+  const split = SplitText.create(beat, { type: 'words', aria: 'auto', wordsClass: 'story-word' });
+  splits.set(beat, split);
+  return split.words as HTMLElement[];
+}
+
+/**
+ * Desktop with motion: one ScrollTrigger pins the stage under the header. The trigger drives a scrubbed
+ * timeline (scrub 0.5 gives the smoothing), and that timeline's update lights the words, the plus signs, the
+ * tick and counter, and the caption. Between scroll events a shimmer loop moves the noise, but only while the
+ * chapter is on screen and the tab is visible.
+ */
+function mountStoryPinned(root: HTMLElement): void {
+  const parts = storyParts(root);
+  const stage = root.querySelector<HTMLElement>('[data-story-stage]');
+  if (!parts || !stage) return;
+  const { beats, pluses, ticks, odo, caption, ascii } = parts;
+  const run = ++storyRun;
+
+  root.classList.add('is-pinned');
+  const wordsByBeat = beats.map(splitWords);
+
+  let progress = 0;
+  let lastCur = 0;
+  let lastStage = '';
+  let t = 0;
+  let frame = 0;
+  let visible = false;
+  let last = 0;
+
+  const paintFrame = (): void => {
+    ascii.textContent = renderStoryFrame(progress, t);
+  };
+
+  const apply = (p: number): void => {
+    progress = p;
+    wordsByBeat.forEach((words, i) => {
+      const lo = i / 3;
+      words.forEach((word, j) => {
+        const start = lo + STORY_SPAN * (j / words.length);
+        const lit = i === 0 && j === 0 ? 1 : clamp01((p - start) / STORY_FADE);
+        word.style.opacity = String(STORY_LIT_FLOOR + (1 - STORY_LIT_FLOOR) * lit);
+      });
+    });
+    pluses.forEach((plus, k) => plus.classList.toggle('is-on', p >= (k + 1) / 3 - 0.03));
+    const cur = p < 1 / 3 ? 0 : p < 2 / 3 ? 1 : 2;
+    ticks.forEach((tick, i) => tick.classList.toggle('is-on', i === cur));
+    if (cur !== lastCur) {
+      rollText(odo, String(cur + 1).padStart(2, '0'), cur > lastCur ? 1 : -1);
+      lastCur = cur;
+    }
+    const name = storyStage(p);
+    if (name !== lastStage) {
+      caption.textContent = name;
+      lastStage = name;
+    }
+  };
+
+  const loop = (now: number): void => {
+    frame = 0;
+    if (run !== storyRun) return;
+    const dt = last ? Math.min((now - last) / 1000, 0.1) : 0;
+    last = now;
+    t += dt * STORY_NOISE_SPEED;
+    paintFrame();
+    frame = requestAnimationFrame(loop);
+  };
+
+  const sync = (): void => {
+    if (run !== storyRun) {
+      if (frame !== 0) cancelAnimationFrame(frame);
+      frame = 0;
+      io.disconnect();
+      document.removeEventListener('visibilitychange', sync);
+      return;
+    }
+    const want = visible && !document.hidden;
+    if (want && frame === 0) {
+      last = 0;
+      frame = requestAnimationFrame(loop);
+    } else if (!want && frame !== 0) {
+      cancelAnimationFrame(frame);
+      frame = 0;
+    }
+  };
+
+  const io = new IntersectionObserver(
+    (entries) => {
+      visible = entries[entries.length - 1]?.isIntersecting ?? false;
+      sync();
+    },
+    { threshold: 0 },
+  );
+  io.observe(root);
+  document.addEventListener('visibilitychange', sync);
+  undo.push(() => {
+    storyRun++;
+    if (frame !== 0) cancelAnimationFrame(frame);
+    frame = 0;
+    io.disconnect();
+    document.removeEventListener('visibilitychange', sync);
+  });
+
+  const driver = { p: 0 };
+  const scrubbed = gsap.timeline().to(driver, { p: 1, ease: 'none', onUpdate: () => apply(driver.p) });
+  timelines.push(scrubbed);
+  triggers.push(
+    ScrollTrigger.create({
+      trigger: root,
+      pin: stage,
+      animation: scrubbed,
+      start: () => `top top+=${headerHeight()}`,
+      end: '+=200%',
+      scrub: 0.5,
+      pinSpacing: true,
+      anticipatePin: 1,
+      invalidateOnRefresh: true,
+      // Created before the facts and footer triggers, so it refreshes first and their positions account for the pin.
+      refreshPriority: -1,
+    }),
+  );
+
+  apply(0);
+  paintFrame();
+}
+
+/** Under 900px: no pin. Each beat lights once as it enters the viewport. The PRODUCT frame stays static. */
+function mountStoryFlow(root: HTMLElement): void {
+  const parts = storyParts(root);
+  if (!parts) return;
+  storyRun++;
+  root.classList.remove('is-pinned');
+  parts.ascii.textContent = renderStoryProduct();
+
+  parts.beats.forEach((beat) => {
+    const words = splitWords(beat);
+    gsap.set(words, { opacity: STORY_LIT_FLOOR });
+    triggers.push(
+      ScrollTrigger.create({
+        trigger: beat,
+        start: 'top 80%',
+        once: true,
+        onEnter: () => {
+          gsap.to(words, { opacity: 1, duration: DUR.base, ease: EASE_OUT, stagger: 0.03 });
+        },
+      }),
+    );
+  });
+}
+
 /* ---------- Full and reduced branches ---------- */
 
 function mountFull(short: boolean): void {
@@ -421,11 +668,14 @@ function mountFull(short: boolean): void {
   document.querySelectorAll<HTMLElement>('[data-arrive]').forEach(unhide);
   document.querySelectorAll<HTMLElement>('[data-roll]').forEach((el) => mountRoll(el, short));
   document.querySelectorAll<HTMLElement>('[data-roll-hover]').forEach(mountHover);
-  document.querySelectorAll<HTMLElement>('[data-scrub]').forEach(mountScrub);
   buildArrivals(short);
   mountBatch();
+  document.querySelectorAll<HTMLElement>('[data-timeline]').forEach(mountTimeline);
   const footer = document.querySelector<HTMLElement>('.site-footer');
-  if (footer) mountFooter(footer);
+  if (footer) {
+    mountFooter(footer);
+    mountFooterGhost(footer);
+  }
   scheduleRefresh();
   void document.fonts.ready.then(() => scheduleRefresh());
 }
@@ -481,6 +731,12 @@ export function initMotion(): void {
   ctx = gsap.matchMedia();
   ctx.add(MOTION_QUERY, () => mountFull(short));
   ctx.add(REDUCE_QUERY, () => showStatic());
+  // The chapter has its own queries so it can switch between pinned and flow across the 900px breakpoint.
+  const story = document.querySelector<HTMLElement>('[data-story]');
+  if (story) {
+    ctx.add(STORY_PIN_QUERY, () => mountStoryPinned(story));
+    ctx.add(STORY_FLOW_QUERY, () => mountStoryFlow(story));
+  }
 }
 
 /** Reverts every SplitText, kills every tween and ScrollTrigger this module made, and restores the DOM it touched. */
@@ -491,7 +747,8 @@ export function destroyMotion(): void {
   }
   for (const tl of timelines) tl.kill();
   timelines = [];
-  for (const trigger of triggers) trigger.kill();
+  // revert = true removes pin spacers and restores pinned elements before Astro swaps the page.
+  for (const trigger of triggers) trigger.kill(true);
   triggers = [];
   for (const split of splits.values()) split.revert();
   splits.clear();
