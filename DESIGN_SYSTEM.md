@@ -109,3 +109,12 @@ Source of truth: `src/lib/motion.ts` (header comment has the full contract). Com
 - `src/lib/page-transition.ts`: the card travel and the way back: names, direction attributes, the video playhead handoff, the return-card centring. Called from `Layout.astro` (before-swap, after-swap), `WorkStack.astro`, `NextProject.astro` and the Back pill in `projects/[slug].astro`.
 - `src/styles/global.css`: tokens, reset, `@font-face`, type utilities, `.col`/`.bleed`, `.reveal`.
 - `src/lib/data.ts`: content, `heroShot` (a still for the case page, shown as a figure under the overview when it differs from the card's media and poster), `ProjectItem.card` (home stack: kind, media, chips; `card.media[0]` is also the case hero), `personalInfo.roles/now/previously/intro/facts/funFact`, `periodYear()`.
+
+## SEO and metadata
+
+- `Layout.astro` props: `title`, `description`, `image`, `imageAlt`, `imageWidth`, `imageHeight`, `ogType` ("website" default, "profile" on /about, "article" on cases), `noindex` (default false; only the 404 sets it, which renders `noindex, follow`), `jsonLd` (object or array, rendered as one `application/ld+json` script). Canonical, `og:url` and the sitemap use one form: no trailing slash except the root.
+- `src/lib/seo.ts`: `SITE` (name, url from Astro's `site`, defaults, `en_US`, author, theme colours), `metaDescription` (whole sentences up to 155 characters, or a cut at a word boundary ending in "..."), `caseTitle`, `aboutDescription` (built from `personalInfo`), the JSON-LD builders (`homeJsonLd`, `aboutJsonLd`, `caseJsonLd`), `toJsonLd` (strips empty fields, escapes `<`), `sitemapPaths` and `sitemapXml`.
+- `src/pages/sitemap.xml.ts`: static sitemap of the home, /about and each case. No `lastmod` (no truthful dates in the data).
+- `public/robots.txt`: allow all, points to the sitemap.
+- `src/pages/404.astro`: "Page not found", `noindex`. Vercel serves `dist/404.html` for unknown routes.
+- Copy for titles and descriptions comes from `data.ts` and the case `description`. Keep the case descriptions' first sentence self-contained: it is the meta description.

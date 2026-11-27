@@ -9,6 +9,7 @@ import CaseOutcome from '../../components/CaseOutcome.astro';
 import NextProject from '../../components/NextProject.astro';
 import { projects, type ProjectItem } from '@/lib/data';
 import { VT_COVER, VT_TITLE } from '../../lib/page-transition';
+import { caseJsonLd, caseTitle, metaDescription } from '../../lib/seo';
 
 export const getStaticPaths = (() => {
   return projects.map((project) => ({
@@ -24,6 +25,8 @@ const hasOgCrop = existsSync(new URL(`../../../public${ogPath}`, import.meta.url
 // WhatsApp and Facebook do not render SVG og:images, so svg covers fall back to the default /og.jpg.
 const cover = project.images?.[0];
 const coverImage = cover && !cover.endsWith(".svg") ? cover : undefined;
+// The og image the page declares; the same value feeds the CreativeWork image in JSON-LD. Falls back to the default.
+const ogImage = hasOgCrop ? ogPath : (coverImage ?? "/og.jpg");
 
 // Typed view of the static data (data.ts is inferred as plain strings).
 const item = project as ProjectItem;
@@ -46,12 +49,14 @@ const alt = `${item.name} cover`;
 ---
 
 <Layout
-  title={`${project.name} | Projects`}
-  description={project.description}
-  image={hasOgCrop ? ogPath : coverImage}
+  title={caseTitle(item)}
+  description={item.seoDescription ?? metaDescription(item.description)}
+  image={ogImage}
   imageAlt={`${project.name} cover`}
   imageWidth={hasOgCrop ? 1200 : undefined}
   imageHeight={hasOgCrop ? 630 : undefined}
+  ogType="article"
+  jsonLd={caseJsonLd(item, ogImage)}
 >
   <article class="case-page">
     <div class="col case-head">

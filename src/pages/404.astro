@@ -1,0 +1,32 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+/*
+ * 404: served by Vercel for unknown routes (dist/404.html). noindex, so search engines drop unknown URLs.
+ */
+---
+
+<Layout title="Page not found | Emiliano Montes" description="The page you are looking for does not exist." noindex>
+  <div class="col page">
+    <h1>Page not found.</h1>
+    <p class="back"><a href="/#work" data-swap>Back to the work</a></p>
+  </div>
+</Layout>
+
+<style>
+  .page {
+    padding-top: 96px;
+    padding-bottom: 120px;
+  }
+
+  .page h1 {
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.6;
+    color: var(--text);
+  }
+
+  .back {
+    margin-top: 16px;
+  }
+</style>

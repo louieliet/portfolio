@@ -44,6 +44,7 @@ export interface ProjectItem {
   // Still image for the case page hero (falls back to images[0]). Must exist under public/.
   heroShot?: string;
   card: ProjectCard; // home work stack card
+  seoDescription?: string; // meta description override, when the first sentences of `description` are too thin
   appStoreUrl?: string; // App Store listing; the case Outcome links the status to it
   metric?: string; // real result, shown first in the case Outcome row
   metricLabel?: string;
@@ -58,14 +59,14 @@ export interface ProjectItem {
 }
 
 export const personalInfo = {
-  name: "Emiliano Montes Gómez",
+  name: "Emiliano Montes",
   role: "Product Designer and Engineer",
   tagline: "I build scalable web and mobile products with strong UX foundations.",
   // Role words for the hero RoleWord rotation. Keep in sync with src/components/RoleWord.astro.
   roles: ["product designer", "design engineer", "iOS builder", "co-founder"],
   now: "Building Luma and products at Feeble",
   previously: "Previously iLuk.ai, Vyvo Tech, & UPocket.",
-  intro: "I design and build web and iOS products end to end, from Figma to production.",
+  intro: "I design and build web and iOS products end to end, from the first idea to production.",
   location: "Mexico City, Mexico",
   email: "emilianomg2003@hotmail.com",
   linkedin: "https://www.linkedin.com/in/emiliano-mg/",
@@ -80,7 +81,7 @@ export const personalInfo = {
       },
       {
         title: "Design",
-        description: "Wireframes to high fidelity in Figma, built on a design system."
+        description: "Wireframes to high fidelity, built on a design system."
       },
       {
         title: "Build",
@@ -147,7 +148,7 @@ export const experience: ExperienceItem[] = [
     company: "Feeble.io",
     role: "Fullstack Developer & UX/UI Designer",
     period: "Jul 2026 - Present",
-    description: "Building products end to end: Next.js web, native iOS in SwiftUI, a Convex backend, and the UX in Figma.",
+    description: "Building products end to end: the UX, Next.js web, native iOS in SwiftUI, and a Convex backend.",
     stack: ["Next.js", "TypeScript", "Swift", "SwiftUI", "Convex", "Figma"],
     assets: ["/projects/feeble01.png"],
     appStoreUrl: "https://feeble.io/"
@@ -202,6 +203,7 @@ export const projects = [
     id: "luma",
     name: "Luma",
     subtitle: "Personal Organizer for iPhone",
+    seoDescription: "Luma brings reminders, notes, habits and to-dos into one calm iPhone app, with real alarms that ring through silent mode and Focus.",
     description: "A softer way to organize your day. Luma brings reminders, notes, habits, and to-dos into one calm iPhone app, with real alarms that ring through silent mode and Focus.",
     overview: "Luma replaces four apps with one. Reminders arrive as notifications or, when urgent, as real iPhone alarms. To-dos live in Today, Tomorrow, This week, or Someday. Notes save as you type, and habits keep streaks that skip days off. It works offline and syncs when back online.",
     focus: "As co-founder, I share product design and development with Iñaki Sigüenza, from the flows and interface to the Swift app and its Convex backend. Fernanda Rosas leads illustration and animation.",
