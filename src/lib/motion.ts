@@ -27,7 +27,6 @@
  *                             each beat lights once on entry (mountStoryFlow). Reduced motion: static, all lit.
  * - data-timeline             a Timeline. Its rail (data-timeline-draw) draws down on scroll and rows light as it
  *                             passes (mountTimeline).
- * - data-ghost                the footer's ghost word. Scrubbed up and faded in as the footer enters.
  * - Footer (.site-footer) runs its own once-only arrival schedule at "top 85%".
  *
  * LIFECYCLE
@@ -425,24 +424,6 @@ function mountTimeline(root: HTMLElement): void {
   );
 }
 
-/* ---------- Footer ghost word ---------- */
-
-function mountFooterGhost(footer: HTMLElement): void {
-  const ghost = footer.querySelector<HTMLElement>('[data-ghost]');
-  if (!ghost) return;
-  const tl = gsap.timeline().fromTo(ghost, { yPercent: 35, opacity: 0 }, { yPercent: 0, opacity: 1, ease: 'none' });
-  timelines.push(tl);
-  triggers.push(
-    ScrollTrigger.create({
-      trigger: footer,
-      start: 'top bottom',
-      end: 'bottom bottom',
-      scrub: 0.5,
-      animation: tl,
-    }),
-  );
-}
-
 /* ---------- Story chapter ("How I work") ---------- */
 
 // Beat i owns scroll progress [i/3, i/3 + STORY_SPAN]. Inside that window word j starts at its own offset and
@@ -661,7 +642,6 @@ function mountFull(short: boolean): void {
   const footer = document.querySelector<HTMLElement>('.site-footer');
   if (footer) {
     mountFooter(footer);
-    mountFooterGhost(footer);
   }
   scheduleRefresh();
   void document.fonts.ready.then(() => scheduleRefresh());

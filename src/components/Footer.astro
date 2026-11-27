@@ -1,5 +1,6 @@
 ---
 import Clock from './Clock.astro';
+import DitherField from './DitherField.astro';
 import { personalInfo } from '../lib/data';
 
 /*
@@ -10,7 +11,7 @@ const mailto = `mailto:${personalInfo.email}`;
 ---
 
 <footer class="site-footer bleed">
-  <p class="ghost" data-ghost aria-hidden="true">CONTACT</p>
+  <DitherField />
   <div class="col">
     <div class="cta">
       <!-- The label swaps "Copy email" -> "Copied" for 2s; aria-live announces the change. -->
@@ -44,36 +45,28 @@ const mailto = `mailto:${personalInfo.email}`;
 <style>
   .site-footer {
     position: relative;
+    isolation: isolate;
     overflow: clip;
+    display: flex;
+    flex-direction: column;
+    min-height: clamp(420px, 62vh, 620px);
     border-top: 1px solid var(--line);
     padding-block: clamp(64px, 10vh, 120px) 40px;
   }
 
-  /* Decorative ghost word. It sits behind the content and is cropped by the footer's bottom edge.
-   * It is absolutely positioned, so it adds no height. motion.ts scrubs it up into place. */
-  .ghost {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -0.14em;
-    z-index: 0;
-    margin: 0;
-    font-family: var(--font-sans);
-    font-weight: 600;
-    font-size: clamp(96px, 20.5vw, 400px);
-    line-height: 0.8;
-    letter-spacing: -0.04em;
-    text-align: center;
-    text-transform: uppercase;
-    white-space: nowrap;
-    color: color-mix(in srgb, var(--text) 5%, transparent);
-    pointer-events: none;
-    user-select: none;
-  }
-
+  /* The DitherField canvas is the first child (z-index 0). Content sits above it. */
   .site-footer > .col {
     position: relative;
     z-index: 1;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Muted copy sits on the dither field, so it is lifted from --muted. Clock is a child component, hence :global. */
+  .site-footer .muted,
+  .site-footer :global([data-clock]) {
+    color: color-mix(in srgb, var(--text) 72%, var(--bg));
   }
 
   .get-in-touch {
@@ -114,6 +107,7 @@ const mailto = `mailto:${personalInfo.email}`;
     flex-wrap: wrap;
     gap: 8px 28px;
     margin-top: 40px;
+    margin-bottom: 64px; /* minimum gap above the meta row, which is pushed to the bottom */
   }
 
   .meta {
@@ -121,7 +115,7 @@ const mailto = `mailto:${personalInfo.email}`;
     flex-wrap: wrap;
     justify-content: space-between;
     gap: 12px 24px;
-    margin-top: 64px;
+    margin-top: auto;
     padding-top: 24px;
     border-top: 1px solid var(--line);
   }
