@@ -39,6 +39,8 @@ export interface ProjectItem {
   images?: string[];
   // Still image that floats in the home hero. Must exist under public/. Optional: projects without one are skipped there.
   heroShot?: string;
+  metric?: string; // real result, shown first in the case Outcome row
+  metricLabel?: string;
   imageAspect?: "9/16";
   coverAspect?: "16/9"; // cases list card and detail hero; default frame is 4/3
   badge?: { label: string; text: string };
@@ -303,6 +305,7 @@ export const projects = [
     subtitle: "STEM Career Recommender",
     metric: "1st place",
     metricLabel: "Swift Changemakers Hackathon 2025, Bosch Challenge",
+    coverAspect: "16/9",
     description: "Built an iOS vocational guidance app focused on promoting STEM careers through a gender-bias-free test, interactive flows, and a recommendation model using 16 personalities, multiple intelligences, and NLP.",
     overview: "NeuraPath helps students discover STEM career paths through a mobile experience that combines personality signals, learning preferences, and lightweight game interactions. The app was built during the National Swift Changemakers Hackathon 2025 for the Bosch Challenge.",
     focus: "The focus was product design and iOS execution: shaping the recommendation flow, designing fast and engaging interactions, and building the SwiftUI experience that connects assessment, career matching, and university enrollment actions.",
@@ -327,6 +330,7 @@ export const projects = [
     subtitle: "Identity-Based Wellness App",
     metric: "1st place",
     metricLabel: "iOS Lab UP x Windsurf hackathon",
+    coverAspect: "16/9",
     description: "Winner of the iOS Lab Universidad Panamericana + Windsurf hackathon. Built a wellness app that moves beyond dashboards and metric overload by asking who you want to be today, then reinforcing that identity through 2-minute micro-actions, XP, and the seven dimensions of wellness.",
     overview: "Wellty is a wellness app that reframes self-care around identity instead of metrics. Rather than starting with dashboards, the experience asks who the user wants to be that day and turns that intention into short, actionable habits.",
     focus: "The product focus was designing a behavior loop that feels lightweight but meaningful: identity selection, 2-minute actions, XP feedback, and progress across the seven dimensions of wellness. I designed and built the SwiftUI experience with local persistence.",

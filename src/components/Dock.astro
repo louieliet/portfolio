@@ -1,0 +1,60 @@
+---
+import { personalInfo } from '../lib/data';
+
+/*
+ * Dock: compact group of text links (Email, LinkedIn, GitHub, About). No icons, no icon library.
+ * Items are separated by 1px lines inside one 1px border. Hover and keyboard focus invert the item.
+ */
+const external = [
+  { label: 'LinkedIn', href: personalInfo.linkedin },
+  { label: 'GitHub', href: personalInfo.github },
+];
+---
+
+<nav class="dock t-mono" aria-label="Contact and pages">
+  <ul>
+    <li><a href={`mailto:${personalInfo.email}`}>Email</a></li>
+    {
+      external.map((link) => (
+        <li>
+          <a href={link.href} target="_blank" rel="noopener">
+            {link.label}<span class="sr-only"> (opens in a new tab)</span>
+          </a>
+        </li>
+      ))
+    }
+    <li><a href="/about">About</a></li>
+  </ul>
+</nav>
+
+<style>
+  .dock {
+    display: inline-block;
+    border: 1px solid var(--line);
+  }
+
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  li + li {
+    border-left: 1px solid var(--line);
+  }
+
+  a {
+    display: block;
+    padding: 10px 14px;
+    color: var(--text);
+    text-decoration: none;
+    transition:
+      background-color 200ms ease,
+      color 200ms ease;
+  }
+
+  a:hover,
+  a:focus-visible {
+    background: var(--text);
+    color: var(--bg);
+  }
+</style>

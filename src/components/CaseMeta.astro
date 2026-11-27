@@ -1,0 +1,87 @@
+---
+/*
+ * CaseMeta: the four facts under the case header (Role, Team, Year, Link).
+ * Labels are primary and bold, values are muted. Four columns, two under 720px.
+ * Without a link the fourth cell shows the category instead.
+ */
+import type { ProjectItem } from '@/lib/data';
+
+interface Props {
+  project: ProjectItem;
+}
+
+const { project } = Astro.props;
+const team = project.team?.length ? project.team.join(', ') : 'Solo';
+---
+
+<div class="col meta">
+  <dl class="grid">
+    <div class="cell">
+      <dt>Role</dt>
+      <dd class="muted">{project.role}</dd>
+    </div>
+    <div class="cell">
+      <dt>Team</dt>
+      <dd class="muted">{team}</dd>
+    </div>
+    <div class="cell">
+      <dt>Year</dt>
+      <dd class="muted">{project.year}</dd>
+    </div>
+    <div class="cell">
+      <dt>Link</dt>
+      <dd class="muted">
+        {
+          project.link ? (
+            <a href={project.link} target="_blank" rel="noopener">
+              {project.linkLabel ?? 'Visit'}
+            </a>
+          ) : (
+            project.category
+          )
+        }
+      </dd>
+    </div>
+  </dl>
+</div>
+
+<style>
+  .meta {
+    margin-top: 48px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+  }
+
+  .cell {
+    min-width: 0;
+  }
+
+  dt {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  dd {
+    font-size: 15px;
+    overflow-wrap: anywhere;
+  }
+
+  dd a {
+    color: var(--text);
+  }
+
+  @media (max-width: 719px) {
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      row-gap: 24px;
+    }
+  }
+</style>

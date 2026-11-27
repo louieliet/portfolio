@@ -1,0 +1,108 @@
+---
+import type { ExperienceItem } from '@/lib/data';
+import { periodYear } from '../lib/data';
+
+/*
+ * Timeline. SHARED with the about page: props are a fixed contract.
+ *   items: ExperienceItem[]   rows to render
+ *   detailed?: boolean        also show full period, description and stack
+ *   heading?: string          optional heading in .muted
+ * Root carries no .col or .section; the page wraps it.
+ * Left column: year (periodYear). "Now" renders as the accent chip.
+ */
+interface Props {
+  items: ExperienceItem[];
+  detailed?: boolean;
+  heading?: string;
+}
+
+const { items, detailed = false, heading } = Astro.props;
+---
+
+<div class="timeline">
+  {heading && <h2 class="heading muted reveal" style="--i:0">{heading}</h2>}
+
+  <ol class="rows">
+    {
+      items.map((item, i) => {
+        const when = periodYear(item.period);
+        const isNow = when === 'Now';
+        return (
+          <li class="row reveal" style={`--i:${i + 1}`}>
+            <div class="when">
+              {isNow ? <span class="chip">Now</span> : <span class="year t-mono muted">{when}</span>}
+            </div>
+            <div class="body">
+              <p class="company">{item.company}</p>
+              <p class="role muted">{item.role}</p>
+              {detailed && (
+                <>
+                  <p class="period t-mono muted">{item.period}</p>
+                  <p class="desc muted">{item.description}</p>
+                  <p class="stack t-mono muted">{item.stack.join(', ')}</p>
+                </>
+              )}
+            </div>
+          </li>
+        );
+      })
+    }
+  </ol>
+</div>
+
+<style>
+  .heading {
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+
+  .rows {
+    display: block;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    column-gap: 24px;
+    padding-block: 18px;
+    border-top: 1px solid var(--line);
+  }
+
+  .row:last-child {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .when {
+    padding-top: 2px;
+  }
+
+  .chip {
+    display: inline-block;
+    padding: 1px 6px;
+    background: var(--accent);
+    color: #000;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.6;
+  }
+
+  .company {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .period {
+    margin-top: 6px;
+  }
+
+  .desc {
+    margin-top: 10px;
+    max-width: 60ch;
+  }
+
+  .stack {
+    margin-top: 10px;
+  }
+</style>

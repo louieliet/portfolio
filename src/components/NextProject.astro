@@ -1,0 +1,45 @@
+---
+/*
+ * NextProject: full-width link to the following case study, closing the page.
+ * Deliberately has no transition:name: the cover only travels from the list to a case hero.
+ */
+import type { ProjectItem } from '@/lib/data';
+
+interface Props {
+  project: ProjectItem;
+}
+
+const { project } = Astro.props;
+const href = `/projects/${project.id}`;
+---
+
+<section class="bleed next" aria-label="Next project">
+  <a class="link" href={href}>
+    <span class="t-mono muted">Next project</span>
+    <span class="name t-display">{project.name}</span>
+    <span class="muted">{project.subtitle}</span>
+  </a>
+</section>
+
+<style>
+  .next {
+    border-top: 1px solid var(--line);
+  }
+
+  .link {
+    display: block;
+    padding-block: clamp(56px, 10vh, 112px);
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .name {
+    display: block;
+    margin-block: 16px 12px;
+    transition: transform 400ms var(--ease-out);
+  }
+
+  .link:hover .name {
+    transform: translateX(8px);
+  }
+</style>

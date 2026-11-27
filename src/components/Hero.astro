@@ -1,0 +1,324 @@
+---
+import Media from './Media.astro';
+import RoleSticker from './RoleSticker.astro';
+import Dock from './Dock.astro';
+import { personalInfo, projects } from '../lib/data';
+
+/*
+ * Hero. Top zone: a row of real product shots (heroShot), each linking to its case.
+ * Bottom zone: name with the role sticker, service line, intro and the dock.
+ *
+ * Only the first set carries transition:name (cover-{id}). The mobile marquee copy is inert,
+ * aria-hidden and has no names, so every view-transition name on the page stays unique.
+ * WorkList previews must not reuse these names.
+ *
+ * Tilt, drop and depth are cycled by index so the row reads as floating, not as a grid.
+ * Motion: CSS for entrance and the mobile marquee, Hero script for pointer parallax and scroll drift.
+ */
+
+const TILT = [-3, 2.5, -1.5, 3, -2, 1.5]; // degrees
+const DROP = [0, 56, 18, 72, 10, 46]; // px, margin-top
+const DEPTH = [1, 0.6, 0.8, 0.5, 0.9, 0.7]; // parallax strength
+
+const shots = projects
+  .filter((p) => typeof p.heroShot === 'string' && p.heroShot.length > 0)
+  .map((p, i) => ({
+    id: p.id,
+    alt: `${p.name} ${p.subtitle}`,
+    src: p.heroShot as string,
+    style: `--i:${i};--r:${TILT[i % TILT.length]}deg;--dy:${DROP[i % DROP.length]}px`,
+    depth: DEPTH[i % DEPTH.length],
+  }));
+---
+
+<section class="hero" data-hero aria-labelledby="hero-name">
+  <div class="top bleed">
+    <div class="track" data-track>
+      <ul class="set" aria-label="Projects">
+        {
+          shots.map((s) => (
+            <li class="shot" style={s.style}>
+              <a class="shot-link" href={`/projects/${s.id}`} data-shot-link data-depth={s.depth}>
+                <Media src={s.src} alt={s.alt} loading="eager" transitionName={`cover-${s.id}`} />
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <ul class="set dup" aria-hidden="true" inert>
+        {
+          shots.map((s) => (
+            <li class="shot" style={s.style}>
+              <a class="shot-link" href={`/projects/${s.id}`}>
+                <Media src={s.src} alt="" />
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+
+  <div class="bottom bleed">
+    <div class="id">
+      <h1 id="hero-name" class="t-display name reveal" style="--i:0" aria-label={`Emiliano Montes, ${personalInfo.roles[0]}`}>
+        <span class="line">Emiliano <RoleSticker /></span>
+        <span class="line">Montes</span>
+      </h1>
+      <p class="t-mono muted meta reveal" style="--i:1">
+        <span>Mobile</span><span>Web</span><span>iOS</span>
+      </p>
+    </div>
+
+    <div class="intro reveal" style="--i:1">
+      <p class="t-serif tag">Portfolio 2026</p>
+      <p class="t-lead">{personalInfo.intro}</p>
+    </div>
+
+    <div class="dock-slot reveal" style="--i:2">
+      <Dock />
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    --shot-h: clamp(220px, 38vh, 440px);
+    --gap: clamp(16px, 2.4vw, 36px);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100dvh - var(--header-h));
+    overflow: hidden;
+  }
+
+  /* Top zone takes the free space. The row is allowed to run off the right edge on purpose. */
+  .top {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    padding-block: 32px;
+  }
+
+  .track {
+    display: flex;
+    width: max-content;
+  }
+
+  .set {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--gap);
+    /* Trailing gap so two sets join with the same spacing (seamless marquee loop). */
+    padding-right: var(--gap);
+  }
+
+  .dup {
+    display: none;
+  }
+
+  .shot {
+    flex: none;
+    rotate: var(--r, 0deg);
+    margin-top: var(--dy, 0px);
+  }
+
+  .shot-link {
+    display: block;
+  }
+
+  .shot-link img {
+    height: var(--shot-h);
+    width: auto;
+    max-width: none;
+    object-fit: cover;
+    animation: hero-shot-in 900ms var(--ease-out) both;
+    animation-delay: calc(var(--i, 0) * 90ms + 120ms);
+  }
+
+  @keyframes hero-shot-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 28px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Bottom zone: name | dock | intro on desktop, stacked name, intro, dock on mobile. */
+  .bottom {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) auto minmax(0, 1fr);
+    align-items: end;
+    gap: 32px;
+    padding-block: 24px clamp(28px, 5vh, 56px);
+  }
+
+  .id {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .dock-slot {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: end;
+    justify-self: center;
+  }
+
+  .intro {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .name {
+    margin: 0;
+  }
+
+  .line {
+    display: block;
+  }
+
+  .meta {
+    display: flex;
+    gap: 1.6em;
+    margin-top: 18px;
+  }
+
+  .tag {
+    margin-bottom: 12px;
+    font-size: 18px;
+  }
+
+  @media (max-width: 719px) {
+    .bottom {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 28px;
+    }
+
+    .id,
+    .intro,
+    .dock-slot {
+      grid-column: 1;
+      grid-row: auto;
+    }
+
+    .dock-slot {
+      justify-self: start;
+    }
+
+    /* Slow CSS marquee: the second set (aria-hidden, inert) makes the loop seamless. */
+    .dup {
+      display: flex;
+    }
+
+    .track {
+      animation: hero-marquee 48s linear infinite;
+    }
+  }
+
+  @keyframes hero-marquee {
+    from {
+      transform: translate3d(0, 0, 0);
+    }
+    to {
+      transform: translate3d(-50%, 0, 0);
+    }
+  }
+
+  /* Last on purpose: overrides the marquee and entrance for users who ask for less motion. */
+  @media (prefers-reduced-motion: reduce) {
+    .track {
+      animation: none;
+    }
+
+    .dup {
+      display: none;
+    }
+
+    .shot-link img {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  import { gsap } from 'gsap';
+
+  /*
+   * Hero motion. Fine pointers: each shot drifts toward the cursor by its depth (data-depth).
+   * Desktop: the row drifts left as the page scrolls, so more of the row comes into view.
+   * Everything here is skipped under reduced motion. Listeners and tweens are torn down on astro:before-swap.
+   */
+
+  const POINTER_X = 18; // px at full depth
+  const POINTER_Y = 10;
+  const DRIFT = 0.12; // px of row travel per px scrolled
+  const DRIFT_MAX = 160;
+
+  let cleanups: Array<() => void> = [];
+
+  function teardown(): void {
+    for (const fn of cleanups) fn();
+    cleanups = [];
+  }
+
+  function init(): void {
+    teardown();
+    const hero = document.querySelector<HTMLElement>('[data-hero]');
+    if (!hero) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    if (window.matchMedia('(pointer: fine)').matches) {
+      const movers = Array.from(hero.querySelectorAll<HTMLElement>('[data-shot-link]')).map((el) => ({
+        el,
+        depth: Number(el.dataset.depth ?? '1'),
+        qx: gsap.quickTo(el, 'x', { duration: 0.9, ease: 'power3.out' }),
+        qy: gsap.quickTo(el, 'y', { duration: 0.9, ease: 'power3.out' }),
+      }));
+
+      const onMove = (event: Event): void => {
+        const pointer = event as PointerEvent;
+        const rect = hero.getBoundingClientRect();
+        const nx = ((pointer.clientX - rect.left) / rect.width) * 2 - 1;
+        const ny = ((pointer.clientY - rect.top) / rect.height) * 2 - 1;
+        for (const m of movers) {
+          m.qx(nx * POINTER_X * m.depth);
+          m.qy(ny * POINTER_Y * m.depth);
+        }
+      };
+
+      const onLeave = (): void => {
+        for (const m of movers) {
+          m.qx(0);
+          m.qy(0);
+        }
+      };
+
+      hero.addEventListener('pointermove', onMove, { passive: true });
+      hero.addEventListener('pointerleave', onLeave);
+      cleanups.push(() => {
+        hero.removeEventListener('pointermove', onMove);
+        hero.removeEventListener('pointerleave', onLeave);
+        for (const m of movers) gsap.killTweensOf(m.el);
+      });
+    }
+
+    const track = hero.querySelector<HTMLElement>('[data-track]');
+    if (track && window.matchMedia('(min-width: 720px)').matches) {
+      const qx = gsap.quickTo(track, 'x', { duration: 0.6, ease: 'power2.out' });
+      const onScroll = (): void => qx(-Math.min(window.scrollY * DRIFT, DRIFT_MAX));
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+      cleanups.push(() => {
+        window.removeEventListener('scroll', onScroll);
+        gsap.killTweensOf(track);
+      });
+    }
+  }
+
+  document.addEventListener('astro:page-load', init);
+  document.addEventListener('astro:before-swap', teardown);
+</script>

@@ -1,0 +1,287 @@
+---
+import Media from './Media.astro';
+import { projects } from '../lib/data';
+
+/*
+ * WorkList: numbered list of every project. Each row links to /projects/{id}.
+ * No view-transition names here: those belong only to the hero shots (Hero.astro).
+ * Desktop with a fine pointer: one shared preview follows the cursor (script below).
+ * Touch or narrow screens: each row shows a 56px thumbnail of heroShot instead.
+ */
+---
+
+<section id="work" class="col section" aria-labelledby="work-heading">
+  <h2 id="work-heading" class="heading muted reveal" style="--i:0">Selected work</h2>
+
+  <ol class="list" data-work-list>
+    {
+      projects.map((p, i) => (
+        <li class="item">
+          <a
+            class="row reveal"
+            href={`/projects/${p.id}`}
+            style={`--i:${i + 1}`}
+            data-row
+            data-shot={p.heroShot}
+          >
+            <span class="idx t-mono muted">{String(i + 1).padStart(2, '0')}</span>
+            <span class="name">{p.name}</span>
+            <span class="sub muted">{p.subtitle}</span>
+            <span class="cat muted">{p.category}</span>
+            <span class="year t-mono muted">{p.year}</span>
+            {p.heroShot && (
+              <span class="thumb">
+                <Media src={p.heroShot} alt="" />
+              </span>
+            )}
+          </a>
+        </li>
+      ))
+    }
+  </ol>
+
+  <div class="preview" data-preview aria-hidden="true">
+    <img data-preview-img alt="" />
+  </div>
+</section>
+
+<style>
+  .heading {
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+
+  .item {
+    border-top: 1px solid var(--line);
+  }
+
+  .item:last-child {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1.3fr) 96px 56px;
+    column-gap: 16px;
+    align-items: baseline;
+    padding-block: 14px;
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .name {
+    display: block;
+    transition: transform 300ms var(--ease-out);
+  }
+
+  /* Other rows dim to muted while the list is hovered or any row has focus. */
+  .list:is(:hover, :focus-within) .row:not(:hover, :focus-within) .name {
+    color: var(--muted);
+  }
+
+  .row:hover .name,
+  .row:focus-visible .name {
+    transform: translateX(6px);
+  }
+
+  .thumb {
+    display: none;
+  }
+
+  .thumb img {
+    height: 56px;
+    width: auto;
+    max-width: none;
+  }
+
+  /* Touch, or narrow screens: no cursor preview, so each row shows its own thumbnail. */
+  @media (hover: none) {
+    .thumb {
+      display: block;
+    }
+  }
+
+  @media (max-width: 719px) {
+    .thumb {
+      display: block;
+    }
+
+    .row {
+      grid-template-columns: 36px minmax(0, 1fr) auto;
+      grid-template-areas:
+        'idx name thumb'
+        'idx meta thumb';
+      column-gap: 12px;
+      row-gap: 2px;
+      align-items: center;
+    }
+
+    .idx {
+      grid-area: idx;
+    }
+
+    .name {
+      grid-area: name;
+    }
+
+    .thumb {
+      grid-area: thumb;
+    }
+
+    .sub {
+      display: none;
+    }
+
+    .cat {
+      grid-area: meta;
+      justify-self: start;
+    }
+
+    .year {
+      grid-area: meta;
+      justify-self: end;
+    }
+  }
+
+  /* Touch tablets at 720px and up: keep the desktop columns and add the thumbnail column. */
+  @media (hover: none) and (min-width: 720px) {
+    .row {
+      grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1.3fr) 96px 56px 56px;
+    }
+  }
+
+  /* Preview: one shared element, desktop fine pointer only. Positioned by the script. */
+  .preview {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 40;
+    width: 320px;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  .preview img {
+    display: block;
+    width: 320px;
+    max-width: none;
+    height: auto;
+    max-height: 70vh;
+    object-fit: contain;
+  }
+
+  @media (min-width: 720px) and (hover: hover) and (pointer: fine) {
+    .preview {
+      display: block;
+    }
+  }
+</style>
+
+<script>
+  import { gsap } from 'gsap';
+
+  /*
+   * Cursor preview. Shows the hovered row's heroShot and follows the pointer with gsap.quickTo.
+   * Images are preloaded on the first hover, not on page load. Reduced motion: no tween, instant placement.
+   * Listeners and tweens are torn down on astro:before-swap.
+   */
+
+  const OFFSET = 28; // px between cursor and preview
+  const FLIP_AT = 360; // px from the right edge where the preview moves to the left of the cursor
+
+  let cleanups: Array<() => void> = [];
+
+  function teardown(): void {
+    for (const fn of cleanups) fn();
+    cleanups = [];
+  }
+
+  function init(): void {
+    teardown();
+    const list = document.querySelector<HTMLElement>('[data-work-list]');
+    const preview = document.querySelector<HTMLElement>('[data-preview]');
+    const image = document.querySelector<HTMLImageElement>('[data-preview-img]');
+    if (!list || !preview || !image) return;
+    if (!window.matchMedia('(min-width: 720px) and (hover: hover) and (pointer: fine)').matches) return;
+
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const duration = reduce ? 0 : 0.45;
+    const qx = gsap.quickTo(preview, 'x', { duration, ease: 'power3.out' });
+    const qy = gsap.quickTo(preview, 'y', { duration, ease: 'power3.out' });
+    gsap.set(preview, { xPercent: 0, yPercent: -50, opacity: 0, scale: 0.97 });
+
+    const rows = Array.from(list.querySelectorAll<HTMLAnchorElement>('[data-row]'));
+    let visible = false;
+    let preloaded = false;
+
+    const fade = (show: boolean): void => {
+      gsap.to(preview, {
+        opacity: show ? 1 : 0,
+        scale: show ? 1 : 0.97,
+        duration: reduce ? 0 : 0.3,
+        ease: 'power2.out',
+        overwrite: 'auto',
+      });
+    };
+
+    const placeAt = (event: PointerEvent): void => {
+      const flip = event.clientX > window.innerWidth - FLIP_AT;
+      const x = flip ? event.clientX - OFFSET - preview.offsetWidth : event.clientX + OFFSET;
+      if (!visible) {
+        gsap.set(preview, { x, y: event.clientY });
+        visible = true;
+        fade(true);
+      } else {
+        qx(x);
+        qy(event.clientY);
+      }
+    };
+
+    const hide = (): void => {
+      visible = false;
+      fade(false);
+    };
+
+    const on = (target: EventTarget, type: string, fn: (event: Event) => void): void => {
+      target.addEventListener(type, fn);
+      cleanups.push(() => target.removeEventListener(type, fn));
+    };
+
+    for (const row of rows) {
+      on(row, 'pointerenter', (event) => {
+        if (!preloaded) {
+          preloaded = true;
+          for (const other of rows) {
+            if (other.dataset.shot) {
+              const img = new Image();
+              img.src = other.dataset.shot;
+            }
+          }
+        }
+        const src = row.dataset.shot;
+        if (!src) {
+          hide();
+          return;
+        }
+        if (image.getAttribute('src') !== src) image.src = src;
+        placeAt(event as PointerEvent);
+      });
+    }
+
+    on(list, 'pointermove', (event) => {
+      if (visible) placeAt(event as PointerEvent);
+    });
+    on(list, 'pointerleave', hide);
+
+    cleanups.push(() => {
+      gsap.killTweensOf(preview);
+      gsap.set(preview, { opacity: 0 });
+    });
+  }
+
+  document.addEventListener('astro:page-load', init);
+  document.addEventListener('astro:before-swap', teardown);
+</script>

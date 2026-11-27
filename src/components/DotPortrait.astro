@@ -1,0 +1,216 @@
+---
+/*
+ * DotPortrait: a photo drawn as a grid of dots on a canvas.
+ * Props: src (path under public/), alt, size (display width in px, default 200; height is 5/4 of width).
+ * Without JS the <noscript> image shows the plain photo. On a JS failure the script swaps in the same image.
+ */
+interface Props {
+  src: string;
+  alt: string;
+  size?: number;
+}
+
+const { src, alt, size = 200 } = Astro.props;
+---
+
+<div class="dot-portrait" style={`--size: ${size}px`}>
+  <canvas data-dot-portrait data-src={src} role="img" aria-label={alt}></canvas>
+  <noscript><img src={src} alt={alt} /></noscript>
+</div>
+
+<style>
+  .dot-portrait {
+    width: var(--size);
+    max-width: 100%;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 5;
+  }
+
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    object-position: top center;
+  }
+</style>
+
+<script>
+  // A photo drawn as dots. Cells come from a 4:5 crop anchored at the top, so the head stays in frame.
+  const COLS = 44;
+  const ROWS = 55; // COLS / ROWS = 0.8 = 4:5, so cells are square
+  const MIN_DOT = 0.12; // palest dots keep this fraction of the cell radius
+  const WAVE_FREQ = 0.12; // radians per cell along the diagonal (c + r)
+  const WAVE_SPEED = 0.0012; // radians per ms: one cycle every ~5s
+  const WAVE_DEPTH = 0.15; // radius swings by +/-15%
+  const POINTER_CELLS = 4; // pointer influence radius, in cells
+  const POINTER_GROW = 0.3; // dots under the pointer grow up to 30%
+
+  type Portrait = { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D; lum: Float32Array; pointer: { x: number; y: number } | null };
+
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const portraits: Portrait[] = [];
+  const visible = new Set<Portrait>();
+  const undo: Array<() => void> = []; // everything to tear down on swap
+  let generation = 0; // bumped on swap so late image loads bail out
+  let frame = 0;
+  let dark = false;
+  let ink = '#0c0c0c';
+
+  function refreshTheme(): void {
+    dark = document.documentElement.dataset.theme === 'dark';
+    ink = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || ink;
+  }
+
+  // Downscale the photo to COLS x ROWS and convert each cell to Rec. 709 luminance.
+  function sample(img: HTMLImageElement): Float32Array {
+    const off = document.createElement('canvas');
+    off.width = COLS;
+    off.height = ROWS;
+    const g = off.getContext('2d', { willReadFrequently: true });
+    if (!g) throw new Error('2d context unavailable');
+    g.imageSmoothingQuality = 'high';
+    const { naturalWidth: w, naturalHeight: h } = img;
+    // Wider than 4:5: crop the sides. Taller: keep full width and crop the bottom (top anchored).
+    const sw = w / h > COLS / ROWS ? h * (COLS / ROWS) : w;
+    const sh = sw === w ? w / (COLS / ROWS) : h;
+    g.drawImage(img, (w - sw) / 2, 0, sw, sh, 0, 0, COLS, ROWS);
+    const { data } = g.getImageData(0, 0, COLS, ROWS);
+    const lum = new Float32Array(COLS * ROWS);
+    for (let i = 0; i < lum.length; i++) {
+      const k = i * 4;
+      lum[i] = (0.2126 * data[k] + 0.7152 * data[k + 1] + 0.0722 * data[k + 2]) / 255;
+    }
+    return lum;
+  }
+
+  function draw(p: Portrait, now: number, animated: boolean): void {
+    const { ctx, canvas, lum, pointer } = p;
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    if (!w || !h) return;
+    // Backing store is CSS size times DPR; the transform keeps drawing in CSS px.
+    const dpr = window.devicePixelRatio || 1;
+    if (canvas.width !== Math.round(w * dpr)) {
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    const cw = w / COLS;
+    const ch = h / ROWS;
+    const base = Math.min(cw, ch) * 0.5;
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = ink;
+    ctx.beginPath();
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const v = lum[r * COLS + c];
+        // Light theme: dark cells get big dots. Dark theme: bright cells get big dots.
+        let radius = base * (MIN_DOT + (1 - MIN_DOT) * (dark ? v : 1 - v));
+        if (animated) radius *= 1 + WAVE_DEPTH * Math.sin(WAVE_FREQ * (c + r) - now * WAVE_SPEED);
+        if (pointer) {
+          const d = Math.hypot(c + 0.5 - pointer.x, r + 0.5 - pointer.y);
+          if (d < POINTER_CELLS) radius *= 1 + POINTER_GROW * (1 - d / POINTER_CELLS);
+        }
+        const x = (c + 0.5) * cw;
+        const y = (r + 0.5) * ch;
+        ctx.moveTo(x + radius, y);
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+      }
+    }
+    ctx.fill();
+  }
+
+  function tick(now: number): void {
+    for (const p of visible) draw(p, now, true);
+    frame = visible.size > 0 ? requestAnimationFrame(tick) : 0;
+  }
+
+  function listen(target: EventTarget, type: string, fn: EventListener): void {
+    target.addEventListener(type, fn);
+    undo.push(() => target.removeEventListener(type, fn));
+  }
+
+  async function mount(canvas: HTMLCanvasElement, gen: number): Promise<void> {
+    const img = new Image();
+    img.src = canvas.dataset.src ?? '';
+    try {
+      await img.decode();
+    } catch {
+      // Keep the page usable: swap in the plain photo.
+      if (gen !== generation) return;
+      const plain = document.createElement('img');
+      plain.src = img.src;
+      plain.alt = canvas.getAttribute('aria-label') ?? '';
+      plain.style.cssText = 'width:100%;aspect-ratio:4/5;object-fit:cover;object-position:top center;';
+      canvas.replaceWith(plain);
+      return;
+    }
+    const ctx = canvas.getContext('2d');
+    if (gen !== generation || !canvas.isConnected || !ctx) return;
+
+    const p: Portrait = { canvas, ctx, lum: sample(img), pointer: null };
+    portraits.push(p);
+
+    // Redraws on resize. The observer also fires once on observe, which draws the first frame.
+    const ro = new ResizeObserver(() => {
+      if (reduce.matches) draw(p, 0, false);
+    });
+    ro.observe(canvas);
+    undo.push(() => ro.disconnect());
+    if (reduce.matches) return;
+
+    const io = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) visible.add(p);
+        else visible.delete(p);
+      }
+      if (visible.size > 0 && !frame) frame = requestAnimationFrame(tick);
+    });
+    io.observe(canvas);
+    undo.push(() => io.disconnect());
+
+    if (window.matchMedia('(pointer: fine)').matches) {
+      listen(canvas, 'pointermove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const pe = e as PointerEvent;
+        p.pointer = { x: ((pe.clientX - rect.left) / rect.width) * COLS, y: ((pe.clientY - rect.top) / rect.height) * ROWS };
+      });
+      listen(canvas, 'pointerleave', () => {
+        p.pointer = null;
+      });
+    }
+  }
+
+  function init(): void {
+    refreshTheme();
+    for (const canvas of document.querySelectorAll<HTMLCanvasElement>('canvas[data-dot-portrait]')) {
+      void mount(canvas, generation);
+    }
+    // Theme toggles redraw static frames now; the animated loop picks up new colors on its next frame.
+    const themeObserver = new MutationObserver(() => {
+      refreshTheme();
+      if (reduce.matches) for (const p of portraits) draw(p, 0, false);
+    });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    undo.push(() => themeObserver.disconnect());
+  }
+
+  function teardown(): void {
+    generation++;
+    cancelAnimationFrame(frame);
+    frame = 0;
+    visible.clear();
+    portraits.length = 0;
+    for (const fn of undo.splice(0)) fn();
+  }
+
+  document.addEventListener('astro:page-load', init);
+  document.addEventListener('astro:before-swap', teardown);
+</script>

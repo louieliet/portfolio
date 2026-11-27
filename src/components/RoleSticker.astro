@@ -1,0 +1,127 @@
+---
+import { personalInfo } from '../lib/data';
+
+/*
+ * RoleSticker: yellow inline sticker that cycles personalInfo.roles every 2.4s with a short vertical slide.
+ * Every role is stacked in the same grid cell as an invisible ghost, so the sticker is always as wide as
+ * the longest role and nothing shifts when the text changes.
+ * Server renders the first role. Under reduced motion it stays static (script bails out).
+ * The animated node is aria-hidden; the .sr-only copy of the first role is the stable string for screen readers.
+ */
+const roles = personalInfo.roles;
+const first = roles[0];
+---
+
+<span class="sticker" data-role-sticker data-roles={JSON.stringify(roles)}>
+  <span class="sr-only">{first}</span>
+  <span class="window" aria-hidden="true">
+    {roles.map((role) => <span class="ghost">{role}</span>)}
+    <span class="label" data-role-label>{first}</span>
+  </span>
+</span>
+
+<style>
+  .sticker {
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+    margin-inline: 0.2em;
+    padding: 4px 10px;
+    background: var(--accent);
+    color: #000;
+    font-family: var(--font-sans);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transform: rotate(-4deg);
+  }
+
+  .window {
+    display: inline-grid;
+    overflow: hidden;
+    vertical-align: top;
+  }
+
+  .ghost,
+  .label {
+    grid-area: 1 / 1;
+  }
+
+  .ghost {
+    visibility: hidden;
+  }
+
+  .label {
+    transition:
+      transform 260ms var(--ease-out),
+      opacity 260ms var(--ease-out);
+  }
+
+  .label[data-state='out'] {
+    transform: translate3d(0, -100%, 0);
+    opacity: 0;
+  }
+
+  /* Parked below the window with no transition, so the slide back in is one clean move. */
+  .label[data-state='below'] {
+    transform: translate3d(0, 100%, 0);
+    opacity: 0;
+    transition: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .label {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  const CYCLE_MS = 2400;
+  const SLIDE_MS = 260;
+
+  let cleanups: Array<() => void> = [];
+
+  function teardown(): void {
+    for (const fn of cleanups) fn();
+    cleanups = [];
+  }
+
+  function init(): void {
+    teardown();
+    const root = document.querySelector<HTMLElement>('[data-role-sticker]');
+    const label = root?.querySelector<HTMLElement>('[data-role-label]');
+    if (!root || !label) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const roles = JSON.parse(root.dataset.roles ?? '[]') as string[];
+    if (roles.length < 2) return;
+
+    let index = 0;
+    let swapTimer: number | undefined;
+
+    const interval = window.setInterval(() => {
+      label.dataset.state = 'out';
+      swapTimer = window.setTimeout(() => {
+        index = (index + 1) % roles.length;
+        label.textContent = roles[index];
+        label.dataset.state = 'below';
+        // Commit the parked position before removing the attribute, so the slide back in runs.
+        void label.offsetWidth;
+        delete label.dataset.state;
+      }, SLIDE_MS);
+    }, CYCLE_MS);
+
+    cleanups.push(() => {
+      window.clearInterval(interval);
+      if (swapTimer !== undefined) window.clearTimeout(swapTimer);
+      delete label.dataset.state;
+    });
+  }
+
+  document.addEventListener('astro:page-load', init);
+  document.addEventListener('astro:before-swap', teardown);
+</script>
