@@ -26,6 +26,7 @@ const rows = experience.map((item, i) => {
     portrait: item.assetAspect === '9/16',
   };
 });
+import { techIcons } from '../lib/tech-icons';
 ---
 
 <section class="experience" aria-labelledby="exp-heading" data-experience>
@@ -64,7 +65,14 @@ const rows = experience.map((item, i) => {
                   <p class="desc">{item.description}</p>
                   <ul class="stack t-mono">
                     {item.stack.map((tag) => (
-                      <li>{tag}</li>
+                      <li>
+                        {techIcons[tag] && (
+                          <svg class="tech" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path d={techIcons[tag]} />
+                          </svg>
+                        )}
+                        {tag}
+                      </li>
                     ))}
                   </ul>
                 </div>
@@ -231,12 +239,23 @@ const rows = experience.map((item, i) => {
     list-style: none;
   }
 
+  /* Each chip keeps its name; the logo (when the technology has one) sits before it in the same colour. */
   .stack li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     padding: 2px 8px;
     border: 1px solid var(--line);
     font-size: 12.5px;
     line-height: 1.6;
     color: var(--muted);
+  }
+
+  .tech {
+    flex: none;
+    width: 12px;
+    height: 12px;
+    fill: currentColor;
   }
 
   .photo {

@@ -95,6 +95,7 @@ Source of truth: `src/lib/motion.ts` (header comment has the full contract). Com
 - `DitherField.astro`: gray ordered-dither field (Bayer 8x8, 4 levels, 3 CSS px cells) behind the footer. Raw WebGL, no deps. Ink is `mix(bg, text, k)` read from the tokens: k 0.40 dark, 0.38 light. Renders at 1x CSS px, scaled with `image-rendering: pixelated`. Pointer glow on fine pointers only.
 - `Story.astro`: "How I work" chapter, rendered on the home between Hero and WorkStack. Three beats from `personalInfo.story`, plus signs, and the ASCII block.
 - `src/lib/ascii-story.ts`: pure functions for the chapter's ASCII block: noise, wireframe, product, and the blend `renderStoryFrame(progress, t)`.
+- `src/lib/tech-icons.ts`: logo paths (Simple Icons, CC0) for the Experience stack chips. A chip always keeps its name; the logo is added only when the technology has a clear one, drawn with `currentColor`.
 - `Experience.astro`: home "Experience". Companies as headlines (`h3`) on one shared time axis (gantt bars, years in mono). The active row opens on scroll: description, stack chips, and the first asset as a 300x190 ASCII-resolving photo (9:16 assets keep their shape at 190px tall). Motion modes are described under Motion rules.
 - `src/lib/period.ts`: period math for Experience: parse "Mon YYYY - Mon YYYY|Present", range text, duration text, and the shared axis. Throws on a bad period so the build fails.
 - `Timeline.astro`: year, company and role rows, with the `data-timeline` rail. Used by /about only.
