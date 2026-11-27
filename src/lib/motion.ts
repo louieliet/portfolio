@@ -461,7 +461,6 @@ interface StoryParts {
   beats: HTMLElement[];
   pluses: HTMLElement[];
   ticks: HTMLElement[];
-  odo: HTMLElement;
   caption: HTMLElement;
   ascii: HTMLElement;
 }
@@ -477,15 +476,13 @@ function headerHeight(): number {
 
 function storyParts(root: HTMLElement): StoryParts | null {
   const beats = Array.from(root.querySelectorAll<HTMLElement>('[data-story-beat]'));
-  const odo = root.querySelector<HTMLElement>('[data-story-odo]');
   const caption = root.querySelector<HTMLElement>('[data-story-caption]');
   const ascii = root.querySelector<HTMLElement>('[data-story-ascii]');
-  if (beats.length === 0 || !odo || !caption || !ascii) return null;
+  if (beats.length === 0 || !caption || !ascii) return null;
   return {
     beats,
     pluses: Array.from(root.querySelectorAll<HTMLElement>('[data-story-plus]')),
     ticks: Array.from(root.querySelectorAll<HTMLElement>('[data-story-tick]')),
-    odo,
     caption,
     ascii,
   };
@@ -503,21 +500,20 @@ function splitWords(beat: HTMLElement): HTMLElement[] {
 /**
  * Desktop with motion: one ScrollTrigger pins the stage under the header. The trigger drives a scrubbed
  * timeline (scrub 0.5 gives the smoothing), and that timeline's update lights the words, the plus signs, the
- * tick and counter, and the caption. Between scroll events a shimmer loop moves the noise, but only while the
+ * tick, and the caption. Between scroll events a shimmer loop moves the noise, but only while the
  * chapter is on screen and the tab is visible.
  */
 function mountStoryPinned(root: HTMLElement): void {
   const parts = storyParts(root);
   const stage = root.querySelector<HTMLElement>('[data-story-stage]');
   if (!parts || !stage) return;
-  const { beats, pluses, ticks, odo, caption, ascii } = parts;
+  const { beats, pluses, ticks, caption, ascii } = parts;
   const run = ++storyRun;
 
   root.classList.add('is-pinned');
   const wordsByBeat = beats.map(splitWords);
 
   let progress = 0;
-  let lastCur = 0;
   let lastStage = '';
   let t = 0;
   let frame = 0;
@@ -541,10 +537,6 @@ function mountStoryPinned(root: HTMLElement): void {
     pluses.forEach((plus, k) => plus.classList.toggle('is-on', p >= (k + 1) / 3 - 0.03));
     const cur = p < 1 / 3 ? 0 : p < 2 / 3 ? 1 : 2;
     ticks.forEach((tick, i) => tick.classList.toggle('is-on', i === cur));
-    if (cur !== lastCur) {
-      rollText(odo, String(cur + 1).padStart(2, '0'), cur > lastCur ? 1 : -1);
-      lastCur = cur;
-    }
     const name = storyStage(p);
     if (name !== lastStage) {
       caption.textContent = name;
