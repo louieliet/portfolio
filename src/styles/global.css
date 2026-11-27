@@ -29,8 +29,10 @@
  *                    Set --i on the element for stagger (60ms steps).
  *                    JS adds .is-in when the element enters the viewport.
  *   --dur-fast/base/slow, --ease-inout   mirrors of the motion.ts constants (0.3 / 0.45 / 0.8s).
- *   data-roll, data-roll-hover, data-arrive, data-story: the motion contract, documented in src/lib/motion.ts.
- *                    Only html.js [data-arrive] hides anything before JS runs (first viewport, 2s failsafe).
+ *   --ease-hover, --ease-pop, --dur-hover-in, --dur-hover-out, --dur-press   hover and press (DESIGN_SYSTEM.md).
+ *   data-roll, data-arrive, data-swap, data-magnetic, data-story: the motion contract, documented in
+ *                    src/lib/motion.ts. Only html.js [data-arrive] hides anything before JS runs (2s failsafe).
+ *   data-no-inl      opts an <a> out of the default inline underline (cards, CTAs, swap links, the header name).
  *
  * Utilities:
  *   .sr-only         visually hidden, still read by screen readers
@@ -107,6 +109,12 @@
   --dur-fast: 300ms;
   --dur-base: 450ms;
   --dur-slow: 800ms;
+  /* Hover and press (see DESIGN_SYSTEM.md, Hover and press). Exit is always faster than enter. */
+  --ease-hover: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-hover-in: 240ms;
+  --dur-hover-out: 160ms;
+  --dur-press: 120ms;
   --radius: 0;
 }
 
@@ -187,15 +195,31 @@ ol {
 
 a {
   color: inherit;
-  text-decoration: underline;
-  text-decoration-color: transparent;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 3px;
-  transition: text-decoration-color 200ms ease;
+  text-decoration: none;
 }
 
-a:hover {
-  text-decoration-color: var(--accent);
+/*
+ * Gesture 1b, inline links: a 1px currentColor underline drawn from the left on hover and focus-visible.
+ * Links that are not running text opt out with data-no-inl; data-swap links have their own gesture.
+ * Specificity is zero on purpose (:where), so a component's own background or decoration always wins.
+ */
+:where(a:not([data-swap], [data-no-inl])) {
+  /* No padding: an inline-block link keeps its box, so the underline sits on the bottom edge and changes no layout. */
+  background: linear-gradient(currentColor, currentColor) right bottom / 0 1px no-repeat;
+  transition: background-size var(--dur-hover-out) var(--ease-hover);
+}
+
+:where(a:not([data-swap], [data-no-inl])):focus-visible {
+  background-size: 100% 1px;
+  background-position: left bottom;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :where(a:not([data-swap], [data-no-inl]):hover) {
+    background-size: 100% 1px;
+    background-position: left bottom;
+    transition: background-size var(--dur-hover-in) var(--ease-hover);
+  }
 }
 
 /* ---------- Focus and selection ---------- */
@@ -307,42 +331,116 @@ html.js [data-arrive] {
   }
 }
 
-/* Roll (line roll and hover roll share these names). The line roll lives in SplitText output; the
-   hover roll is a holder with two identical faces, the copy aria-hidden and rotated 90deg away. */
-.roll-holder {
-  display: inline-block;
+/* Gesture 1: text links (letter swap). data-swap. motion.ts (mountSwap) wraps each text node in .swap-word,
+   one .swap-char per grapheme. A cell holds two stacked faces; the second sits one line below the first. */
+.swap-word {
+  display: inline-flex;
+  white-space: pre;
+}
+
+.swap-char {
   position: relative;
-  perspective: 400px;
-  text-decoration: inherit;
-}
-
-.roll-face {
   display: block;
-  text-decoration: inherit;
-  transform-origin: 50% 100%;
-  backface-visibility: hidden;
+  height: 1lh;
+  overflow: clip;
+  /* Descenders and accents sit outside the line box. The clip is widened by this margin so they are not cut. */
+  overflow-clip-margin: 0.16em;
 }
 
-.roll-face + .roll-face {
+.swap-face {
+  display: block;
+  height: 1lh;
+  transition: transform var(--dur-hover-out) var(--ease-hover);
+}
+
+.swap-face + .swap-face {
   position: absolute;
-  inset: 0;
-  transform-origin: 50% 0%;
-  transform: rotateX(90deg);
+  top: 100%;
+  left: 0;
 }
 
-/* Hover roll: fine pointers only. Transitions only on transform; reverses on leave and retargets mid-flight. */
+/* Hover: every face moves up one line. Enter is slower than leave, and each cell waits its own --i (12ms steps). */
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  .roll-face {
-    transition: transform var(--dur-fast) var(--ease-inout);
+  [data-swap]:hover .swap-face {
+    transform: translateY(-100%);
+    transition: transform var(--dur-hover-in) var(--ease-hover) calc(var(--i, 0) * 12ms);
   }
+}
 
-  [data-roll-hover]:hover > .roll-holder > .roll-face:first-child {
-    transform: rotateX(-90deg);
-  }
+/* Sibling dimming (.dim groups: header nav, work index, footer links). While one link is hovered or
+   focus-visible, the others go to --muted. The aria-current item is never dimmed, so its marker keeps its colour. */
+.dim a {
+  transition: color 150ms ease;
+}
 
-  [data-roll-hover]:hover > .roll-holder > .roll-face + .roll-face {
-    transform: rotateX(0deg);
+@media (hover: hover) and (pointer: fine) {
+  .dim:has(a:hover) a:not(:hover):not([aria-current]) {
+    color: var(--muted);
   }
+}
+
+.dim:has(a:focus-visible) a:not(:focus-visible):not([aria-current]) {
+  color: var(--muted);
+}
+
+/* Gesture 3: big calls. .big wraps the text; .wipe is an aria-hidden copy that sweeps in over it when its
+   .wipe-trigger is hovered or focus-visible. The copy is a sibling of any data-roll text, not inside it,
+   so SplitText never splits or moves it. */
+.big {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.wipe {
+  position: absolute;
+  inset: -0.04em -0.12em;
+  padding: 0.04em 0.12em;
+  background: var(--accent);
+  color: #000;
+  white-space: nowrap;
+  pointer-events: none;
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 200ms var(--ease-hover);
+}
+
+.wipe-trigger:focus-visible .wipe {
+  clip-path: inset(0 0 0 0);
+  transition-duration: 280ms;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .wipe-trigger:hover .wipe {
+    clip-path: inset(0 0 0 0);
+    transition-duration: 280ms;
+  }
+}
+
+/* Cursor label (WorkStack): one shared pill. The stack script creates it and removes it on teardown. */
+.cursor-pill {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 60;
+  padding: 6px 10px;
+  background: var(--text);
+  color: var(--bg);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  scale: 0.9;
+  transition:
+    opacity var(--dur-hover-out) var(--ease-hover),
+    scale var(--dur-hover-out) var(--ease-hover);
+}
+
+.cursor-pill[data-on] {
+  opacity: 1;
+  scale: 1;
+  transition-duration: var(--dur-hover-in);
 }
 
 /* Cell for the odometer digits and the label roll: faces stack in one grid cell and the cell clips them,

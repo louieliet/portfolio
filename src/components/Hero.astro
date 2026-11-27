@@ -118,4 +118,15 @@ import { personalInfo } from '../lib/data';
     text-decoration-color: var(--text);
     text-underline-offset: 0.25em;
   }
+
+  /* Fun-fact button: press only. Its dotted underline stays the affordance; no hover motion. */
+  .fact-label {
+    transition: transform var(--dur-press) var(--ease-pop);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .fact-label:active {
+      transform: scale(0.96);
+    }
+  }
 </style>

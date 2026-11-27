@@ -14,20 +14,26 @@ const mailto = `mailto:${personalInfo.email}`;
   <DitherField />
   <div class="col">
     <div class="cta">
-      <!-- The label swaps "Copy email" -> "Copied" for 2s; aria-live announces the change. -->
-      <button class="get-in-touch t-display" type="button" data-copy-email={personalInfo.email}>
-        <span class="cta-text" data-roll="slow">Get in touch</span>
-        <span class="copy-label t-mono muted" data-copy-label aria-live="polite">Copy email</span>
-      </button>
+      <!-- The wipe is a sibling of the split text, not inside it, so the line roll never touches it. -->
+      <span class="mag" data-magnetic>
+        <button class="get-in-touch t-display wipe-trigger" type="button" data-copy-email={personalInfo.email}>
+          <span class="big"><span class="cta-text" data-roll="slow">Get in touch</span><span class="wipe" aria-hidden="true">Get in touch</span></span>
+          <!-- The reply crossfades from "Copy email" to "Copied" or "Copy failed" for 2s; aria-live announces it. -->
+          <span class="copy-label t-mono muted" data-copy-label aria-live="polite">
+            <span class="copy-idle">Copy email</span>
+            <span class="copy-reply" data-copy-reply></span>
+          </span>
+        </button>
+      </span>
       <p class="email">
         <a href={mailto}>{personalInfo.email}</a>
       </p>
     </div>
 
-    <ul class="links">
-      <li><a href={personalInfo.linkedin} target="_blank" rel="noopener" data-roll-hover>LinkedIn</a></li>
-      <li><a href={personalInfo.github} target="_blank" rel="noopener" data-roll-hover>GitHub</a></li>
-      <li><a href={mailto} data-roll-hover>Email</a></li>
+    <ul class="links dim">
+      <li><a href={personalInfo.linkedin} target="_blank" rel="noopener" data-swap>LinkedIn</a></li>
+      <li><a href={personalInfo.github} target="_blank" rel="noopener" data-swap>GitHub</a></li>
+      <li><a href={mailto} data-swap>Email</a></li>
     </ul>
 
     <div class="meta">
@@ -69,33 +75,62 @@ const mailto = `mailto:${personalInfo.email}`;
     color: var(--text);
   }
 
+  /* Magnetic wrapper: shrink to the button so the pull area is the heading and its label. */
+  .cta .mag {
+    display: block;
+    width: max-content;
+  }
+
   .get-in-touch {
     display: block;
     text-align: left;
-    text-decoration: underline;
-    text-decoration-color: transparent;
-    text-decoration-thickness: 2px;
-    text-underline-offset: 6px;
-    transition: text-decoration-color 200ms ease;
+    transition: scale var(--dur-press) var(--ease-hover);
   }
 
-  .get-in-touch:hover {
-    text-decoration-color: var(--accent);
+  @media (prefers-reduced-motion: no-preference) {
+    .get-in-touch:active {
+      scale: 0.98;
+    }
   }
 
-  /* Inline-block keeps the copy label on the same line as the heading. It inherits the button's underline,
-   * because decorations do not pass into inline-block children. */
+  /* Inline-block keeps the copy label on the same line as the heading. */
   .cta-text {
     display: inline-block;
-    text-decoration: inherit;
   }
 
+  /* Copy feedback: two stacked spans in one grid cell; the reply blurs in as the idle text blurs out (200ms). */
   .copy-label {
-    display: inline-block;
+    display: inline-grid;
     margin-left: 12px;
     vertical-align: middle;
     font-size: 13px;
     letter-spacing: 0.01em;
+  }
+
+  .copy-label > span {
+    grid-area: 1 / 1;
+    transition:
+      opacity 200ms ease,
+      filter 200ms ease,
+      transform 200ms var(--ease-hover);
+  }
+
+  .copy-reply {
+    opacity: 0;
+    filter: blur(3px);
+    transform: translateY(4px);
+  }
+
+  .copy-label.is-done .copy-idle {
+    opacity: 0;
+    filter: blur(3px);
+    transform: translateY(-4px);
+  }
+
+  .copy-label.is-done .copy-reply {
+    opacity: 1;
+    filter: none;
+    transform: none;
   }
 
   .email {
@@ -136,7 +171,8 @@ const mailto = `mailto:${personalInfo.email}`;
     if (!button) return;
 
     const label = button.querySelector<HTMLElement>('[data-copy-label]');
-    if (!label) return;
+    const reply = label?.querySelector<HTMLElement>('[data-copy-reply]');
+    if (!label || !reply) return;
 
     let message = 'Copied';
     try {
@@ -145,10 +181,11 @@ const mailto = `mailto:${personalInfo.email}`;
       message = 'Copy failed';
     }
 
-    label.textContent = message;
+    reply.textContent = message;
+    label.classList.add('is-done');
     window.clearTimeout(resetTimer);
     resetTimer = window.setTimeout(() => {
-      label.textContent = 'Copy email';
+      label.classList.remove('is-done');
     }, RESET_MS);
   });
 </script>

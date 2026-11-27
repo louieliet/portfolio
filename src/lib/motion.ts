@@ -18,7 +18,12 @@
  * - data-arrive="0.15"        load choreography offset in seconds. Used on the first viewport only:
  *                             data-roll (rolls at that time), data-ascii-field (row draw, 0.5s), a .reveal
  *                             block (gets .is-in at that time), data-scroll-cue (fades in at 0.9s, last).
- * - data-roll-hover           hover roll on a link or label. Fine pointers only (CSS), wrapped by initMotion.
+ * - data-swap                 letter swap on a link or label (gesture 1). initMotion wraps its text nodes in clipped
+ *                             per-character cells (mountSwap). Fine pointers only (CSS). aria-hidden copy; the
+ *                             accessible name is kept on the link (aria-label) or in an .sr-only copy.
+ * - data-no-inl               on an <a>: opts out of the default inline underline in global.css (gesture 1b).
+ * - data-magnetic             wrapper that drifts up to 6px toward the pointer (gesture 3). Fine pointers, motion
+ *                             only. Put it on a wrapper so its transform composes with the press scale.
  * - data-ascii-field          the hero field. Its load reveal writes data-reveal (0..1) on the element.
  * - data-scroll-cue           the hero's scroll cue. Its inner element fades (opacity) once the page scrolls 80px
  *                             (mountScrollCue, ScrollTrigger). Under reduced motion it stays visible.
@@ -220,38 +225,132 @@ export function swapLines(el: HTMLElement, text: string): void {
   splits.set(el, split);
 }
 
-/* ---------- Hover roll ---------- */
+/* ---------- Letter swap (data-swap, gesture 1) ---------- */
+
+// Per link: the child nodes it had before mountSwap, and whether it got an aria-label. Teardown restores both.
+const swapped = new Set<HTMLElement>();
+const graphemeSegmenter =
+  typeof Intl !== 'undefined' && 'Segmenter' in Intl ? new Intl.Segmenter(undefined, { granularity: 'grapheme' }) : null;
+const SWAP_STAGGER_CAP = 10;
+
+/** Grapheme clusters when Intl.Segmenter exists, so accented letters stay whole; code points otherwise. */
+function graphemes(text: string): string[] {
+  if (graphemeSegmenter) return Array.from(graphemeSegmenter.segment(text), (s) => s.segment);
+  return Array.from(text);
+}
+
+/** One clipped cell: two identical faces stacked; CSS moves both up one line on hover. --i staggers the cell. */
+function swapCell(ch: string, index: number): HTMLElement {
+  const cell = document.createElement('span');
+  cell.className = 'swap-char';
+  cell.style.setProperty('--i', String(Math.min(index, SWAP_STAGGER_CAP)));
+  const front = document.createElement('span');
+  front.className = 'swap-face';
+  front.textContent = /\s/.test(ch) ? ' ' : ch;
+  cell.append(front, front.cloneNode(true));
+  return cell;
+}
 
 /**
- * Wraps each text node of a link or label in a holder with two identical faces. CSS (global.css) rolls the
- * faces on hover for fine pointers. Element children (sup, count spans) stay where they are.
+ * Wraps each text node of a link or label in .swap-word (aria-hidden). Element children (sup, count spans) stay
+ * where they are and are not duplicated. Only fine pointers see the motion (CSS); the wrap itself is harmless.
  */
-function mountHover(el: HTMLElement): void {
+function mountSwap(el: HTMLElement): void {
+  if (swapped.has(el)) return;
   const original = Array.from(el.childNodes);
-  let wrapped = false;
+  const hasElements = el.children.length > 0;
+  let index = 0;
+  let text = '';
   for (const node of original) {
     if (node.nodeType !== Node.TEXT_NODE) continue;
     const match = /^(\s*)([\s\S]*?)(\s*)$/.exec(node.textContent ?? '');
     const core = match?.[2] ?? '';
     if (!match || core === '') continue;
 
-    const face = document.createElement('span');
-    face.className = 'roll-face';
-    face.textContent = core;
-    const copy = face.cloneNode(true) as HTMLElement;
-    copy.setAttribute('aria-hidden', 'true');
-    const holder = document.createElement('span');
-    holder.className = 'roll-holder';
-    holder.append(face, copy);
+    const word = document.createElement('span');
+    word.className = 'swap-word';
+    word.setAttribute('aria-hidden', 'true');
+    for (const ch of graphemes(core)) word.append(swapCell(ch, index++));
 
     const parts: Node[] = [];
     if (match[1]) parts.push(document.createTextNode(match[1]));
-    parts.push(holder);
+    parts.push(word);
     if (match[3]) parts.push(document.createTextNode(match[3]));
     node.replaceWith(...parts);
-    wrapped = true;
+    text += core;
   }
-  if (wrapped) undo.push(() => el.replaceChildren(...original));
+  if (text === '') return;
+
+  // The accessible name: aria-label on a bare link; otherwise a visually hidden copy of the text.
+  const label = text.replace(/\s+/g, ' ').trim();
+  const labelled = !hasElements && el.tagName === 'A';
+  if (labelled) {
+    el.setAttribute('aria-label', label);
+  } else {
+    const copy = document.createElement('span');
+    copy.className = 'sr-only';
+    copy.textContent = label;
+    el.append(copy);
+  }
+
+  swapped.add(el);
+  undo.push(() => {
+    el.replaceChildren(...original);
+    if (labelled) el.removeAttribute('aria-label');
+    swapped.delete(el);
+  });
+}
+
+/* ---------- Magnetic pull (data-magnetic, gesture 3) ---------- */
+
+const MAGNET_MAX = 6;
+const MAGNET_LERP = 0.16;
+const FINE_QUERY = '(hover: hover) and (pointer: fine)';
+
+/**
+ * The wrapper drifts up to MAGNET_MAX px on each axis toward the pointer, eased in a rAF loop that runs only while
+ * it is moving, and eases back to rest on leave. Fine pointers only; the transform is cleared on teardown.
+ */
+function mountMagnetic(el: HTMLElement): void {
+  if (!window.matchMedia(FINE_QUERY).matches) return;
+  let x = 0;
+  let y = 0;
+  let tx = 0;
+  let ty = 0;
+  let raf = 0;
+
+  const step = (): void => {
+    x += (tx - x) * MAGNET_LERP;
+    y += (ty - y) * MAGNET_LERP;
+    el.style.transform = `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px)`;
+    raf = Math.abs(tx - x) > 0.05 || Math.abs(ty - y) > 0.05 ? requestAnimationFrame(step) : 0;
+  };
+  const kick = (): void => {
+    if (!raf) raf = requestAnimationFrame(step);
+  };
+  const clampPull = (v: number): number => Math.max(-MAGNET_MAX, Math.min(MAGNET_MAX, v));
+  const onMove = (event: PointerEvent): void => {
+    const rect = el.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+    tx = clampPull(((event.clientX - rect.left - rect.width / 2) / rect.width) * 12);
+    ty = clampPull(((event.clientY - rect.top - rect.height / 2) / rect.height) * 12);
+    kick();
+  };
+  const onLeave = (): void => {
+    tx = 0;
+    ty = 0;
+    kick();
+  };
+
+  el.addEventListener('pointermove', onMove);
+  el.addEventListener('pointerleave', onLeave);
+  undo.push(() => {
+    el.removeEventListener('pointermove', onMove);
+    el.removeEventListener('pointerleave', onLeave);
+    if (raf) cancelAnimationFrame(raf);
+    raf = 0;
+    el.style.removeProperty('transform');
+  });
 }
 
 /* ---------- Digit and label roll (WorkStack) ---------- */
@@ -634,7 +733,8 @@ function mountFull(short: boolean): void {
   // Arrivals first: each one becomes visible in the same task that sets its start state, so nothing paints early.
   document.querySelectorAll<HTMLElement>('[data-arrive]').forEach(unhide);
   document.querySelectorAll<HTMLElement>('[data-roll]').forEach((el) => mountRoll(el, short));
-  document.querySelectorAll<HTMLElement>('[data-roll-hover]').forEach(mountHover);
+  document.querySelectorAll<HTMLElement>('[data-swap]').forEach(mountSwap);
+  document.querySelectorAll<HTMLElement>('[data-magnetic]').forEach(mountMagnetic);
   buildArrivals(short);
   mountBatch();
   document.querySelectorAll<HTMLElement>('[data-timeline]').forEach(mountTimeline);

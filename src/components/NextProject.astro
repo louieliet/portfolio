@@ -14,9 +14,13 @@ const href = `/projects/${project.id}`;
 ---
 
 <section class="bleed next" aria-label="Next project">
-  <a class="link" href={href}>
+  <a class="link wipe-trigger" href={href} data-no-inl>
     <span class="t-mono muted">Next project</span>
-    <span class="name t-display" data-roll-hover>{project.name}</span>
+    <span class="name t-display">
+      <span class="mag" data-magnetic>
+        <span class="big">{project.name}<span class="wipe" aria-hidden="true">{project.name}</span></span>
+      </span>
+    </span>
     <span class="muted">{project.subtitle}</span>
   </a>
 </section>
@@ -36,10 +40,16 @@ const href = `/projects/${project.id}`;
   .name {
     display: block;
     margin-block: 16px 12px;
-    transition: transform 400ms var(--ease-out);
   }
 
-  .link:hover .name {
-    transform: translateX(8px);
+  /* Press on the name, whichever part of the row is pressed. Motion only. */
+  .big {
+    transition: scale var(--dur-press) var(--ease-hover);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .link:active .big {
+      scale: 0.98;
+    }
   }
 </style>

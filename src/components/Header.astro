@@ -14,7 +14,7 @@ const onAbout = path === '/about' || path === '/about/';
 
 <header class="site-header">
   <div class="bar bleed">
-    <a class="name" href="/">Emiliano Montes</a>
+    <a class="name" href="/" data-no-inl>Emiliano Montes</a>
 
     <div class="center">
       <Clock />
@@ -22,18 +22,18 @@ const onAbout = path === '/about' || path === '/about/';
 
     <div class="end">
       <nav aria-label="Primary">
-        <ul class="nav">
+        <ul class="nav dim">
           <li>
-            <a href="/#work" aria-current={onWork ? 'page' : undefined} data-roll-hover>
+            <a href="/#work" aria-current={onWork ? 'page' : undefined} data-swap>
               Work<sup>{projects.length}</sup>
             </a>
           </li>
           <li>
-            <a href="/about" aria-current={onAbout ? 'page' : undefined} data-roll-hover>About</a>
+            <a href="/about" aria-current={onAbout ? 'page' : undefined} data-swap>About</a>
           </li>
           <li>
             <!-- TODO(emiliano): swap for a PDF -->
-            <a href={personalInfo.linkedin} target="_blank" rel="noopener" data-roll-hover>
+            <a href={personalInfo.linkedin} target="_blank" rel="noopener" data-swap>
               Resume<sup aria-hidden="true">+</sup><span class="sr-only"> (opens in a new tab)</span>
             </a>
           </li>
@@ -70,7 +70,6 @@ const onAbout = path === '/about' || path === '/about/';
     justify-self: start;
     font-weight: 500;
     color: var(--text);
-    text-decoration-color: transparent;
   }
 
   .center {
@@ -92,12 +91,12 @@ const onAbout = path === '/about' || path === '/about/';
 
   .nav a {
     color: var(--muted);
-    text-decoration-color: transparent;
   }
 
-  .nav a:hover {
-    color: var(--text);
-    text-decoration-color: var(--accent);
+  @media (hover: hover) and (pointer: fine) {
+    .nav a:hover {
+      color: var(--text);
+    }
   }
 
   .nav a[aria-current='page'] {
@@ -125,11 +124,20 @@ const onAbout = path === '/about' || path === '/about/';
     height: 10px;
     border-radius: 50%;
     background: var(--text);
-    transition: transform 300ms var(--ease-out);
+    transition: transform 160ms var(--ease-pop);
   }
 
-  .theme-toggle:hover .dot {
-    transform: scale(1.3);
+  /* Only the dot scales; the button keeps its hit area. The press rule comes after the hover rule, so it wins. */
+  @media (hover: hover) and (pointer: fine) {
+    .theme-toggle:hover .dot {
+      transform: scale(1.25);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .theme-toggle:active .dot {
+      transform: scale(0.92);
+    }
   }
 
   @media (max-width: 719px) {

@@ -18,12 +18,12 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
 ---
 
 <section id="work" class="work" data-work-stack aria-labelledby="work-heading">
-  <nav class="index" aria-label="Projects">
+  <nav class="index dim" aria-label="Projects">
     <ol>
       {
         projects.map((p, i) => (
           <li>
-            <a href={`#work-${p.id}`} data-index-link data-roll-hover>
+            <a href={`#work-${p.id}`} data-index-link data-swap>
               <span class="num t-mono">{String(i + 1).padStart(2, '0')}</span>
               {p.name}
             </a>
@@ -47,6 +47,7 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
               href={`/projects/${p.id}`}
               aria-label={`${p.name}: ${p.subtitle}`}
               data-card
+              data-no-inl
             >
               <span class:list={['frame', `kind-${p.card.kind}`]}>
                 <span class="stage">
@@ -87,10 +88,18 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
               </span>
               <span class="label">
                 <span class="name roll-cell" data-label-name={p.name}><span class="cell-face">{p.name}</span></span>
-                <span class="chips">
-                  {p.card.chips.map((chip) => (
-                    <span class="chip">{chip}</span>
-                  ))}
+                <span class="label-cell">
+                  <span class="chips">
+                    {p.card.chips.map((chip) => (
+                      <span class="chip">{chip}</span>
+                    ))}
+                  </span>
+                  <span class="view">
+                    View case
+                    <svg width="16" height="10" viewBox="0 0 16 10" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false">
+                      <path d="M0 5h14M10 1l4 4-4 4" />
+                    </svg>
+                  </span>
                 </span>
               </span>
             </a>
@@ -143,10 +152,18 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
     transform-origin: 50% 100%;
   }
 
+  /* Press uses the individual scale property, so it multiplies with the velocity transform on .card. */
   .card {
     display: block;
     color: inherit;
     text-decoration: none;
+    transition: scale var(--dur-hover-out) var(--ease-hover);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .card:active {
+      scale: 0.99;
+    }
   }
 
   .card:focus-visible {
@@ -174,6 +191,16 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: scale var(--dur-hover-out) var(--ease-hover);
+  }
+
+  /* Hover settle: only a card whose resolve is complete (is-settled, set by the script at RESOLVED, so the ASCII
+   * overlay is cleared). scale is the individual property, so it multiplies with the scroll transform. */
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .item.is-settled .card:hover .stage {
+      scale: 1.02;
+      transition: scale 600ms var(--ease-hover);
+    }
   }
 
   /* ASCII overlay: the frame's box, transparent except for the cells it paints. Clicks pass through to the link. */
@@ -268,6 +295,72 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
   .item.is-active .chip {
     background: #fff;
     color: #000;
+  }
+
+  /* Chips and "View case" share one grid cell. Hover (and focus-visible) slides the chips up and fades them, and
+   * slides "View case" in from the left. Text colour inherits from the bar, so active and inactive both work. */
+  .label-cell {
+    display: grid;
+    justify-items: end;
+    align-items: center;
+    overflow: clip;
+    min-width: 0;
+  }
+
+  .label-cell > * {
+    grid-area: 1 / 1;
+    transition:
+      transform var(--dur-hover-out) var(--ease-hover),
+      opacity var(--dur-hover-out) var(--ease-hover);
+  }
+
+  .view {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+
+  .card:focus-visible .chips {
+    opacity: 0;
+  }
+
+  .card:focus-visible .view {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .card:hover .chips {
+      opacity: 0;
+    }
+
+    .card:hover .view {
+      opacity: 1;
+      transition: opacity 200ms var(--ease-hover) 40ms, transform 200ms var(--ease-hover) 40ms;
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .card:hover .chips {
+      transform: translateY(-110%);
+    }
+
+    .card:hover .view {
+      transform: none;
+    }
+  }
+
+  /* Index hover lights the hovered item; the dimming in global.css mutes its siblings. */
+  @media (hover: hover) and (pointer: fine) {
+    .index a:hover {
+      color: var(--text);
+    }
   }
 
   .num {
@@ -401,6 +494,10 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
   const FLAT_ENTER = 0.35; // share of a flat card that must be in view to start its one-time resolve
   const PENDING_FAILSAFE_MS = 1500;
   const PHONE_SHIFT = 0.06; // mirrors `.kind-phones .media:nth-child(2) { translate: 0 6% }` above
+  const SETTLED_RESOLVE = 0.999; // the threshold where ascii-image.ts clears the overlay (RESOLVED)
+  const FINE_QUERY = '(hover: hover) and (pointer: fine)';
+  const PILL_OFFSET = 14; // px from the pointer, on both axes
+  const PILL_LERP = 0.18; // per frame, while the pointer is over a card's media
 
   interface Source {
     el: HTMLElement;
@@ -568,6 +665,12 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
       syncPlayback();
     };
 
+    // is-settled: the card's resolve has reached the threshold where its ASCII overlay is cleared. The hover settle
+    // in CSS keys off this class, so the picture never scales while characters are still on top of it.
+    const setSettled = (card: AsciiCard, settled: boolean): void => {
+      if (card.item.classList.contains('is-settled') !== settled) card.item.classList.toggle('is-settled', settled);
+    };
+
     const setResolve = (card: AsciiCard, res: number): void => {
       if ((res > VIDEO_RESOLVE) !== (card.res > VIDEO_RESOLVE)) playbackDirty = true;
       card.res = res;
@@ -679,6 +782,7 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
         if (tilt) {
           const res = resolveAmount(p);
           card.item.style.setProperty('--res', res.toFixed(3));
+          setSettled(card, res >= SETTLED_RESOLVE);
           setResolve(card, res);
           // Far off screen cards are not painted. They repaint when they come back on screen.
           if (centres[i].visible) drawCard(card, res);
@@ -711,7 +815,10 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
         const res = easeOut(t);
         setResolve(card, res);
         drawCard(card, res);
-        if (t >= 1) card.flat = 'done';
+        if (t >= 1) {
+          card.flat = 'done';
+          setSettled(card, true);
+        }
         else running = true;
       }
       if (playbackDirty) {
@@ -816,6 +923,66 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
       });
     });
 
+    // Cursor label: one shared pill, over the card media only. Fine pointers and motion only, never on touch. It is
+    // lerped in a rAF loop that runs only while the pointer moves or the pill is still catching up. It hides on
+    // pointerleave, on any scroll (the next pointermove shows it again) and on teardown.
+    if (!reduce && window.matchMedia(FINE_QUERY).matches) {
+      const pill = document.createElement('div');
+      pill.className = 'cursor-pill';
+      pill.setAttribute('aria-hidden', 'true');
+      pill.textContent = 'View case';
+      document.body.append(pill);
+      cleanups.push(() => pill.remove());
+
+      let pillX = 0;
+      let pillY = 0;
+      let targetX = 0;
+      let targetY = 0;
+      let pillFrame = 0;
+      let pillOn = false;
+
+      const setPill = (on: boolean): void => {
+        pillOn = on;
+        pill.toggleAttribute('data-on', on);
+      };
+      const pillLoop = (): void => {
+        pillX += (targetX - pillX) * PILL_LERP;
+        pillY += (targetY - pillY) * PILL_LERP;
+        pill.style.transform = `translate(${pillX.toFixed(2)}px, ${pillY.toFixed(2)}px)`;
+        const moving = Math.abs(targetX - pillX) > 0.3 || Math.abs(targetY - pillY) > 0.3;
+        pillFrame = moving ? requestAnimationFrame(pillLoop) : 0;
+      };
+
+      for (const card of cards) {
+        const media = card.frame;
+        if (!media) continue;
+        listen(media, 'pointerenter', (event) => {
+          if ((event as PointerEvent).pointerType === 'touch') return;
+          setPill(true);
+        });
+        listen(media, 'pointermove', (event) => {
+          const pointer = event as PointerEvent;
+          if (pointer.pointerType === 'touch') return;
+          targetX = pointer.clientX + PILL_OFFSET;
+          targetY = pointer.clientY + PILL_OFFSET;
+          if (!pillOn) {
+            // First frame of a visit: start at the pointer, so the pill does not fly in from the last card.
+            pillX = targetX;
+            pillY = targetY;
+            setPill(true);
+          }
+          if (!pillFrame) pillFrame = requestAnimationFrame(pillLoop);
+        });
+        listen(media, 'pointerleave', () => setPill(false));
+      }
+      listen(window, 'scroll', () => setPill(false), { passive: true });
+      cleanups.push(() => {
+        cancelAnimationFrame(pillFrame);
+        pillFrame = 0;
+        pillOn = false;
+      });
+    }
+
     // Stack velocity: the smoothed scroll velocity from motion.ts becomes --v on the list whenever it changes.
     // It is exactly 0 at rest, so every card settles flat.
     let lastV = 0;
@@ -858,6 +1025,7 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
       for (const card of cards) {
         clearCard(card);
         card.sources = [];
+        card.item.classList.remove('is-settled');
         for (const video of card.videos) video.pause();
       }
     });
