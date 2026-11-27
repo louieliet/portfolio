@@ -10,7 +10,7 @@ import { projects } from '../lib/data';
  *   is at least 60% resolved (desktop) or has resolved (flat).
  * - Each frame has a .stage (the media) and an ASCII canvas on top. The script writes --res next to --p; CSS
  *   settles the media inside the frame (desktop, motion only). See lib/ascii-image.ts.
- * - Desktop (>= 1100px): sticky index in the left gutter (with progress tracks) and sticky counter in the right gutter.
+ * - Desktop (>= 1100px): sticky index in the left gutter.
  * - Under 900px and under reduced motion: flat cards. No-JS: flat cards, fully visible, no canvas.
  */
 const total = String(projects.length).padStart(2, '0');
@@ -27,14 +27,12 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
             <a href={`#work-${p.id}`} data-index-link data-roll-hover>
               <span class="num t-mono">{String(i + 1).padStart(2, '0')}</span>
               {p.name}
-              <span class="track" aria-hidden="true"><span class="fill" /></span>
             </a>
           </li>
         ))
       }
     </ol>
   </nav>
-  <p class="counter t-mono muted" data-counter aria-hidden="true"><span class="roll-cell" data-odo><span class="cell-face">01</span></span> &mdash; {total}</p>
 
   <div class="col">
     <header class="head">
@@ -111,8 +109,7 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
   }
 
   /* Gutters: hidden below 1100px, sticky at 40vh inside the section (height 0, so they take no room). */
-  .index,
-  .counter {
+  .index {
     display: none;
   }
 
@@ -309,25 +306,6 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
     background: var(--accent);
   }
 
-  /* Progress track under each index item: a 1px baseline, with a fill the script drives through --fill
-   * (1 before the active item, 0 after it, and the active item's progress through its card). No transition. */
-  .track {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 1px;
-    background: var(--line);
-  }
-
-  .fill {
-    position: absolute;
-    inset: 0;
-    background: var(--text);
-    transform-origin: 0 50%;
-    transform: scaleX(var(--fill, 0));
-  }
-
   @media (min-width: 900px) {
     .stack {
       perspective: 1400px;
@@ -379,15 +357,6 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
       width: 220px;
       height: 0;
       margin-left: 56px;
-    }
-
-    .counter {
-      display: block;
-      position: sticky;
-      top: 40vh;
-      height: 0;
-      margin: 0 56px 0 0;
-      text-align: right;
     }
   }
 </style>
@@ -726,19 +695,6 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
       // A focused card counts as active, so keyboard users see the same state as pointer users.
       const next = focused >= 0 ? focused : nearest;
       if (next !== active) setActive(next);
-
-      // Index progress. Before the active item: full. After it: empty. The active item fills while its card
-      // travels through the centre, from 0 when it becomes active to 1 when the next card does.
-      const progressOf = (i: number): number => {
-        if (centres.length < 2) return 0;
-        const j = i < centres.length - 1 ? i + 1 : i - 1;
-        const gap = Math.abs(centres[j].y - centres[i].y);
-        return gap > 0 ? clamp(0.5 - (centres[i].y - mid) / gap, 0, 1) : 0;
-      };
-      indexLinks.forEach((link, i) => {
-        const fill = i < next ? 1 : i > next ? 0 : progressOf(i);
-        link.style.setProperty('--fill', fill.toFixed(3));
-      });
 
       if (playbackDirty) {
         playbackDirty = false;

@@ -59,7 +59,6 @@ Source of truth: `src/lib/motion.ts` (header comment has the full contract). Com
 - Stack velocity: smoothed scroll velocity sets `--v` on the work stack (up to 6deg tilt, 1.5% stretch) and scales the hero field (up to 2.2x amplitude and speed). Exactly 0 at rest.
 - Work stack resolve (desktop, motion only): `res = smoothstep(0.62, 0.1, |p|)` per card. The media moves `-9%` of its frame height per unit of `p` and settles from 1.08x to 1x. The ASCII overlay dissolves bottom to top as `res` rises. Repaints only when `res` moves by 1/60.
 - Work stack flat resolve (under 900px): each card resolves once, 700ms, when 35% of it is in view. Then its canvas is cleared for good.
-- Work stack index progress: each item has a 1px baseline and a fill (`--fill`). Items above the active one are full, items below are empty, and the active one fills as its card crosses the centre. No transition.
 - Theme dot: circle reveal from the dot (0.65s) through `document.startViewTransition`. Instant under reduced motion or without the API.
 - Entrances for non-text blocks: `.reveal` fades in and rises 12px over 600ms `--ease-out`, stagger with `--i` (60ms steps). Visible without JS.
 - Video loops (`.mp4`): muted, play only while on screen, never under reduced motion (the poster stays).
@@ -78,7 +77,7 @@ Source of truth: `src/lib/motion.ts` (header comment has the full contract). Com
 - `Hero.astro`: home intro, first viewport: at least `100dvh - var(--header-h)` tall. `AsciiField` takes the free height on top; the name with `RoleWord`, now/previously lines and fun fact sit at the bottom (padding-bottom `clamp(28px, 6vh, 64px)`). Bottom-right scroll cue ("Scroll" plus a 1px, 24px line), `aria-hidden`, fades on opacity once the page scrolls 80px.
 - `AsciiField.astro`: full-width ASCII wave field (`.col` width up to 880px, full free height, 11px glyphs, 9px under 520px, min 160px). The grid is measured: cell size from a hidden probe (read once after fonts), cols/rows from a ResizeObserver, capped at 160x60. SSR frame is 134x40 in a box of the same size, so nothing shifts. Loop only when on screen and visible; reduced motion paints one static frame at the measured size. Math in `src/lib/wave.ts` (`renderWaveFrame(t, pointer, energy, reveal, cols, rows)`).
 - `RoleWord.astro`: rotating role inside the intro, 3.2s dwell. Four entrances (wireframe, ASCII resolve, spring pop, cursor highlight). Width reserved for the longest role.
-- `WorkStack.astro`: home work list as a perspective card stack. Tilt from `--p`; ASCII resolve per card (canvas overlay, `--res`); media settles inside its frame (`.stage`); sticky index with progress tracks and counter at 1100px and up; only the active card plays video, once resolved.
+- `WorkStack.astro`: home work list as a perspective card stack. Tilt from `--p`; ASCII resolve per card (canvas overlay, `--res`); media settles inside its frame (`.stage`); sticky index at 1100px and up; only the active card plays video, once resolved.
 - `src/lib/ascii-image.ts`: pure maths and canvas painting for the WorkStack ASCII resolve (resolve amount, cell hash and sweep, glyph ramp, cover sampling, device cap).
 - `Media.astro`: image or muted looping `.mp4` with `.webp` poster; optional `transitionName`. Used by the case pages.
 - `src/styles/global.css`: tokens, reset, `@font-face`, type utilities, `.col`/`.bleed`, `.reveal`.
