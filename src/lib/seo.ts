@@ -182,7 +182,7 @@ export function caseJsonLd(project: ProjectItem, image: string): Json[] {
       "@type": "CreativeWork",
       name: project.name,
       headline: project.subtitle,
-      description: metaDescription(project.description),
+      description: project.seoDescription ?? metaDescription(project.description),
       url,
       image: absoluteUrl(image),
       creator: { "@id": PERSON_ID },

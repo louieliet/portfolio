@@ -4,7 +4,8 @@
  * Every role has its own entrance (see the style block). All four roles share one grid cell, so the cell
  * is as wide as the longest role and the sentence never shifts. The period sits inside each role so it
  * follows the word instead of stranding after the reserved width.
- * The first role is server-rendered in its final state. Cycling pauses while the tab is hidden, the hero
+ * The first role is server-rendered in its final state. Letters are painted from CSS (see the style block),
+ * so the h1's DOM text stays "Emiliano Montes, product designer". Cycling pauses while the tab is hidden, the hero
  * is off screen, or the pointer is over the word. Reduced motion keeps the first role static.
  */
 const ROLES = [
@@ -34,9 +35,7 @@ const chars = (text: string): string[] => Array.from(text, (c) => (c === ' ' ? '
         >
           <span class="txt">
             {chars(role.text).map((ch, n) => (
-              <span class="ch" style={`--i:${n}`} data-ch data-final={ch}>
-                {ch}
-              </span>
+              <span class="ch" style={`--i:${n}`} data-ch data-final={ch} />
             ))}
             {role.kind === 'cofounder' && (
               <>
@@ -49,7 +48,7 @@ const chars = (text: string): string[] => Array.from(text, (c) => (c === ' ' ? '
               </>
             )}
           </span>
-          <span class="stop">.</span>
+          <span class="stop" />
         </span>
       ))
     }
@@ -57,6 +56,17 @@ const chars = (text: string): string[] => Array.from(text, (c) => (c === ' ' ? '
 </span>
 
 <style>
+  /* The letters and the period are drawn from CSS (attr / content), not DOM text: the heading's text for
+     crawlers and assistive tech is the .sr-only role alone, instead of all four roles spelled letter by letter.
+     The ASCII role writes glyphs into the span while it scrambles and empties it again when it resolves. */
+  .ch:empty::before {
+    content: attr(data-final);
+  }
+
+  .stop::before {
+    content: '.';
+  }
+
   .role-word {
     display: inline-block;
   }
@@ -363,11 +373,11 @@ const chars = (text: string): string[] => Array.from(text, (c) => (c === ' ' ? '
         letters.forEach((letter, i) => {
           const final = letter.dataset.final ?? '';
           if (final.trim() === '') {
-            letter.textContent = final;
+            letter.textContent = '';
             return;
           }
           if (elapsedMs >= ((i + 1) / letters.length) * SCRAMBLE_MS) {
-            letter.textContent = final;
+            letter.textContent = '';
           } else {
             pending = true;
             letter.textContent = randomGlyph();

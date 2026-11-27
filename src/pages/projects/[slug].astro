@@ -50,7 +50,7 @@ const alt = `${item.name} cover`;
 
 <Layout
   title={caseTitle(item)}
-  description={metaDescription(item.description)}
+  description={item.seoDescription ?? metaDescription(item.description)}
   image={ogImage}
   imageAlt={`${project.name} cover`}
   imageWidth={hasOgCrop ? 1200 : undefined}

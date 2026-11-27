@@ -44,6 +44,7 @@ export interface ProjectItem {
   // Still image for the case page hero (falls back to images[0]). Must exist under public/.
   heroShot?: string;
   card: ProjectCard; // home work stack card
+  seoDescription?: string; // meta description override, when the first sentences of `description` are too thin
   appStoreUrl?: string; // App Store listing; the case Outcome links the status to it
   metric?: string; // real result, shown first in the case Outcome row
   metricLabel?: string;
@@ -202,6 +203,7 @@ export const projects = [
     id: "luma",
     name: "Luma",
     subtitle: "Personal Organizer for iPhone",
+    seoDescription: "Luma brings reminders, notes, habits and to-dos into one calm iPhone app, with real alarms that ring through silent mode and Focus.",
     description: "A softer way to organize your day. Luma brings reminders, notes, habits, and to-dos into one calm iPhone app, with real alarms that ring through silent mode and Focus.",
     overview: "Luma replaces four apps with one. Reminders arrive as notifications or, when urgent, as real iPhone alarms. To-dos live in Today, Tomorrow, This week, or Someday. Notes save as you type, and habits keep streaks that skip days off. It works offline and syncs when back online.",
     focus: "As co-founder, I share product design and development with Iñaki Sigüenza, from the flows and interface to the Swift app and its Convex backend. Fernanda Rosas leads illustration and animation.",
