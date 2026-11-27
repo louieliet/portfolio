@@ -1,73 +1,229 @@
 ---
-import Media from './Media.astro';
 import RoleSticker from './RoleSticker.astro';
 import Dock from './Dock.astro';
 import { personalInfo, projects } from '../lib/data';
 
 /*
- * Hero. Top zone: a row of real product shots (heroShot), each linking to its case.
- * Bottom zone: name with the role sticker, service line, intro and the dock.
+ * Hero: a role-and-proof stage. Each role in personalInfo.heroScenes is a scene of real product clips
+ * composed at different depths. The sticker drives the stage: one active scene at a time, the others
+ * are stacked in the same cell and hidden (visibility, inert). Each scene is one link to its case.
  *
- * Only the first set carries transition:name (cover-{id}). The mobile marquee copy is inert,
- * aria-hidden and has no names, so every view-transition name on the page stays unique.
- * WorkList previews must not reuse these names.
+ * Desktop: the stage fills the space above the bottom bar (name, dock, intro). Pieces are placed in
+ * the cluster box by % and sized in cqh of the stage, so a cluster can never overflow the viewport.
+ * Mobile: only the main piece of each scene shows.
  *
- * Tilt, drop and depth are cycled by index so the row reads as floating, not as a grid.
- * Motion: CSS for entrance and the mobile marquee, Hero script for pointer parallax and scroll drift.
+ * Media is rendered here, not through Media.astro, so every rule for these elements is Hero-scoped.
+ * Only the first scene's main clip gets preload="metadata" and a preloaded poster (LCP).
  */
 
-const TILT = [-3, 2.5, -1.5, 3, -2, 1.5]; // degrees
-const DROP = [0, 56, 18, 72, 10, 46]; // px, margin-top
-const DEPTH = [1, 0.6, 0.8, 0.5, 0.9, 0.7]; // parallax strength
+type Mascot = { mov: string; webm: string; poster: string };
 
-const shots = projects
-  .filter((p) => typeof p.heroShot === 'string' && p.heroShot.length > 0)
-  .map((p, i) => ({
-    id: p.id,
-    alt: `${p.name} ${p.subtitle}`,
-    src: p.heroShot as string,
-    style: `--i:${i};--r:${TILT[i % TILT.length]}deg;--dy:${DROP[i % DROP.length]}px`,
-    depth: DEPTH[i % DEPTH.length],
-  }));
+// Placement of one piece. x/y: centre as % of the cluster box. s: nominal height in cqh of the stage.
+// z: stacking. depth: parallax and spread strength. Index = piece index; the mascot takes the slot after the pieces.
+interface Slot {
+  x: number;
+  y: number;
+  s: number;
+  r: number;
+  z: number;
+  depth: number;
+}
+
+const SLOTS: Slot[][] = [
+  // product designer: wide main, wide side low on the right
+  [
+    { x: 46, y: 46, s: 60, r: -1.5, z: 2, depth: 1 },
+    { x: 80, y: 74, s: 38, r: 2.5, z: 3, depth: 0.6 },
+  ],
+  // design engineer: mirrored, side low on the left
+  [
+    { x: 54, y: 46, s: 60, r: 1.5, z: 2, depth: 1 },
+    { x: 20, y: 74, s: 38, r: -2.5, z: 3, depth: 0.6 },
+  ],
+  // iOS builder: phone main, phone side, Odi behind the main phone with his head above its top edge
+  [
+    { x: 46, y: 50, s: 74, r: -1, z: 2, depth: 1 },
+    { x: 76, y: 66, s: 48, r: 2.5, z: 3, depth: 0.6 },
+    { x: 46, y: 5, s: 22, r: 0, z: 1, depth: 0.5 },
+  ],
+  // co-founder: three phones in a tight staggered cluster, centre one in front
+  [
+    { x: 50, y: 48, s: 74, r: 0, z: 3, depth: 1 },
+    { x: 40, y: 60, s: 66, r: -3, z: 2, depth: 0.7 },
+    { x: 60, y: 58, s: 66, r: 3, z: 1, depth: 0.7 },
+  ],
+];
+
+// Built once per page. Each project is named in the first scene that uses it, so cover-{id} is unique.
+const named = new Set<string>();
+
+const scenes = personalInfo.heroScenes.map((scene, i) => {
+  const project = projects.find((p) => p.id === scene.projectId);
+  if (!project) throw new Error(`Hero scene "${scene.role}" points at unknown project "${scene.projectId}".`);
+
+  const slots = SLOTS[i];
+  const mascotSlot = scene.mascot ? slots?.[scene.pieces.length] : undefined;
+  if (!slots || slots.length < scene.pieces.length + (scene.mascot ? 1 : 0)) {
+    throw new Error(`Hero scene "${scene.role}" needs one slot per piece in SLOTS[${i}].`);
+  }
+
+  const mascot = scene.mascot ? (project as { mascot?: Mascot }).mascot : undefined;
+  if (scene.mascot && (!mascot || !mascotSlot)) {
+    throw new Error(`Hero scene "${scene.role}" asks for a mascot but ${project.id} has none.`);
+  }
+
+  const coverName = named.has(scene.projectId) ? undefined : `cover-${scene.projectId}`;
+  named.add(scene.projectId);
+
+  return {
+    role: scene.role,
+    ghost: scene.ghost,
+    label: `See the ${project.name} case`,
+    caption: `${project.name} / ${project.category}`,
+    pieces: scene.pieces.map((piece, j) => ({
+      src: piece.src,
+      alt: piece.alt,
+      kind: piece.kind,
+      isVideo: piece.src.endsWith('.mp4'),
+      poster: piece.src.replace(/\.mp4$/, '.webp'),
+      main: j === 0,
+      coverName: j === 0 ? coverName : undefined,
+      slot: slots[j],
+    })),
+    mascot: mascot && mascotSlot ? { ...mascot, slot: mascotSlot } : undefined,
+  };
+});
+
+const first = scenes[0];
+const firstMain = first.pieces[0];
+const roles = scenes.map((s) => s.role);
+
+const styleOf = (slot: Slot): string =>
+  `--x:${slot.x}%;--y:${slot.y}%;--d-s:${slot.s}cqh;--r:${slot.r}deg;--z:${slot.z}`;
 ---
 
 <section class="hero" data-hero aria-labelledby="hero-name">
-  <div class="top bleed">
-    <div class="track" data-track>
-      <ul class="set" aria-label="Projects">
-        {
-          shots.map((s) => (
-            <li class="shot" style={s.style}>
-              <a class="shot-link" href={`/projects/${s.id}`} data-shot-link data-depth={s.depth}>
-                <Media src={s.src} alt={s.alt} loading="eager" transitionName={`cover-${s.id}`} />
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-      <ul class="set dup" aria-hidden="true" inert>
-        {
-          shots.map((s) => (
-            <li class="shot" style={s.style}>
-              <a class="shot-link" href={`/projects/${s.id}`}>
-                <Media src={s.src} alt="" />
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-    </div>
+  {firstMain.isVideo && <link rel="preload" as="image" href={firstMain.poster} fetchpriority="high" />}
+
+  <div class="stage" data-stage>
+    {
+      scenes.map((scene, i) => (
+        <div
+          class="scene"
+          data-scene
+          data-role={scene.role}
+          data-active={i === 0 ? '' : undefined}
+        >
+          <span class="ghost-word" aria-hidden="true" data-ghost>
+            {scene.ghost}
+          </span>
+
+          <a class="cluster" href={`/projects/${scene.projectId}`} aria-label={scene.label} data-link>
+            <span class="pieces">
+              {scene.pieces.map((piece) => (
+                <span
+                  class="piece"
+                  data-piece
+                  data-kind={piece.kind}
+                  data-depth={piece.slot.depth}
+                  data-main={piece.main ? '' : undefined}
+                  style={styleOf(piece.slot)}
+                >
+                  <span class="frame">
+                    {piece.isVideo ? (
+                      piece.coverName ? (
+                        <video
+                          data-hero-video
+                          src={piece.src}
+                          poster={piece.poster}
+                          muted
+                          loop
+                          playsinline
+                          preload={i === 0 && piece.main ? 'metadata' : 'none'}
+                          aria-hidden="true"
+                          transition:name={piece.coverName}
+                        />
+                      ) : (
+                        <video
+                          data-hero-video
+                          src={piece.src}
+                          poster={piece.poster}
+                          muted
+                          loop
+                          playsinline
+                          preload={i === 0 && piece.main ? 'metadata' : 'none'}
+                          aria-hidden="true"
+                        />
+                      )
+                    ) : (
+                      <img src={piece.src} alt={piece.alt} decoding="async" loading="lazy" />
+                    )}
+                  </span>
+                </span>
+              ))}
+
+              {scene.mascot && (
+                <span
+                  class="piece"
+                  data-piece
+                  data-kind="mascot"
+                  data-depth={scene.mascot.slot.depth}
+                  style={styleOf(scene.mascot.slot)}
+                >
+                  <span class="frame">
+                    <video
+                      data-hero-video
+                      muted
+                      loop
+                      playsinline
+                      preload="none"
+                      poster={scene.mascot.poster}
+                      aria-hidden="true"
+                    >
+                      <source src={scene.mascot.mov} type='video/quicktime; codecs="hvc1"' />
+                      <source src={scene.mascot.webm} type="video/webm" />
+                    </video>
+                  </span>
+                </span>
+              )}
+            </span>
+
+            <span class="caption t-mono">
+              {scene.caption}
+              <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+                <path d="M1 6h9M6.5 2.5 10 6l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.2" />
+              </svg>
+            </span>
+          </a>
+        </div>
+      ))
+    }
   </div>
 
   <div class="bottom bleed">
     <div class="id">
-      <h1 id="hero-name" class="t-display name reveal" style="--i:0" aria-label={`Emiliano Montes, ${personalInfo.roles[0]}`}>
-        <span class="line">Emiliano <RoleSticker /></span>
+      <h1 id="hero-name" class="t-display name reveal" style="--i:0" aria-label={`Emiliano Montes, ${first.role}`}>
+        <span class="line">Emiliano <RoleSticker roles={roles} /></span>
         <span class="line">Montes</span>
       </h1>
       <p class="t-mono muted meta reveal" style="--i:1">
         <span>Mobile</span><span>Web</span><span>iOS</span>
       </p>
+      <div class="progress reveal" style="--i:2" role="group" aria-label="Choose a role">
+        {
+          scenes.map((scene, i) => (
+            <button
+              type="button"
+              class="seg"
+              data-seg
+              aria-label={`Show ${scene.role}`}
+              aria-current={i === 0 ? 'true' : undefined}
+            >
+              <span class="fill" aria-hidden="true" />
+            </button>
+          ))
+        }
+      </div>
     </div>
 
     <div class="intro reveal" style="--i:1">
@@ -83,77 +239,169 @@ const shots = projects
 
 <style>
   .hero {
-    --shot-h: clamp(220px, 38vh, 440px);
-    --gap: clamp(16px, 2.4vw, 36px);
     position: relative;
-    display: flex;
-    flex-direction: column;
-    min-height: calc(100dvh - var(--header-h));
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    height: calc(100dvh - var(--header-h));
+    min-height: 560px;
     overflow: hidden;
   }
 
-  /* Top zone takes the free space. The row is allowed to run off the right edge on purpose. */
-  .top {
-    flex: 1 1 auto;
-    display: flex;
-    align-items: center;
-    padding-block: 32px;
+  /* Container for cqh/cqw: every scene size is a share of the stage, so it always fits. */
+  .stage {
+    position: relative;
+    min-height: 0;
+    overflow: hidden;
+    container-type: size;
   }
 
-  .track {
-    display: flex;
-    width: max-content;
+  .scene {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 500ms var(--ease-out),
+      visibility 0s linear 500ms;
   }
 
-  .set {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--gap);
-    /* Trailing gap so two sets join with the same spacing (seamless marquee loop). */
-    padding-right: var(--gap);
+  .scene[data-active] {
+    opacity: 1;
+    visibility: visible;
+    transition:
+      opacity 500ms var(--ease-out),
+      visibility 0s;
   }
 
-  .dup {
-    display: none;
+  .ghost-word {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 0;
+    translate: -50% -50%;
+    font-family: var(--font-sans);
+    font-size: 34cqh;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: color-mix(in srgb, var(--text) 5%, transparent);
+    pointer-events: none;
+    user-select: none;
+    transition: translate 900ms var(--ease-out);
   }
 
-  .shot {
-    flex: none;
+  .scene:not([data-active]) .ghost-word {
+    translate: -48% -50%;
+  }
+
+  /* The link is the cluster box plus the caption row under it. */
+  .cluster {
+    position: absolute;
+    left: 30%;
+    right: 2%;
+    top: 6%;
+    bottom: 4%;
+    z-index: 1;
+    display: block;
+    text-decoration: none;
+  }
+
+  .pieces {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 40px;
+  }
+
+  .piece {
+    --s: var(--d-s);
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    translate: -50% -50%;
     rotate: var(--r, 0deg);
-    margin-top: var(--dy, 0px);
+    z-index: var(--z, 1);
   }
 
-  .shot-link {
+  .piece[data-kind='phone'] {
+    width: calc(var(--s) * 0.46);
+    aspect-ratio: 640 / 1392;
+  }
+
+  .piece[data-kind='wide'],
+  .piece[data-kind='detail'] {
+    width: min(calc(var(--s) * 1.6), 58cqw);
+    aspect-ratio: 16 / 10;
+  }
+
+  /* Odi: transparent clip, so no outline and no frame fill. */
+  .piece[data-kind='mascot'] {
+    width: calc(var(--s) * 1.405);
+    aspect-ratio: 433 / 308;
+  }
+
+  .frame {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    outline: 1px solid var(--line);
+    outline-offset: -1px;
+  }
+
+  .piece[data-kind='mascot'] .frame {
+    outline: 0;
+  }
+
+  .frame video,
+  .frame img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
     display: block;
   }
 
-  .shot-link img {
-    height: var(--shot-h);
-    width: auto;
-    max-width: none;
-    object-fit: cover;
-    animation: hero-shot-in 900ms var(--ease-out) both;
-    animation-delay: calc(var(--i, 0) * 90ms + 120ms);
+  .piece[data-kind='mascot'] video {
+    object-fit: contain;
   }
 
-  @keyframes hero-shot-in {
-    from {
-      opacity: 0;
-      transform: translate3d(0, 28px, 0);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
+  .caption {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    color: var(--text);
   }
 
-  /* Bottom zone: name | dock | intro on desktop, stacked name, intro, dock on mobile. */
+  .caption svg {
+    width: 12px;
+    height: 12px;
+    flex: none;
+    transition: transform 200ms var(--ease-out);
+  }
+
+  .cluster:hover .caption svg,
+  .cluster:focus-visible .caption svg {
+    transform: translateX(3px);
+  }
+
+  /* Bottom zone: name | dock | intro. */
   .bottom {
     display: grid;
     grid-template-columns: minmax(0, 1.3fr) auto minmax(0, 1fr);
     align-items: end;
     gap: 32px;
-    padding-block: 24px clamp(28px, 5vh, 56px);
+    padding-block: 20px clamp(20px, 4vh, 40px);
   }
 
   .id {
@@ -187,12 +435,103 @@ const shots = projects
     margin-top: 18px;
   }
 
+  /* Scene progress: one 24px segment per role. Without JS the controls are hidden; the first scene still shows. */
+  .progress {
+    display: none;
+    gap: 6px;
+    margin-top: 18px;
+  }
+
+  .js .progress {
+    display: flex;
+  }
+
+  .seg {
+    position: relative;
+    display: block;
+    width: 24px;
+    height: 16px;
+  }
+
+  .seg::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 7px;
+    height: 1px;
+    background: color-mix(in srgb, var(--text) 22%, transparent);
+  }
+
+  .fill {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 7px;
+    height: 1px;
+    background: var(--text);
+    transform-origin: left center;
+    transform: scaleX(0);
+  }
+
+  /* 3.6s matches DWELL_MS in the script. Pausing the hero pauses the fill too. */
+  .seg[aria-current='true'] .fill {
+    animation: seg-fill 3600ms linear forwards;
+  }
+
+  .hero[data-paused] .fill {
+    animation-play-state: paused;
+  }
+
+  @keyframes seg-fill {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+
   .tag {
     margin-bottom: 12px;
     font-size: 18px;
   }
 
-  @media (max-width: 719px) {
+  /* Mobile: one main piece per scene, centred. Bottom bar stacks name, intro, dock. */
+  @media (max-width: 899px) {
+    .hero {
+      height: auto;
+      min-height: 0;
+      grid-template-rows: auto auto;
+    }
+
+    .stage {
+      height: min(66svh, 640px);
+      min-height: 380px;
+    }
+
+    .cluster {
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+    }
+
+    .piece:not([data-main]) {
+      display: none;
+    }
+
+    .piece[data-main] {
+      --s: min(52cqh, 420px);
+      left: 50%;
+      top: 50%;
+      rotate: 0deg;
+    }
+
+    .ghost-word {
+      font-size: 26cqh;
+    }
+
     .bottom {
       grid-template-columns: minmax(0, 1fr);
       gap: 28px;
@@ -208,115 +547,337 @@ const shots = projects
     .dock-slot {
       justify-self: start;
     }
-
-    /* Slow CSS marquee: the second set (aria-hidden, inert) makes the loop seamless. */
-    .dup {
-      display: flex;
-    }
-
-    .track {
-      animation: hero-marquee 48s linear infinite;
-    }
   }
 
-  @keyframes hero-marquee {
-    from {
-      transform: translate3d(0, 0, 0);
-    }
-    to {
-      transform: translate3d(-50%, 0, 0);
-    }
-  }
-
-  /* Last on purpose: overrides the marquee and entrance for users who ask for less motion. */
+  /* Last on purpose: overrides the transitions and fills for users who ask for less motion. */
   @media (prefers-reduced-motion: reduce) {
-    .track {
-      animation: none;
+    .scene,
+    .scene[data-active],
+    .ghost-word {
+      transition: none;
     }
 
-    .dup {
-      display: none;
-    }
-
-    .shot-link img {
+    .seg[aria-current='true'] .fill {
       animation: none;
+      transform: scaleX(1);
     }
   }
 </style>
 
 <script>
   import { gsap } from 'gsap';
+  import type Lenis from 'lenis';
 
   /*
-   * Hero motion. Fine pointers: each shot drifts toward the cursor by its depth (data-depth).
-   * Desktop: the row drifts left as the page scrolls, so more of the row comes into view.
-   * Everything here is skipped under reduced motion. Listeners and tweens are torn down on astro:before-swap.
+   * Hero controller. One script, one interval.
+   * - Rotation: every DWELL_MS the next scene takes over (GSAP on the pieces, CSS on the scene).
+   *   Paused while the tab is hidden, the hero is off screen, the pointer is over the stage or focus is inside it.
+   * - Video: only the active scene plays, and only while the tab is visible and the hero is on screen.
+   * - Fine pointers: pieces drift by depth, the ghost word moves the other way.
+   * - Scroll: the active stage releases as the hero scrolls out (pieces spread, stage fades).
+   * - Reduced motion: no timer, no parallax, no playback. Segment buttons still switch scenes instantly.
+   * Everything is torn down on astro:before-swap.
    */
 
-  const POINTER_X = 18; // px at full depth
-  const POINTER_Y = 10;
-  const DRIFT = 0.12; // px of row travel per px scrolled
-  const DRIFT_MAX = 160;
+  const DWELL_MS = 3600;
+  const TICK_MS = 100;
+  const SLIDE_MS = 260; // matches the sticker slide in RoleSticker
+  const PARALLAX_X = 14; // px at depth 1
+  const PARALLAX_Y = 10;
+  const GHOST_SHIFT = 6;
+  const SPREAD_PX = 56;
+  const RELEASE_RANGE = 0.6; // share of the hero height over which the stage releases
 
-  let cleanups: Array<() => void> = [];
+  type LenisWindow = Window & { __lenis?: Lenis };
+
+  interface PieceState {
+    el: HTMLElement;
+    frame: HTMLElement;
+    scene: number;
+    depth: number;
+    main: boolean;
+    x: number;
+    y: number;
+    spread: number;
+    qx: (value: number) => void;
+    qy: (value: number) => void;
+  }
+
+  interface SceneRef {
+    el: HTMLElement;
+    role: string;
+    videos: HTMLVideoElement[];
+    ghost: HTMLElement | null;
+    ghostX: (value: number) => void;
+  }
+
+  let teardownFns: Array<() => void> = [];
 
   function teardown(): void {
-    for (const fn of cleanups) fn();
-    cleanups = [];
+    for (const fn of teardownFns) fn();
+    teardownFns = [];
+  }
+
+  function clamp(value: number, min: number, max: number): number {
+    return Math.min(max, Math.max(min, value));
+  }
+
+  function on(target: EventTarget, type: string, handler: (event: Event) => void, options?: AddEventListenerOptions): void {
+    target.addEventListener(type, handler, options);
+    teardownFns.push(() => target.removeEventListener(type, handler, options));
   }
 
   function init(): void {
     teardown();
-    const hero = document.querySelector<HTMLElement>('[data-hero]');
-    if (!hero) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const root = document.querySelector<HTMLElement>('[data-hero]');
+    const stage = root?.querySelector<HTMLElement>('[data-stage]');
+    if (!root || !stage) return;
 
-    if (window.matchMedia('(pointer: fine)').matches) {
-      const movers = Array.from(hero.querySelectorAll<HTMLElement>('[data-shot-link]')).map((el) => ({
+    const sceneEls = Array.from(root.querySelectorAll<HTMLElement>('[data-scene]'));
+    if (sceneEls.length === 0) return;
+    const segs = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-seg]'));
+    const label = root.querySelector<HTMLElement>('[data-role-label]');
+
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const finePointer = window.matchMedia('(pointer: fine)').matches;
+    const noop = (): void => undefined;
+
+    const refs: SceneRef[] = sceneEls.map((el) => {
+      const ghost = el.querySelector<HTMLElement>('[data-ghost]');
+      return {
         el,
+        role: el.dataset.role ?? '',
+        videos: Array.from(el.querySelectorAll<HTMLVideoElement>('[data-hero-video]')),
+        ghost,
+        ghostX: ghost && !reduce ? gsap.quickTo(ghost, 'x', { duration: 1.1, ease: 'power3.out' }) : noop,
+      };
+    });
+
+    const pieces: PieceState[] = Array.from(root.querySelectorAll<HTMLElement>('[data-piece]')).map((el) => {
+      const frame = el.querySelector<HTMLElement>('.frame') ?? el;
+      const scene = sceneEls.indexOf(el.closest<HTMLElement>('[data-scene]') ?? el);
+      return {
+        el,
+        frame,
+        scene,
         depth: Number(el.dataset.depth ?? '1'),
-        qx: gsap.quickTo(el, 'x', { duration: 0.9, ease: 'power3.out' }),
-        qy: gsap.quickTo(el, 'y', { duration: 0.9, ease: 'power3.out' }),
-      }));
-
-      const onMove = (event: Event): void => {
-        const pointer = event as PointerEvent;
-        const rect = hero.getBoundingClientRect();
-        const nx = ((pointer.clientX - rect.left) / rect.width) * 2 - 1;
-        const ny = ((pointer.clientY - rect.top) / rect.height) * 2 - 1;
-        for (const m of movers) {
-          m.qx(nx * POINTER_X * m.depth);
-          m.qy(ny * POINTER_Y * m.depth);
-        }
+        main: el.hasAttribute('data-main'),
+        x: 0,
+        y: 0,
+        spread: 0,
+        qx: reduce ? noop : gsap.quickTo(el, 'x', { duration: 0.9, ease: 'power3.out' }),
+        qy: reduce ? noop : gsap.quickTo(el, 'y', { duration: 0.9, ease: 'power3.out' }),
       };
+    });
 
-      const onLeave = (): void => {
-        for (const m of movers) {
-          m.qx(0);
-          m.qy(0);
+    let active = 0;
+    let elapsed = 0;
+    let swapTimer: number | undefined;
+    let tickTimer: number | undefined;
+    let pointerX = 0;
+    let pointerY = 0;
+    const paused = new Set<string>();
+
+    // Only the active scene's clips may play, and only while the page is visible and the hero is on screen.
+    function syncPlayback(): void {
+      const allowed = !reduce && !paused.has('hidden') && !paused.has('offscreen');
+      refs.forEach((ref, i) => {
+        const live = allowed && i === active;
+        for (const video of ref.videos) {
+          if (live) {
+            if (video.paused) void video.play().catch(() => undefined);
+          } else {
+            video.pause();
+          }
         }
-      };
-
-      hero.addEventListener('pointermove', onMove, { passive: true });
-      hero.addEventListener('pointerleave', onLeave);
-      cleanups.push(() => {
-        hero.removeEventListener('pointermove', onMove);
-        hero.removeEventListener('pointerleave', onLeave);
-        for (const m of movers) gsap.killTweensOf(m.el);
       });
     }
 
-    const track = hero.querySelector<HTMLElement>('[data-track]');
-    if (track && window.matchMedia('(min-width: 720px)').matches) {
-      const qx = gsap.quickTo(track, 'x', { duration: 0.6, ease: 'power2.out' });
-      const onScroll = (): void => qx(-Math.min(window.scrollY * DRIFT, DRIFT_MAX));
-      window.addEventListener('scroll', onScroll, { passive: true });
+    function setPaused(reason: string, on: boolean): void {
+      if (on) paused.add(reason);
+      else paused.delete(reason);
+      root.toggleAttribute('data-paused', paused.size > 0);
+      syncPlayback();
+    }
+
+    function swapLabel(text: string, animated: boolean): void {
+      if (!label) return;
+      if (swapTimer !== undefined) {
+        window.clearTimeout(swapTimer);
+        swapTimer = undefined;
+      }
+      if (!animated || reduce) {
+        label.textContent = text;
+        delete label.dataset.state;
+        return;
+      }
+      label.dataset.state = 'out';
+      swapTimer = window.setTimeout(() => {
+        swapTimer = undefined;
+        label.textContent = text;
+        label.dataset.state = 'below';
+        // Commit the parked position before removing the attribute, so the slide back in runs.
+        void label.offsetWidth;
+        delete label.dataset.state;
+      }, SLIDE_MS);
+    }
+
+    // Outgoing pieces fall back and fade with a small stagger; incoming pieces rise in, nearest first.
+    function animatePieces(prev: number, next: number): void {
+      pieces
+        .filter((p) => p.scene === prev)
+        .forEach((piece, j) => {
+          gsap.killTweensOf(piece.frame);
+          gsap.to(piece.frame, { y: -16, opacity: 0, duration: 0.45, ease: 'power2.in', delay: j * 0.04 });
+        });
+
+      pieces
+        .filter((p) => p.scene === next)
+        .forEach((piece) => {
+          gsap.killTweensOf(piece.frame);
+          gsap.fromTo(
+            piece.frame,
+            { y: 24, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.9, ease: 'power3.out', delay: 0.12 + (1 - piece.depth) * 0.2 },
+          );
+        });
+    }
+
+    function show(next: number, animated: boolean): void {
+      if (next === active) return;
+      const prev = active;
+      active = next;
+
+      refs.forEach((ref, i) => {
+        const on = i === next;
+        if (on) ref.el.setAttribute('data-active', '');
+        else ref.el.removeAttribute('data-active');
+        ref.el.inert = !on;
+      });
+      segs.forEach((seg, i) => {
+        if (i === next) seg.setAttribute('aria-current', 'true');
+        else seg.removeAttribute('aria-current');
+      });
+
+      // Lazy reset: the incoming scene starts from its first frame.
+      for (const video of refs[next].videos) video.currentTime = 0;
+      syncPlayback();
+
+      swapLabel(refs[next].role, animated);
+      if (animated && !reduce) animatePieces(prev, next);
+    }
+
+    // Rotation. One interval; it does nothing while any pause reason is set.
+    function tick(): void {
+      if (paused.size > 0) return;
+      elapsed += TICK_MS;
+      if (elapsed >= DWELL_MS) {
+        elapsed = 0;
+        show((active + 1) % refs.length, true);
+      }
+    }
+
+    // Initial state: first scene active, the rest inert.
+    refs.forEach((ref, i) => {
+      ref.el.inert = i !== active;
+    });
+    syncPlayback();
+
+    if (!reduce && refs.length > 1) {
+      tickTimer = window.setInterval(tick, TICK_MS);
+      const timer = tickTimer;
+      teardownFns.push(() => window.clearInterval(timer));
+    }
+
+    // Pause reasons.
+    setPaused('hidden', document.hidden);
+    on(document, 'visibilitychange', () => setPaused('hidden', document.hidden));
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        const last = entries[entries.length - 1];
+        if (last) setPaused('offscreen', !last.isIntersecting);
+      },
+      { threshold: 0 },
+    );
+    io.observe(root);
+    teardownFns.push(() => io.disconnect());
+
+    on(stage, 'pointerenter', () => setPaused('pointer', true));
+    on(stage, 'pointerleave', () => setPaused('pointer', false));
+    on(stage, 'focusin', () => setPaused('focus', true));
+    on(stage, 'focusout', (event) => {
+      const next = (event as FocusEvent).relatedTarget as Node | null;
+      setPaused('focus', next !== null && stage.contains(next));
+    });
+
+    // Segment buttons: instant switch under reduced motion, otherwise animated and dwell restarts.
+    segs.forEach((seg, i) => {
+      on(seg, 'click', () => {
+        elapsed = 0;
+        show(i, true);
+      });
+    });
+
+    // Parallax and scroll release.
+    function applyPiece(piece: PieceState): void {
+      piece.qx(pointerX * PARALLAX_X * piece.depth);
+      piece.qy(pointerY * PARALLAX_Y * piece.depth + piece.spread);
+    }
+
+    function updateParallax(): void {
+      for (const piece of pieces) applyPiece(piece);
+      for (const ref of refs) ref.ghostX(-pointerX * GHOST_SHIFT);
+    }
+
+    if (!reduce) {
+      if (finePointer) {
+        on(stage, 'pointermove', (event) => {
+          const pointer = event as PointerEvent;
+          const rect = stage.getBoundingClientRect();
+          pointerX = clamp(((pointer.clientX - rect.left) / rect.width) * 2 - 1, -1, 1);
+          pointerY = clamp(((pointer.clientY - rect.top) / rect.height) * 2 - 1, -1, 1);
+          updateParallax();
+        });
+        on(stage, 'pointerleave', () => {
+          pointerX = 0;
+          pointerY = 0;
+          updateParallax();
+        });
+      }
+
+      const lenis = (window as LenisWindow).__lenis;
+      const onScroll = (): void => {
+        const rect = root.getBoundingClientRect();
+        const release = clamp(-rect.top / (rect.height * RELEASE_RANGE), 0, 1);
+        stage.style.opacity = String(1 - 0.25 * release);
+        for (const piece of pieces) {
+          piece.spread = release * SPREAD_PX * (piece.main ? -1 : 1) * piece.depth;
+          applyPiece(piece);
+        }
+      };
+      if (lenis) {
+        lenis.on('scroll', onScroll);
+        teardownFns.push(() => lenis.off('scroll', onScroll));
+      } else {
+        on(window, 'scroll', onScroll, { passive: true });
+      }
       onScroll();
-      cleanups.push(() => {
-        window.removeEventListener('scroll', onScroll);
-        gsap.killTweensOf(track);
-      });
     }
+
+    teardownFns.push(() => {
+      if (swapTimer !== undefined) window.clearTimeout(swapTimer);
+      for (const ref of refs) {
+        for (const video of ref.videos) video.pause();
+      }
+      gsap.killTweensOf([
+        ...pieces.flatMap((p) => [p.el, p.frame]),
+        ...refs.map((r) => r.ghost).filter((g): g is HTMLElement => g !== null),
+      ]);
+      if (label) delete label.dataset.state;
+      root.removeAttribute('data-paused');
+      stage.style.opacity = '';
+    });
   }
 
   document.addEventListener('astro:page-load', init);

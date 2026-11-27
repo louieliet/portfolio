@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { projects, type ProjectSection } from "./data.ts";
+import { personalInfo, projects, type ProjectSection } from "./data.ts";
 
 const isVideo = (src: string) => src.endsWith(".mp4");
 const posterOf = (src: string) => src.replace(/\.mp4$/, ".webp");
@@ -37,6 +37,7 @@ test("every project image and section media image exists under public/", () => {
       ...(p.images ?? []),
       ...(p.heroShot ? [p.heroShot] : []),
       ...sectionsOf(p).flatMap((s) => s.media?.images ?? []),
+      ...personalInfo.heroScenes.flatMap((s) => s.pieces.flatMap((piece) => (isVideo(piece.src) ? [piece.src, posterOf(piece.src)] : [piece.src]))),
     ];
     for (const src of paths) {
       assert.ok(existsSync(`${PUBLIC}${src}`), `${p.id}: missing ${src}`);

@@ -18,6 +18,22 @@ export interface ExperienceItem {
   highlight?: boolean;
 }
 
+// One clip or still in a hero scene. Clips (.mp4) need a .webp poster beside them.
+export interface HeroPiece {
+  src: string;
+  kind: "phone" | "wide" | "detail";
+  alt: string;
+}
+
+// One role on the home hero stage. Pieces are real product media; the first piece is the main one.
+export interface HeroScene {
+  role: string;
+  projectId: string;
+  ghost: string; // giant background word for the scene
+  pieces: HeroPiece[];
+  mascot?: boolean; // adds the projectId's animated mascot peeking behind the main piece
+}
+
 export interface FactGroup {
   title: "Work" | "Approach" | "Drive" | "Life";
   items: string[]; // three short lines per group
@@ -57,6 +73,47 @@ export const personalInfo = {
   tagline: "I build scalable web and mobile products with strong UX foundations.",
   // Rotating words for the hero role sticker.
   roles: ["product designer", "design engineer", "iOS builder", "co-founder"],
+  // Home hero stage, in the same order as roles. Each role is proven by moving product.
+  heroScenes: [
+    {
+      role: "product designer",
+      projectId: "bloomley",
+      ghost: "DESIGN",
+      pieces: [
+        { src: "/projects/bloomley/hero.mp4", kind: "wide", alt: "Bloomley landing hero" },
+        { src: "/projects/bloomley/flow.mp4", kind: "wide", alt: "Bloomley first mission flow" }
+      ]
+    },
+    {
+      role: "design engineer",
+      projectId: "iluk-landing",
+      ghost: "ENGINEER",
+      pieces: [
+        { src: "/projects/iluk-landing/scroll-story.mp4", kind: "wide", alt: "iLuk.ai scroll story" },
+        { src: "/projects/iluk-landing/four-steps.mp4", kind: "wide", alt: "iLuk.ai four steps to go live" }
+      ]
+    },
+    {
+      role: "iOS builder",
+      projectId: "luma",
+      ghost: "iOS",
+      pieces: [
+        { src: "/projects/luma/day-home.mp4", kind: "phone", alt: "Luma home screen" },
+        { src: "/projects/luma/feat-tasks.mp4", kind: "phone", alt: "Luma task lists" }
+      ],
+      mascot: true
+    },
+    {
+      role: "co-founder",
+      projectId: "luma",
+      ghost: "FOUNDER",
+      pieces: [
+        { src: "/projects/luma/team-emi.mp4", kind: "phone", alt: "Emiliano on the Luma team" },
+        { src: "/projects/luma/team-inaki.mp4", kind: "phone", alt: "Iñaki on the Luma team" },
+        { src: "/projects/luma/team-fer.mp4", kind: "phone", alt: "Fernanda on the Luma team" }
+      ]
+    }
+  ] satisfies HeroScene[],
   intro: "I design and build web and iOS products end to end, from Figma to production.",
   location: "Mexico City, Mexico",
   email: "emilianomg2003@hotmail.com",

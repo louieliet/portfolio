@@ -1,18 +1,20 @@
 ---
-import { personalInfo } from '../lib/data';
-
 /*
- * RoleSticker: yellow inline sticker that cycles personalInfo.roles every 2.4s with a short vertical slide.
+ * RoleSticker: presentational yellow sticker. Hero passes the roles in scene order and owns the timing:
+ * its script updates [data-role-label] with the same vertical slide used before.
  * Every role is stacked in the same grid cell as an invisible ghost, so the sticker is always as wide as
  * the longest role and nothing shifts when the text changes.
- * Server renders the first role. Under reduced motion it stays static (script bails out).
  * The animated node is aria-hidden; the .sr-only copy of the first role is the stable string for screen readers.
  */
-const roles = personalInfo.roles;
+interface Props {
+  roles: string[];
+}
+
+const { roles } = Astro.props;
 const first = roles[0];
 ---
 
-<span class="sticker" data-role-sticker data-roles={JSON.stringify(roles)}>
+<span class="sticker">
   <span class="sr-only">{first}</span>
   <span class="window" aria-hidden="true">
     {roles.map((role) => <span class="ghost">{role}</span>)}
@@ -78,50 +80,3 @@ const first = roles[0];
     }
   }
 </style>
-
-<script>
-  const CYCLE_MS = 2400;
-  const SLIDE_MS = 260;
-
-  let cleanups: Array<() => void> = [];
-
-  function teardown(): void {
-    for (const fn of cleanups) fn();
-    cleanups = [];
-  }
-
-  function init(): void {
-    teardown();
-    const root = document.querySelector<HTMLElement>('[data-role-sticker]');
-    const label = root?.querySelector<HTMLElement>('[data-role-label]');
-    if (!root || !label) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-    const roles = JSON.parse(root.dataset.roles ?? '[]') as string[];
-    if (roles.length < 2) return;
-
-    let index = 0;
-    let swapTimer: number | undefined;
-
-    const interval = window.setInterval(() => {
-      label.dataset.state = 'out';
-      swapTimer = window.setTimeout(() => {
-        index = (index + 1) % roles.length;
-        label.textContent = roles[index];
-        label.dataset.state = 'below';
-        // Commit the parked position before removing the attribute, so the slide back in runs.
-        void label.offsetWidth;
-        delete label.dataset.state;
-      }, SLIDE_MS);
-    }, CYCLE_MS);
-
-    cleanups.push(() => {
-      window.clearInterval(interval);
-      if (swapTimer !== undefined) window.clearTimeout(swapTimer);
-      delete label.dataset.state;
-    });
-  }
-
-  document.addEventListener('astro:page-load', init);
-  document.addEventListener('astro:before-swap', teardown);
-</script>
