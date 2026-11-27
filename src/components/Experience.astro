@@ -78,7 +78,7 @@ import StackChips from './StackChips.astro';
       </ol>
     </div>
   </div>
-  <a class="more" href="/about" data-swap>More about me</a>
+  <a class="about-link" href="/about" data-swap>More about me</a>
 </section>
 
 <style>
@@ -88,7 +88,7 @@ import StackChips from './StackChips.astro';
     padding-block: var(--space-section);
   }
 
-  .more {
+  .about-link {
     display: inline-block;
     margin-top: 40px;
     color: var(--text);
@@ -202,11 +202,12 @@ import StackChips from './StackChips.astro';
     background: var(--accent);
   }
 
+  /* Spacing here must be padding, not margin: the script measures offsetHeight, which ignores margins. */
   .more {
     display: grid;
     grid-template-columns: 180px minmax(0, 1fr) 300px;
     align-items: start;
-    padding-top: 18px;
+    padding-top: 58px;
   }
 
   .detail {
