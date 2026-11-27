@@ -17,6 +17,7 @@ interface Props {
 }
 
 const { items, detailed = false, heading } = Astro.props;
+import StackChips from './StackChips.astro';
 ---
 
 <div class="timeline" data-timeline>
@@ -41,7 +42,7 @@ const { items, detailed = false, heading } = Astro.props;
                 <>
                   <p class="period t-mono muted">{item.period}</p>
                   <p class="desc muted">{item.description}</p>
-                  <p class="stack t-mono muted">{item.stack.join(', ')}</p>
+                  <StackChips tags={item.stack} />
                 </>
               )}
             </div>
@@ -132,9 +133,5 @@ const { items, detailed = false, heading } = Astro.props;
   .desc {
     margin-top: 10px;
     max-width: 60ch;
-  }
-
-  .stack {
-    margin-top: 10px;
   }
 </style>
