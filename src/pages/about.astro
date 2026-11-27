@@ -1,6 +1,5 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import Media from '../components/Media.astro';
 import DotPortrait from '../components/DotPortrait.astro';
 import Timeline from '../components/Timeline.astro';
 import { experience, personalInfo } from '../lib/data';
@@ -9,14 +8,6 @@ const paragraphs = personalInfo.about.history
   .split(/\n\s*\n/)
   .map((paragraph) => paragraph.trim())
   .filter(Boolean);
-
-// Numbered photo row: first screenshot of the first four experiences.
-const photos = experience.slice(0, 4).flatMap((item) => {
-  const src = item.assets?.[0];
-  return src ? [{ src, company: item.company, role: item.role }] : [];
-});
-
-const pad = (n: number) => String(n).padStart(2, '0');
 ---
 
 <Layout title="About | Emiliano Montes" description={personalInfo.intro}>
@@ -33,21 +24,6 @@ const pad = (n: number) => String(n).padStart(2, '0');
         ),
       )}
       <p class="t-mono muted reveal" style="--i: 4">{personalInfo.location}</p>
-    </section>
-
-    <section class="block" aria-label="Work photos">
-      <ol class="photos">
-        {photos.map((photo, i) => (
-          <li class="reveal" style={`--i: ${i}`} data-arrive={i === 0 ? '0.5' : undefined}>
-            <figure>
-              <figcaption class="t-mono muted">{pad(i + 1)} / {photo.company.split(/[\s./]/)[0]}</figcaption>
-              <div class="frame">
-                <Media src={photo.src} alt={`${photo.role} at ${photo.company}, product screenshot`} />
-              </div>
-            </figure>
-          </li>
-        ))}
-      </ol>
     </section>
 
     <section class="block">
@@ -69,32 +45,6 @@ const pad = (n: number) => String(n).padStart(2, '0');
       </ol>
     </section>
 
-    <section class="block" aria-labelledby="facts-heading">
-      <h2 id="facts-heading" class="sub" data-roll>Facts</h2>
-      <ul class="facts">
-        {/* Life is DUMMY content (see data.ts). */}
-        {personalInfo.facts.map((group, i) => (
-          <li class="reveal" style={`--i: ${i}`}>
-            <p class="t-mono muted">{pad(i + 1)}</p>
-            <h3 class="fact-title">{group.title}</h3>
-            <ul class="fact-items">
-              {group.items.map((item) => (
-                <li class="muted">{item}</li>
-              ))}
-            </ul>
-          </li>
-        ))}
-      </ul>
-    </section>
-
-    <section class="block closing">
-      <ul class="links">
-        <li><a href={`mailto:${personalInfo.email}`}>Email</a></li>
-        <li><a href={personalInfo.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
-        <li><a href={personalInfo.github} target="_blank" rel="noopener noreferrer">GitHub</a></li>
-      </ul>
-      <a class="back" href="/#work">Back to my work</a>
-    </section>
   </div>
 </Layout>
 
@@ -135,49 +85,6 @@ const pad = (n: number) => String(n).padStart(2, '0');
     color: var(--text);
   }
 
-  /* Photo row: four figures on wide screens, a snap-scrolling row on phones. */
-  .photos {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 16px;
-  }
-
-  figure {
-    margin: 0;
-  }
-
-  figcaption {
-    margin-bottom: 8px;
-  }
-
-  .frame {
-    aspect-ratio: 4 / 3;
-    overflow: hidden;
-    background: var(--line);
-  }
-
-  .frame :global(img),
-  .frame :global(video) {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  @media (max-width: 719px) {
-    .photos {
-      display: flex;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      gap: 12px;
-      padding-bottom: 8px;
-    }
-
-    .photos li {
-      flex: 0 0 72%;
-      scroll-snap-align: start;
-    }
-  }
-
   /* Education rows share the timeline's grid: year at left, text at right. */
   .edu {
     border-bottom: 1px solid var(--line);
@@ -201,42 +108,5 @@ const pad = (n: number) => String(n).padStart(2, '0');
       grid-template-columns: 80px minmax(0, 1fr);
       gap: 16px;
     }
-  }
-
-  /* Facts: four columns, two under 900px. */
-  .facts {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 40px 24px;
-  }
-
-  .fact-title {
-    margin-top: 8px;
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--text);
-  }
-
-  .fact-items {
-    display: grid;
-    gap: 4px;
-    margin-top: 8px;
-  }
-
-  @media (max-width: 899px) {
-    .facts {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  .links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 24px;
-  }
-
-  .back {
-    display: inline-block;
-    margin-top: 24px;
   }
 </style>

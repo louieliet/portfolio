@@ -27,11 +27,6 @@ export interface ProjectCard {
   chips: string[]; // 2 to 4 short tags
 }
 
-export interface FactGroup {
-  title: "Work" | "Approach" | "Drive" | "Life";
-  items: string[]; // three short lines per group
-}
-
 export interface ProjectItem {
   id: string;
   name: string;
@@ -124,16 +119,7 @@ export const personalInfo = {
     "Good products start before the first screen.",
     "I think the product through, design it, iterate, and code it myself.",
     "Then I polish until it feels as good as it works.",
-  ] satisfies string[],
-  // Four columns for the about page ("Facts"). Work/Approach/Drive reuse real facts above.
-  // Life is placeholder text; each line is marked DUMMY.
-  facts: [
-    { title: "Work", items: ["Products by day", "Luma on the side", "Motion for fun"] },
-    { title: "Approach", items: ["Understand first", "Design and iterate", "Build it myself"] },
-    { title: "Drive", items: ["Curious about AI", "Obsessed with detail", "Games as UX lessons"] },
-    // DUMMY: reemplazar (the three Life lines are invented placeholders)
-    { title: "Life", items: ["Film photographer", "Weekend cyclist", "Coffee before code"] }
-  ] satisfies FactGroup[]
+  ] satisfies string[]
 }
 
 /**
