@@ -6,9 +6,12 @@ import { projects } from '../lib/data';
  * - Each <li> is one project. The tilt is set on the <li> (a direct child of the perspective list), and the
  *   <a> inside it is the card link. The script writes --p (-1 .. 1) per item; CSS turns it into the tilt.
  * - The card closest to the viewport centre is active: accent label bar, aria-current on its index link.
- * - Only the active card's videos play, and only while the stack is on screen and the tab is visible.
- * - Desktop (>= 1100px): sticky index in the left gutter and sticky counter in the right gutter.
- * - Under 900px and under reduced motion: flat cards. No-JS: flat cards, fully visible.
+ * - Only the active card's videos play, and only while the stack is on screen, the tab is visible and the card
+ *   is at least 60% resolved (desktop) or has resolved (flat).
+ * - Each frame has a .stage (the media) and an ASCII canvas on top. The script writes --res next to --p; CSS
+ *   settles the media inside the frame (desktop, motion only). See lib/ascii-image.ts.
+ * - Desktop (>= 1100px): sticky index in the left gutter (with progress tracks) and sticky counter in the right gutter.
+ * - Under 900px and under reduced motion: flat cards. No-JS: flat cards, fully visible, no canvas.
  */
 const total = String(projects.length).padStart(2, '0');
 const isVideo = (src: string): boolean => src.endsWith('.mp4');
@@ -24,6 +27,7 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
             <a href={`#work-${p.id}`} data-index-link data-roll-hover>
               <span class="num t-mono">{String(i + 1).padStart(2, '0')}</span>
               {p.name}
+              <span class="track" aria-hidden="true"><span class="fill" /></span>
             </a>
           </li>
         ))
@@ -49,38 +53,41 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
               data-card
             >
               <span class:list={['frame', `kind-${p.card.kind}`]}>
-                {p.card.media.map((src, j) =>
-                  isVideo(src) ? (
-                    j === 0 ? (
-                      <video
-                        class="media"
-                        src={src}
-                        poster={posterOf(src)}
-                        muted
-                        loop
-                        playsinline
-                        preload="none"
-                        aria-hidden="true"
-                        transition:name={`cover-${p.id}`}
-                      />
+                <span class="stage">
+                  {p.card.media.map((src, j) =>
+                    isVideo(src) ? (
+                      j === 0 ? (
+                        <video
+                          class="media"
+                          src={src}
+                          poster={posterOf(src)}
+                          muted
+                          loop
+                          playsinline
+                          preload="none"
+                          aria-hidden="true"
+                          transition:name={`cover-${p.id}`}
+                        />
+                      ) : (
+                        <video
+                          class="media"
+                          src={src}
+                          poster={posterOf(src)}
+                          muted
+                          loop
+                          playsinline
+                          preload="none"
+                          aria-hidden="true"
+                        />
+                      )
+                    ) : j === 0 ? (
+                      <img class="media" src={src} alt="" loading="lazy" decoding="async" transition:name={`cover-${p.id}`} />
                     ) : (
-                      <video
-                        class="media"
-                        src={src}
-                        poster={posterOf(src)}
-                        muted
-                        loop
-                        playsinline
-                        preload="none"
-                        aria-hidden="true"
-                      />
+                      <img class="media" src={src} alt="" loading="lazy" decoding="async" />
                     )
-                  ) : j === 0 ? (
-                    <img class="media" src={src} alt="" loading="lazy" decoding="async" transition:name={`cover-${p.id}`} />
-                  ) : (
-                    <img class="media" src={src} alt="" loading="lazy" decoding="async" />
-                  )
-                )}
+                  )}
+                </span>
+                <canvas class="ascii" aria-hidden="true"></canvas>
               </span>
               <span class="label">
                 <span class="name roll-cell" data-label-name={p.name}><span class="cell-face">{p.name}</span></span>
@@ -163,6 +170,31 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
     background: color-mix(in srgb, var(--text) 5%, transparent);
     outline: 1px solid var(--line);
     outline-offset: -1px;
+  }
+
+  /* The stage holds the media. It fills the frame, so its height is the frame height (phone screens use 82% of it). */
+  .stage {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ASCII overlay: the frame's box, transparent except for the cells it paints. Clicks pass through to the link. */
+  .ascii {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  /* Until the first ASCII frame is painted, the media stays hidden. The class is set by the script only, and
+   * the script removes it after the first paint or after a 1.5s failsafe, so a stuck script never hides media. */
+  .stack.ascii-pending .stage {
+    opacity: 0;
   }
 
   .kind-wide .media {
@@ -255,6 +287,7 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
   }
 
   .index a {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 14px;
@@ -276,6 +309,25 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
     background: var(--accent);
   }
 
+  /* Progress track under each index item: a 1px baseline, with a fill the script drives through --fill
+   * (1 before the active item, 0 after it, and the active item's progress through its card). No transition. */
+  .track {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: var(--line);
+  }
+
+  .fill {
+    position: absolute;
+    inset: 0;
+    background: var(--text);
+    transform-origin: 0 50%;
+    transform: scaleX(var(--fill, 0));
+  }
+
   @media (min-width: 900px) {
     .stack {
       perspective: 1400px;
@@ -291,6 +343,15 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
 
     .js .item[data-side='above'] {
       transform-origin: 50% 0%;
+    }
+  }
+
+  /* Settle: the media inside the frame moves with the card's position and settles from 1.08x to 1x as the card
+   * reaches the centre. The frame clips it (overflow hidden), so the picture slides inside a fixed window. The
+   * inner stage is transformed, not the frame, so the view-transition element keeps its start rect. */
+  @media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+    .stage {
+      transform: translateY(calc(var(--p, 0) * -9%)) scale(calc(1.08 - 0.08 * var(--res, 1)));
     }
   }
 
@@ -335,14 +396,70 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
   import gsap from 'gsap';
   import type Lenis from 'lenis';
   import { rollText, scrollEnergy } from '../lib/motion';
+  import {
+    backingRatio,
+    cellHashes,
+    drawCover,
+    easeOut,
+    gridFor,
+    paintAscii,
+    resolveAmount,
+    sampleLuminance,
+    type Grid,
+    type Palette,
+  } from '../lib/ascii-image';
 
   /*
    * Work stack controller. One scroll handler: Lenis when present, plus window scroll and resize as the
    * fallback, batched in one animation frame. Reads all geometry first, then writes.
    * Init on astro:page-load, full teardown on astro:before-swap.
+   *
+   * ASCII resolve (not under reduced motion). Each frame's canvas paints the cover as characters and dissolves to
+   * the real media as the card nears the centre. The maths is in lib/ascii-image.ts.
+   * - Desktop (>= 900px): the resolve amount comes from the card's position, the same value written to --res.
+   * - Under 900px (flat cards): each card resolves once, over about 700ms, when 35% of it enters the viewport.
+   *   Then its canvas is cleared for good.
+   * Until the first frame is painted, the stack carries .ascii-pending (media hidden). The script removes it
+   * after the first paint, or after a failsafe delay.
    */
 
   type LenisWindow = Window & { __lenis?: Lenis };
+
+  const DESKTOP_QUERY = '(min-width: 900px)';
+  const REDUCE_QUERY = '(prefers-reduced-motion: reduce)';
+  const SCHEME_QUERY = '(prefers-color-scheme: dark)';
+  const VIDEO_RESOLVE = 0.6; // a card's video plays only once its resolve amount is above this
+  const RESOLVE_STEPS = 60; // a card repaints only when its resolve amount moves by 1/60
+  const FLAT_RESOLVE_MS = 700;
+  const FLAT_ENTER = 0.35; // share of a flat card that must be in view to start its one-time resolve
+  const PENDING_FAILSAFE_MS = 1500;
+  const PHONE_SHIFT = 0.06; // mirrors `.kind-phones .media:nth-child(2) { translate: 0 6% }` above
+
+  interface Source {
+    el: HTMLElement;
+    img: HTMLImageElement;
+    index: number; // position among the stage's children (the phones offset depends on it)
+  }
+
+  interface AsciiCard {
+    item: HTMLElement;
+    frame: HTMLElement | null;
+    canvas: HTMLCanvasElement | null;
+    videos: HTMLVideoElement[];
+    index: number;
+    sources: Source[];
+    ctx: CanvasRenderingContext2D | null;
+    grid: Grid | null;
+    lum: Float32Array | null;
+    hashes: Float32Array | null;
+    width: number; // CSS size at the last sample
+    height: number;
+    ascii: boolean; // sampled and drawable
+    res: number; // resolve amount: 0 is all ASCII, 1 is the real media
+    step: number; // last painted resolve step (0..60), -1 = never painted
+    flat: 'waiting' | 'running' | 'done';
+    start: number; // performance.now() when the flat resolve started
+  }
 
   let cleanups: Array<() => void> = [];
 
@@ -360,6 +477,45 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
     return -(Number.isFinite(value) ? value : 0);
   }
 
+  function loadImage(url: string): Promise<HTMLImageElement | null> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = url;
+    });
+  }
+
+  /** The image behind a media element: the poster of a video, or the image itself. */
+  function sourceUrl(el: HTMLElement): string | null {
+    if (el instanceof HTMLVideoElement) return el.getAttribute('poster');
+    if (el instanceof HTMLImageElement) return el.src || null;
+    return null;
+  }
+
+  function readPalette(): Palette {
+    const style = getComputedStyle(document.documentElement);
+    return {
+      bg: style.getPropertyValue('--bg').trim() || '#0b0c0b',
+      fg: style.getPropertyValue('--text').trim() || '#ededed',
+      font: style.getPropertyValue('--font-mono').trim() || 'monospace',
+      inverted: style.getPropertyValue('color-scheme').trim() === 'light',
+    };
+  }
+
+  /** Drops a card's ASCII state and releases its canvas memory. The card then shows the real media. */
+  function clearCard(card: AsciiCard): void {
+    card.ascii = false;
+    card.ctx = null;
+    card.grid = null;
+    card.lum = null;
+    card.hashes = null;
+    if (card.canvas) {
+      card.canvas.width = 0;
+      card.canvas.height = 0;
+    }
+  }
+
   function mount(root: HTMLElement, reduce: boolean): void {
     const items = Array.from(root.querySelectorAll<HTMLElement>('[data-work-item]'));
     const indexLinks = Array.from(root.querySelectorAll<HTMLAnchorElement>('[data-index-link]'));
@@ -368,27 +524,59 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
     const stack = root.querySelector<HTMLElement>('[data-stack]');
     if (items.length === 0 || !stack) return;
 
-    const cards = items.map((item) => ({
+    const cards: AsciiCard[] = items.map((item, index) => ({
       item,
+      frame: item.querySelector<HTMLElement>('.frame'),
+      canvas: item.querySelector<HTMLCanvasElement>('canvas.ascii'),
       videos: Array.from(item.querySelectorAll<HTMLVideoElement>('video')),
+      index,
+      sources: [],
+      ctx: null,
+      grid: null,
+      lum: null,
+      hashes: null,
+      width: 0,
+      height: 0,
+      ascii: false,
+      res: 0,
+      step: -1,
+      flat: 'waiting',
+      start: 0,
     }));
+
+    // Mode is fixed at mount. A breakpoint or motion change remounts the stack (see the listeners below).
+    const desktop = window.matchMedia(DESKTOP_QUERY).matches;
+    const tilt = !reduce && desktop; // scroll drives the resolve
+    const flat = !reduce && !desktop; // each card resolves once
 
     let active = -1;
     let focused = -1;
     let inView = false;
-    let frame = 0;
+    let frame = 0; // scroll rAF
+    let tickFrame = 0; // flat resolve rAF
+    let playbackDirty = false;
+    let alive = true;
+    let ready = false;
+    let palette: Palette = readPalette();
+    let flatObserver: IntersectionObserver | null = null;
+    let resizer: ResizeObserver | null = null;
 
     const listen = (target: EventTarget, type: string, fn: EventListener, options?: AddEventListenerOptions): void => {
       target.addEventListener(type, fn, options);
       cleanups.push(() => target.removeEventListener(type, fn, options));
     };
 
-    // Only the active card's clips play, and only while the stack is on screen and the tab is visible.
+    const reveal = (): void => {
+      stack.classList.remove('ascii-pending');
+    };
+
+    // Only the active card's clips play, and only while the stack is on screen and the tab is visible. A card
+    // with ASCII plays only once it is past the resolve threshold, so a clip never runs hidden behind characters.
     const syncPlayback = (): void => {
       const allowed = !reduce && inView && !document.hidden;
-      cards.forEach(({ videos }, i) => {
-        const live = allowed && i === active;
-        for (const video of videos) {
+      cards.forEach((card, i) => {
+        const live = allowed && i === active && (!card.ascii || card.res > VIDEO_RESOLVE);
+        for (const video of card.videos) {
           if (live) {
             if (video.paused) void video.play().catch(() => undefined);
           } else {
@@ -418,32 +606,219 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
       syncPlayback();
     };
 
+    const setResolve = (card: AsciiCard, res: number): void => {
+      if ((res > VIDEO_RESOLVE) !== (card.res > VIDEO_RESOLVE)) playbackDirty = true;
+      card.res = res;
+    };
+
+    // Paints one card at resolve amount `res`, but only when its quantised step changed. Every caller is rAF-driven
+    // (scroll handler, flat tween), so nothing paints while the tab is hidden; the one-time prepare paint still runs.
+    const drawCard = (card: AsciiCard, res: number): void => {
+      if (!card.ascii || !card.ctx || !card.grid || !card.lum || !card.hashes) return;
+      const step = Math.round(clamp(res, 0, 1) * RESOLVE_STEPS);
+      if (step === card.step) return;
+      card.step = step;
+      paintAscii(card.ctx, card.grid, card.lum, card.hashes, step / RESOLVE_STEPS, palette);
+    };
+
+    const redrawAll = (): void => {
+      for (const card of cards) drawCard(card, card.res);
+    };
+
+    const loadSources = async (card: AsciiCard): Promise<void> => {
+      const { frame: cardFrame } = card;
+      if (!cardFrame) return;
+      const media = Array.from(cardFrame.querySelectorAll<HTMLElement>('.stage > .media'));
+      const phones = cardFrame.classList.contains('kind-phones');
+      // Wide cards use their first media. Phones cards use every visible screen (the composite).
+      const chosen = phones ? media.filter((el) => el.offsetWidth > 0) : media.slice(0, 1);
+      const loaded = await Promise.all(
+        chosen.map(async (el): Promise<Source | null> => {
+          const url = sourceUrl(el);
+          const img = url ? await loadImage(url) : null;
+          return img ? { el, img, index: media.indexOf(el) } : null;
+        }),
+      );
+      card.sources = loaded.filter((source): source is Source => source !== null);
+    };
+
+    // Samples one card at its current CSS size. Phones: the screens are drawn at their DOM offsets (offset*
+    // ignores the transform, so the stage's motion does not skew the sample).
+    const sampleCard = (card: AsciiCard): void => {
+      clearCard(card);
+      const { frame: cardFrame, canvas } = card;
+      if (!cardFrame || !canvas || card.sources.length === 0) return;
+      const width = cardFrame.clientWidth;
+      const height = cardFrame.clientHeight;
+      if (width === 0 || height === 0) return;
+
+      const grid = gridFor(width, height);
+      const phones = cardFrame.classList.contains('kind-phones');
+      const scaleX = grid.cols / width;
+      const scaleY = grid.rows / height;
+      const lum = sampleLuminance(grid, (ctx) => {
+        if (!phones) {
+          drawCover(ctx, card.sources[0].img, 0, 0, grid.cols, grid.rows, width / height);
+          return;
+        }
+        for (const source of card.sources) {
+          const el = source.el;
+          if (el.offsetWidth === 0) continue;
+          const shift = source.index === 1 ? PHONE_SHIFT * el.offsetHeight : 0;
+          drawCover(
+            ctx,
+            source.img,
+            el.offsetLeft * scaleX,
+            (el.offsetTop + shift) * scaleY,
+            el.offsetWidth * scaleX,
+            el.offsetHeight * scaleY,
+            el.offsetWidth / el.offsetHeight,
+          );
+        }
+      });
+      if (!lum) return;
+
+      const ratio = backingRatio(width, window.devicePixelRatio || 1);
+      canvas.width = Math.round(width * ratio);
+      canvas.height = Math.round(height * ratio);
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.setTransform(canvas.width / width, 0, 0, canvas.height / height, 0, 0);
+      card.ctx = ctx;
+      card.grid = grid;
+      card.lum = lum;
+      card.hashes = cellHashes(grid, card.index);
+      card.width = width;
+      card.height = height;
+      card.step = -1;
+      card.ascii = true;
+    };
+
     const update = (): void => {
       frame = 0;
+      if (!alive) return;
       const vh = window.innerHeight;
       const mid = vh / 2;
 
       // Read pass: every card's geometry first.
-      const ps = cards.map(({ item }) => {
+      const centres = cards.map(({ item }) => {
         const rect = item.getBoundingClientRect();
-        return clamp((rect.top + rect.height / 2 - mid) / vh, -1, 1);
+        return { y: rect.top + rect.height / 2, visible: rect.bottom > 0 && rect.top < vh };
       });
+      const ps = centres.map(({ y }) => clamp((y - mid) / vh, -1, 1));
 
       // Write pass.
       let nearest = 0;
       ps.forEach((p, i) => {
         if (Math.abs(p) < Math.abs(ps[nearest])) nearest = i;
-        cards[i].item.style.setProperty('--p', p.toFixed(3));
-        cards[i].item.dataset.side = p >= 0 ? 'below' : 'above';
+        const card = cards[i];
+        card.item.style.setProperty('--p', p.toFixed(3));
+        card.item.dataset.side = p >= 0 ? 'below' : 'above';
+        if (tilt) {
+          const res = resolveAmount(p);
+          card.item.style.setProperty('--res', res.toFixed(3));
+          setResolve(card, res);
+          // Far off screen cards are not painted. They repaint when they come back on screen.
+          if (centres[i].visible) drawCard(card, res);
+        }
       });
 
       // A focused card counts as active, so keyboard users see the same state as pointer users.
       const next = focused >= 0 ? focused : nearest;
       if (next !== active) setActive(next);
+
+      // Index progress. Before the active item: full. After it: empty. The active item fills while its card
+      // travels through the centre, from 0 when it becomes active to 1 when the next card does.
+      const progressOf = (i: number): number => {
+        if (centres.length < 2) return 0;
+        const j = i < centres.length - 1 ? i + 1 : i - 1;
+        const gap = Math.abs(centres[j].y - centres[i].y);
+        return gap > 0 ? clamp(0.5 - (centres[i].y - mid) / gap, 0, 1) : 0;
+      };
+      indexLinks.forEach((link, i) => {
+        const fill = i < next ? 1 : i > next ? 0 : progressOf(i);
+        link.style.setProperty('--fill', fill.toFixed(3));
+      });
+
+      if (playbackDirty) {
+        playbackDirty = false;
+        syncPlayback();
+      }
     };
 
     const schedule = (): void => {
       if (frame === 0) frame = requestAnimationFrame(update);
+    };
+
+    // Flat cards (under 900px): one resolve per card, started when it is 35% in view.
+    const tick = (): void => {
+      tickFrame = 0;
+      if (!alive) return;
+      const now = performance.now();
+      let running = false;
+      for (const card of cards) {
+        if (card.flat !== 'running') continue;
+        const t = Math.min(1, (now - card.start) / FLAT_RESOLVE_MS);
+        const res = easeOut(t);
+        setResolve(card, res);
+        drawCard(card, res);
+        if (t >= 1) card.flat = 'done';
+        else running = true;
+      }
+      if (playbackDirty) {
+        playbackDirty = false;
+        syncPlayback();
+      }
+      if (running) tickFrame = requestAnimationFrame(tick);
+    };
+
+    const onFlatEnter = (entries: IntersectionObserverEntry[]): void => {
+      for (const entry of entries) {
+        const card = cards.find((c) => c.frame === entry.target);
+        if (!card || card.flat !== 'waiting' || !card.ascii || entry.intersectionRatio < FLAT_ENTER) continue;
+        card.flat = 'running';
+        card.start = performance.now();
+        flatObserver?.unobserve(entry.target);
+        if (tickFrame === 0) tickFrame = requestAnimationFrame(tick);
+      }
+    };
+
+    const onTheme = (): void => {
+      palette = readPalette();
+      for (const card of cards) card.step = -1;
+      redrawAll();
+    };
+
+    const prepare = async (): Promise<void> => {
+      await document.fonts.ready;
+      await Promise.all(cards.map(loadSources));
+      if (!alive) return;
+
+      cards.forEach(sampleCard);
+      palette = readPalette();
+      update(); // positions and resolve amounts for every card
+      redrawAll(); // paints every card, including the ones off screen, before the first reveal
+      ready = true;
+
+      if (flat && alive) {
+        flatObserver = new IntersectionObserver(onFlatEnter, { threshold: FLAT_ENTER });
+        for (const card of cards) if (card.ascii && card.frame) flatObserver.observe(card.frame);
+      }
+
+      resizer = new ResizeObserver(() => {
+        if (!alive || !ready) return;
+        for (const card of cards) {
+          const cardFrame = card.frame;
+          if (!cardFrame || !card.ascii) continue;
+          if (cardFrame.clientWidth !== card.width || cardFrame.clientHeight !== card.height) sampleCard(card);
+        }
+        redrawAll();
+        schedule();
+      });
+      for (const card of cards) if (card.frame) resizer.observe(card.frame);
+
+      reveal();
+      syncPlayback();
     };
 
     listen(window, 'scroll', schedule, { passive: true });
@@ -474,7 +849,10 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
     );
     io.observe(stack);
     cleanups.push(() => io.disconnect());
-    listen(document, 'visibilitychange', syncPlayback);
+    listen(document, 'visibilitychange', () => {
+      syncPlayback();
+      schedule();
+    });
 
     indexLinks.forEach((link, i) => {
       listen(link, 'click', (event) => {
@@ -504,21 +882,47 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
       stack.style.removeProperty('--v');
     });
 
+    if (!reduce) {
+      stack.classList.add('ascii-pending');
+      const failsafe = window.setTimeout(reveal, PENDING_FAILSAFE_MS);
+      listen(window.matchMedia(SCHEME_QUERY), 'change', onTheme);
+      const themeObserver = new MutationObserver(onTheme);
+      themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      cleanups.push(() => {
+        clearTimeout(failsafe);
+        themeObserver.disconnect();
+        stack.classList.remove('ascii-pending');
+      });
+      prepare().catch(reveal);
+    }
+
     update();
 
     cleanups.push(() => {
+      alive = false;
       cancelAnimationFrame(frame);
       frame = 0;
-      for (const { videos } of cards) {
-        for (const video of videos) video.pause();
+      cancelAnimationFrame(tickFrame);
+      tickFrame = 0;
+      flatObserver?.disconnect();
+      resizer?.disconnect();
+      for (const card of cards) {
+        clearCard(card);
+        card.sources = [];
+        for (const video of card.videos) video.pause();
       }
     });
   }
 
   function init(): void {
     teardown();
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduce = window.matchMedia(REDUCE_QUERY).matches;
     document.querySelectorAll<HTMLElement>('[data-work-stack]').forEach((root) => mount(root, reduce));
+  }
+
+  // Tilt, flat and reduced motion are decided at mount. A breakpoint or motion change remounts the stack.
+  for (const query of [DESKTOP_QUERY, REDUCE_QUERY]) {
+    window.matchMedia(query).addEventListener('change', () => init());
   }
 
   document.addEventListener('astro:page-load', init);
