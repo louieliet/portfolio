@@ -8,6 +8,7 @@ import CaseSection from '../../components/CaseSection.astro';
 import CaseOutcome from '../../components/CaseOutcome.astro';
 import NextProject from '../../components/NextProject.astro';
 import { projects, type ProjectItem } from '@/lib/data';
+import { VT_COVER, VT_TITLE } from '../../lib/page-transition';
 
 export const getStaticPaths = (() => {
   return projects.map((project) => ({
@@ -30,23 +31,15 @@ const allProjects = projects as ProjectItem[];
 const nextIndex = allProjects.findIndex((p) => p.id === item.id) + 1;
 const next = allProjects[nextIndex % allProjects.length];
 
-/*
- * Portrait hero rule (explicit, from project data):
- * - imageAspect "9/16" is a phone shot, always portrait.
- * - Mobile projects show a phone still in the hero unless their cover is 16:9.
- * Portrait heroes are capped in height on a tinted band; everything else runs full bleed.
- */
-function isPortraitHero(p: ProjectItem): boolean {
-  if (p.imageAspect === "9/16") return true;
-  return p.category === "Mobile" && p.coverAspect !== "16/9";
-}
-
-const heroSrc = item.heroShot ?? item.images?.[0];
-const portrait = isPortraitHero(item);
+// The hero is the same media as the home card, so the card travel lands on it. A still that differs from the card
+// (and from a clip's poster) is kept as a figure below the overview, so no image is lost.
+const heroSrc = item.card.media[0];
+const heroPoster = heroSrc.replace(/\.mp4$/, ".webp");
+const heroShot = item.heroShot && item.heroShot !== heroSrc && item.heroShot !== heroPoster ? item.heroShot : undefined;
 
 // Screens gallery: images beyond the cover that neither the hero nor a section already shows.
 const usedInSections = new Set<string>((item.sections ?? []).flatMap((s) => s.media?.images ?? []));
-const gallery = (item.images ?? []).slice(1).filter((src) => src !== heroSrc && !usedInSections.has(src));
+const gallery = (item.images ?? []).slice(1).filter((src) => src !== heroSrc && src !== heroShot && !usedInSections.has(src));
 
 const mascot = item.mascot;
 const alt = `${item.name} cover`;
@@ -62,9 +55,16 @@ const alt = `${item.name} cover`;
 >
   <article class="case-page">
     <div class="col case-head">
-      <p class="t-mono muted">{item.category} / {item.year}</p>
+      <p class="t-mono muted" data-vt-late>{item.category} / {item.year}</p>
       <div class="title-row">
-        <h1 class="t-display" data-roll="slow" data-arrive="0">{item.name}</h1>
+        <h1
+          class="t-display"
+          data-roll="slow"
+          data-arrive="0"
+          data-vt-keep
+          data-vt-static
+          style={`view-transition-name: ${VT_TITLE}`}
+        >{item.name}</h1>
         {
           mascot && (
             <video
@@ -83,41 +83,33 @@ const alt = `${item.name} cover`;
           )
         }
       </div>
-      <p class="t-lead description" data-roll data-arrive="0.15">{item.description}</p>
+      <p class="t-lead description" data-roll data-arrive="0.15" data-vt-late>{item.description}</p>
     </div>
 
-    <CaseMeta project={item} />
+    <div data-vt-late>
+      <CaseMeta project={item} />
+    </div>
 
     {
       heroSrc && (
-        <div class:list={['bleed', 'hero', 'reveal', portrait ? 'hero--portrait' : 'hero--wide']} data-arrive="0.5">
-          {portrait ? (
-            <div class="hero-band">
-              <Media
-                class="hero-phone"
-                src={heroSrc}
-                alt={alt}
-                loading="eager"
-                transitionName={`cover-${item.id}`}
-              />
-            </div>
-          ) : (
-            <Media
-              class="hero-wide"
-              src={heroSrc}
-              alt={alt}
-              loading="eager"
-              transitionName={`cover-${item.id}`}
-            />
-          )}
+        <div class="bleed hero reveal" data-arrive="0.5" data-vt-keep>
+          <Media class="hero-wide" src={heroSrc} alt={alt} loading="eager" viewTransitionName={VT_COVER} />
         </div>
       )
     }
 
-    <div class="col overview">
+    <div class="col overview" data-vt-late>
       <p>{item.overview}</p>
       <p class="muted">{item.focus}</p>
     </div>
+
+    {
+      heroShot && (
+        <figure class="case-shot reveal">
+          <Media src={heroShot} alt={`${item.name}: ${item.subtitle}`} loading="lazy" />
+        </figure>
+      )
+    }
 
     {(item.sections ?? []).map((s, i) => (
       <CaseSection section={s} index={i} projectName={item.name} />
@@ -141,7 +133,7 @@ const alt = `${item.name} cover`;
     <CaseOutcome project={item} />
     <NextProject project={next} />
 
-    <a class="back t-mono" href="/#work" data-case-back data-no-inl>
+    <a class="back t-mono" href={`/#work-${item.id}`} data-case-back data-no-inl data-vt-late>
       <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
         <path
           d="M19 12H5M11 6l-6 6 6 6"
@@ -182,31 +174,10 @@ const alt = `${item.name} cover`;
 
   .hero {
     margin-top: clamp(48px, 8vh, 96px);
-  }
-
-  .hero--portrait {
     padding-inline: 0;
   }
 
-  .hero--wide {
-    padding-inline: 0;
-  }
-
-  /* Portrait phone shot: capped height, centred on a faint band. max-width keeps any landscape still inside the band. */
-  .hero-band {
-    display: flex;
-    justify-content: center;
-    padding: clamp(32px, 6vh, 64px) clamp(20px, 3vw, 48px);
-    background: color-mix(in srgb, var(--text) 4%, transparent);
-  }
-
-  .hero-band .hero-phone {
-    width: auto;
-    max-width: 100%;
-    max-height: 80vh;
-    height: auto;
-  }
-
+  /* The hero is the card's media at full bleed, capped in height. */
   .hero-wide {
     width: 100%;
     max-height: 86vh;
@@ -219,6 +190,24 @@ const alt = `${item.name} cover`;
 
   .overview p + p {
     margin-top: 16px;
+  }
+
+  /* The old hero still: from the content column start to the right gutter, like a section's full media. */
+  .case-shot {
+    margin: clamp(56px, 8vh, 96px) 20px 0;
+  }
+
+  .case-shot :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  @media (min-width: 960px) {
+    .case-shot {
+      margin-left: max(20px, 26.25vw);
+      margin-right: clamp(20px, 3vw, 48px);
+    }
   }
 
   .gallery {
@@ -277,10 +266,27 @@ const alt = `${item.name} cover`;
    * Case page behaviour, re-run on every client navigation.
    * - Mascot: autoplays, but stays on its poster under reduced motion.
    * - Back link: hidden while the site footer is on screen.
+   * - Back link: when the page before this case was home, history.back() restores the home entry (its scroll and
+   *   the card landing in page-transition.ts). Otherwise the href (/#work-{id}) is followed.
    * Every lookup is guarded, because this listener stays registered after leaving a case page.
    */
+  import { isPlainActivation, previousIsHome } from '../../lib/page-transition';
+
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let footerObserver: IntersectionObserver | null = null;
+
+  // Module-level and registered once. Astro sees preventDefault and does not navigate.
+  document.addEventListener(
+    'click',
+    (event) => {
+      if (!isPlainActivation(event)) return;
+      const back = (event.target as Element | null)?.closest('[data-case-back]');
+      if (!back || !previousIsHome()) return;
+      event.preventDefault();
+      history.back();
+    },
+    { capture: true },
+  );
 
   function setup(): void {
     footerObserver?.disconnect();

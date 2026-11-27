@@ -12,6 +12,9 @@ import { projects } from '../lib/data';
  *   settles the media inside the frame (desktop, motion only). See lib/ascii-image.ts.
  * - Desktop (>= 1100px): sticky index in the left gutter.
  * - Under 900px and under reduced motion: flat cards. No-JS: flat cards, fully visible, no canvas.
+ * - Opening a card (plain click or Enter): the card's ASCII overlay is cleared and settled, and the card's media,
+ *   label name and label bar get view-transition names for the travel (lib/page-transition.ts). The names exist only
+ *   during that navigation. After a way back, the card the reader left is settled from its first frame.
  */
 const isVideo = (src: string): boolean => src.endsWith('.mp4');
 const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
@@ -63,7 +66,6 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
                           playsinline
                           preload="none"
                           aria-hidden="true"
-                          transition:name={`cover-${p.id}`}
                         />
                       ) : (
                         <video
@@ -78,7 +80,7 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
                         />
                       )
                     ) : j === 0 ? (
-                      <img class="media" src={src} alt="" loading="lazy" decoding="async" transition:name={`cover-${p.id}`} />
+                      <img class="media" src={src} alt="" loading="lazy" decoding="async" />
                     ) : (
                       <img class="media" src={src} alt="" loading="lazy" decoding="async" />
                     )
@@ -456,6 +458,7 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
   import gsap from 'gsap';
   import type Lenis from 'lenis';
   import { rollText, scrollEnergy } from '../lib/motion';
+  import { beginTravel, isPlainActivation, travelAllowed } from '../lib/page-transition';
   import {
     backingRatio,
     cellHashes,
@@ -519,6 +522,7 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
     width: number; // CSS size at the last sample
     height: number;
     ascii: boolean; // sampled and drawable
+    landing: boolean; // the card the reader came back to from a case page: real picture from the first frame
     res: number; // resolve amount: 0 is all ASCII, 1 is the real media
     step: number; // last painted resolve step (0..60), -1 = never painted
     flat: 'waiting' | 'running' | 'done';
@@ -587,6 +591,7 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
     const stack = root.querySelector<HTMLElement>('[data-stack]');
     if (items.length === 0 || !stack) return;
 
+    const landingItem = document.documentElement.dataset.vtReturn ? `work-${document.documentElement.dataset.vtReturn}` : null;
     const cards: AsciiCard[] = items.map((item, index) => ({
       item,
       frame: item.querySelector<HTMLElement>('.frame'),
@@ -601,6 +606,7 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
       width: 0,
       height: 0,
       ascii: false,
+      landing: item.id === landingItem,
       res: 0,
       step: -1,
       flat: 'waiting',
@@ -780,7 +786,7 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
         card.item.style.setProperty('--p', p.toFixed(3));
         card.item.dataset.side = p >= 0 ? 'below' : 'above';
         if (tilt) {
-          const res = resolveAmount(p);
+          const res = card.landing ? 1 : resolveAmount(p);
           card.item.style.setProperty('--res', res.toFixed(3));
           setSettled(card, res >= SETTLED_RESOLVE);
           setResolve(card, res);
@@ -851,6 +857,11 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
       if (!alive) return;
 
       cards.forEach(sampleCard);
+      for (const card of cards) {
+        if (!card.landing) continue;
+        clearCard(card);
+        setSettled(card, true);
+      }
       palette = readPalette();
       update(); // positions and resolve amounts for every card
       redrawAll(); // paints every card, including the ones off screen, before the first reveal
@@ -909,6 +920,31 @@ const posterOf = (src: string): string => src.replace(/\.mp4$/, '.webp');
       syncPlayback();
       schedule();
     });
+
+    // Opening a card. Capture phase: it runs before ClientRouter prepares the navigation, and never prevents default.
+    // The card is shown as its real picture (overlay cleared, settled), then the travel names are set.
+    listen(
+      root,
+      'click',
+      (event) => {
+        const mouse = event as MouseEvent;
+        if (!isPlainActivation(mouse) || !travelAllowed()) return;
+        const link = (mouse.target as Element | null)?.closest<HTMLAnchorElement>('a[data-card]');
+        const card = link ? cards.find(({ item }) => item.contains(link)) : undefined;
+        if (!link || !card) return;
+        clearCard(card);
+        setSettled(card, true);
+        card.item.style.setProperty('--res', '1');
+        const cover = card.item.querySelector<HTMLElement>('.stage > .media');
+        beginTravel(link.href, {
+          cover,
+          title: labels[card.index],
+          bar: card.item.querySelector<HTMLElement>('.label'),
+          video: cover instanceof HTMLVideoElement ? cover : null,
+        });
+      },
+      { capture: true },
+    );
 
     indexLinks.forEach((link, i) => {
       listen(link, 'click', (event) => {

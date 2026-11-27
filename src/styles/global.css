@@ -32,6 +32,8 @@
  *   --ease-hover, --ease-pop, --dur-hover-in, --dur-hover-out, --dur-press   hover and press (DESIGN_SYSTEM.md).
  *   data-roll, data-arrive, data-swap, data-magnetic, data-story: the motion contract, documented in
  *                    src/lib/motion.ts. Only html.js [data-arrive] hides anything before JS runs (2s failsafe).
+ *   data-vt-keep, data-vt-late, data-vt-static, html[data-vt], html[data-vt-arrive], html[data-vt-return]: the card
+ *                    travel and the way back, documented in src/lib/page-transition.ts.
  *   data-no-inl      opts an <a> out of the default inline underline (cards, CTAs, swap links, the header name).
  *
  * Utilities:
@@ -461,6 +463,104 @@ html.theme-switching::view-transition-old(root),
 html.theme-switching::view-transition-new(root) {
   animation: none;
   mix-blend-mode: normal;
+}
+
+/* ---------- Page transition: the card opens (lib/page-transition.ts) ----------
+   Names are set inline on a card click, or static on the case page (vt-cover on the hero, vt-title on the h1).
+   Only these rules and the root rules below run for a travel. The theme switch has neither: its root rules are
+   excluded by :not(.theme-switching), and the header name is off during it. Under reduced motion no names are set,
+   and the global reduced-motion block above wins for every pseudo-element. */
+
+::view-transition-group(vt-cover),
+::view-transition-group(vt-title),
+::view-transition-group(vt-bar) {
+  animation-duration: 650ms;
+  animation-timing-function: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+/* The picture never stretches while its box changes aspect: both snapshots fill the box with object-fit: cover. */
+::view-transition-old(vt-cover),
+::view-transition-new(vt-cover) {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  overflow: clip;
+  animation-duration: 200ms;
+}
+
+/* The label name (20px) grows to the case title (80px). Height sets the size and the width follows the aspect ratio,
+   so the text scales uniformly from its leading edge and is never squashed. The colour change is the default
+   cross-fade between the two snapshots. */
+::view-transition-old(vt-title),
+::view-transition-new(vt-title) {
+  height: 100%;
+  width: auto;
+}
+
+/* The origin card's bar folds to the left. It has no counterpart, so it only animates out. */
+::view-transition-old(vt-bar) {
+  animation: vt-bar-fold 220ms var(--ease-out) both;
+}
+
+@keyframes vt-bar-fold {
+  from {
+    clip-path: inset(0 0 0 0);
+  }
+
+  to {
+    clip-path: inset(0 100% 0 0);
+  }
+}
+
+/* Root: the other home pieces leave in 150ms, the new page comes in after a 150ms delay over 250ms. */
+html:not(.theme-switching)::view-transition-old(root) {
+  animation-duration: 150ms;
+}
+
+html:not(.theme-switching)::view-transition-new(root) {
+  animation-duration: 250ms;
+  animation-delay: 150ms;
+  animation-fill-mode: both;
+}
+
+/* The way back (html[data-vt="back"]): a plain 200ms root cross-fade, no travel. The case page's static names are
+   old-only groups here, so their fade is shortened to match the root. */
+html[data-vt='back']::view-transition-old(root),
+html[data-vt='back']::view-transition-new(root) {
+  animation-duration: 200ms;
+  animation-delay: 0ms;
+}
+
+html[data-vt='back']::view-transition-old(vt-title) {
+  animation-duration: 200ms;
+}
+
+/* The header never moves: its named snapshot is shown as is, with no cross-fade of its own. */
+::view-transition-old(site-header),
+::view-transition-new(site-header) {
+  animation: none;
+}
+
+/* Card travel into a case page (html[data-vt-arrive]). The hero and h1 are shown as they are, so the new snapshot has
+   them. The late pieces stay hidden until buildLateArrivals() fades them in (it removes this attribute when done). */
+html[data-vt-arrive] [data-vt-keep] {
+  visibility: visible;
+}
+
+html[data-vt-arrive] .reveal[data-vt-keep] {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
+html[data-vt-arrive] [data-vt-late] {
+  opacity: 0;
+}
+
+/* The static case-page names (inline, so !important) are off during the theme switch, or the hero and title would
+   cross-fade instead of being revealed by the circle. */
+html.theme-switching [data-vt-static] {
+  view-transition-name: none !important;
 }
 
 /* ---------- Utilities ---------- */

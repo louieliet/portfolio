@@ -30,6 +30,13 @@
  * - data-story                the "How I work" chapter (Story.astro). Desktop with motion: ONE pinned chapter,
  *                             scroll lights the words and drives the ASCII block (mountStoryPinned). Under 900px:
  *                             each beat lights once on entry (mountStoryFlow). Reduced motion: static, all lit.
+ * - data-vt-keep              (case page) the hero and h1 of a card -> case travel. They are shown as they are and
+ *                             never split or rolled: the new-state snapshot must show them. Only when html has
+ *                             data-vt-arrive.
+ * - data-vt-late              (case page) kicker, lead, meta row, overview and the Back pill. With data-vt-arrive
+ *                             they fade in (LATE_AT, LATE_STAGGER) after the swap. Without it they are inert.
+ * - html[data-vt-return]      the way back to home (page-transition.ts). The first viewport is already on screen,
+ *                             so nothing rolls or replays, and settleReturnCard() re-centres the opened card.
  * - data-timeline             a Timeline. Its rail (data-timeline-draw) draws down on scroll and rows light as it
  *                             passes (mountTimeline).
  * - Footer (.site-footer) runs its own once-only arrival schedule at "top 85%".
@@ -45,6 +52,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
 import type Lenis from 'lenis';
 import { renderStoryFrame, renderStoryProduct, storyStage } from './ascii-story';
+import { centreTop } from './page-transition';
 
 gsap.registerPlugin(ScrollTrigger, SplitText);
 
@@ -56,6 +64,10 @@ export const DUR = { fast: 0.3, base: 0.45, slow: 0.8 } as const;
 export const LINE_STAGGER = 0.08;
 const SLOW_LINE_STAGGER = 0.12;
 const ASCII_DRAW_SECONDS = 0.5;
+// Case page after a card travel: the late pieces start at 420ms, 70ms apart.
+const LATE_AT = 0.42;
+const LATE_STAGGER = 0.07;
+const LATE_RISE = 14;
 
 const MOTION_QUERY = '(prefers-reduced-motion: no-preference)';
 const REDUCE_QUERY = '(prefers-reduced-motion: reduce)';
@@ -386,12 +398,18 @@ export function rollText(cell: HTMLElement, text: string, dir: -1 | 0 | 1, force
 
 /* ---------- Arrivals: first viewport, one timeline ---------- */
 
-function buildArrivals(short: boolean): void {
+function buildArrivals(short: boolean, settled: (el: HTMLElement) => boolean): void {
   const tl = gsap.timeline();
   timelines.push(tl);
   const dur = short ? DUR.fast : DUR.slow;
 
   document.querySelectorAll<HTMLElement>('[data-arrive]').forEach((el) => {
+    if (settled(el)) {
+      // Already on screen (card -> case hero, or back to home): no roll, no replay. Only the end states are set.
+      if (el.classList.contains('reveal')) el.classList.add('is-in');
+      if (el.hasAttribute('data-scroll-cue')) gsap.set(el, { opacity: 1 });
+      return;
+    }
     const at = short ? 0 : Number(el.dataset.arrive) || 0;
 
     if (el.hasAttribute('data-ascii-field')) {
@@ -430,6 +448,41 @@ function buildArrivals(short: boolean): void {
       tl.call(() => el.classList.add('is-in'), [], at);
     }
   });
+}
+
+/**
+ * Case page after a card travel: the pieces the shared shot does not carry fade in from LATE_AT, staggered. The
+ * markup hides them (html[data-vt-arrive] in global.css) until this runs, so the new snapshot never shows them early.
+ */
+function buildLateArrivals(): void {
+  const late = Array.from(document.querySelectorAll<HTMLElement>('[data-vt-late]'));
+  if (late.length === 0) return;
+  const backs = late.filter((el) => el.hasAttribute('data-case-back'));
+  const lifts = late.filter((el) => !el.hasAttribute('data-case-back'));
+  gsap.set(lifts, { opacity: 0, y: LATE_RISE });
+  gsap.set(backs, { opacity: 0 });
+  const tl = gsap.timeline();
+  timelines.push(tl);
+  tl.to(lifts, { opacity: 1, y: 0, duration: DUR.base, ease: EASE_OUT, stagger: LATE_STAGGER }, LATE_AT);
+  // The Back pill has its own 300ms opacity transition. Turn it off during the tween so the two do not chase.
+  backs.forEach((el) => {
+    el.style.transition = 'none';
+  });
+  const backAt = LATE_AT + LATE_STAGGER * lifts.length;
+  tl.to(
+    backs,
+    {
+      opacity: 1,
+      duration: DUR.base,
+      ease: EASE_OUT,
+      // Clear the inline opacity at the end, so the footer's .is-hidden rule can hide the pill again.
+      clearProps: 'opacity',
+      onComplete: () => backs.forEach((el) => el.style.removeProperty('transition')),
+    },
+    backAt,
+  );
+  // The markup hides the late pieces only while data-vt-arrive is set. Remove it once they are all in place.
+  tl.call(() => document.documentElement.removeAttribute('data-vt-arrive'), [], backAt + DUR.base);
 }
 
 /* ---------- Once-per-view triggers ---------- */
@@ -730,12 +783,25 @@ function mountScrollCue(cue: HTMLElement): void {
 /* ---------- Full and reduced branches ---------- */
 
 function mountFull(short: boolean): void {
+  const root = document.documentElement;
+  // Only first-viewport items (data-arrive) can settle. Back to home: all of them are already on screen. Card -> case:
+  // the hero and h1 are kept as they are, and the late pieces fade in later (buildLateArrivals).
+  const returning = root.hasAttribute('data-vt-return');
+  const travelled = root.hasAttribute('data-vt-arrive');
+  const settled = (el: HTMLElement): boolean =>
+    el.hasAttribute('data-arrive') &&
+    (returning || (travelled && (el.hasAttribute('data-vt-keep') || el.hasAttribute('data-vt-late'))));
+
   // Arrivals first: each one becomes visible in the same task that sets its start state, so nothing paints early.
   document.querySelectorAll<HTMLElement>('[data-arrive]').forEach(unhide);
-  document.querySelectorAll<HTMLElement>('[data-roll]').forEach((el) => mountRoll(el, short));
+  document.querySelectorAll<HTMLElement>('[data-roll]').forEach((el) => {
+    if (settled(el)) return;
+    mountRoll(el, short);
+  });
   document.querySelectorAll<HTMLElement>('[data-swap]').forEach(mountSwap);
   document.querySelectorAll<HTMLElement>('[data-magnetic]').forEach(mountMagnetic);
-  buildArrivals(short);
+  buildArrivals(short, settled);
+  if (travelled) buildLateArrivals();
   mountBatch();
   document.querySelectorAll<HTMLElement>('[data-timeline]').forEach(mountTimeline);
   document.querySelectorAll<HTMLElement>('[data-scroll-cue]').forEach(mountScrollCue);
@@ -750,6 +816,26 @@ function mountFull(short: boolean): void {
 function showStatic(): void {
   // Reduced motion: nothing is split, hidden or animated. Arrivals are simply shown.
   document.querySelectorAll<HTMLElement>('[data-arrive]').forEach(unhide);
+  // A card travel never starts under reduced motion, but the late pieces must never stay hidden.
+  document.querySelectorAll<HTMLElement>('[data-vt-late]').forEach((el) => {
+    el.style.opacity = '1';
+  });
+}
+
+/**
+ * Back to home: re-centres the card the reader opened, after motion init and a ScrollTrigger refresh. Init adds the
+ * Story pin spacer and the Experience sticky track, which move the card down the page. This runs in the same task
+ * as init, so no frame shows the move. With Lenis running, the position is set with immediate: true.
+ */
+export function settleReturnCard(lenis: Lenis | null): void {
+  const id = document.documentElement.getAttribute('data-vt-return');
+  if (!id) return;
+  const card = document.getElementById(`work-${id}`);
+  if (!card) return;
+  ScrollTrigger.refresh();
+  const top = centreTop(card);
+  if (lenis) lenis.scrollTo(top, { immediate: true, force: true });
+  else window.scrollTo({ top, behavior: 'instant' });
 }
 
 /* ---------- Theme switch ---------- */

@@ -5,14 +5,16 @@ import { personalInfo, projects } from '../lib/data';
 /*
  * Fixed top bar, four points: name | clock | nav | theme dot.
  * Nav: Work (home, with project count), About, Resume (external, opens new tab).
- * aria-current="page" marks the active internal link.
+ * aria-current="page" marks the active internal link. The header is transition:persist: the same node is kept across
+ * client navigations, so its aria-current is synced after each swap (script below), not rendered per page.
+ * It has its own view-transition-name, so it stays still during a page travel (not during the theme switch).
  */
 const path = Astro.url.pathname;
 const onWork = path === '/' || path.startsWith('/projects/');
 const onAbout = path === '/about' || path === '/about/';
 ---
 
-<header class="site-header">
+<header class="site-header" transition:persist>
   <div class="bar bleed">
     <a class="name" href="/" data-no-inl>Emiliano Montes</a>
 
@@ -56,6 +58,13 @@ const onAbout = path === '/about' || path === '/about/';
     background: color-mix(in srgb, var(--bg) 85%, transparent);
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
+    /* Named so the root cross-fade of a page travel leaves it alone. Off during the theme switch, which is a
+       circle over the whole page, header included. */
+    view-transition-name: site-header;
+  }
+
+  html.theme-switching .site-header {
+    view-transition-name: none;
   }
 
   .bar {
@@ -162,6 +171,21 @@ const onAbout = path === '/about' || path === '/about/';
 
 <script>
   import { switchTheme } from '../lib/motion';
+
+  // The header is persisted, so its aria-current is set here after each swap (the server markup is only the first page).
+  function setCurrent(link: Element | null, on: boolean): void {
+    if (!link) return;
+    if (on) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
+  }
+
+  function syncCurrent(): void {
+    const path = location.pathname;
+    setCurrent(document.querySelector('.site-header a[href="/#work"]'), path === '/' || path.startsWith('/projects/'));
+    setCurrent(document.querySelector('.site-header a[href="/about"]'), path === '/about' || path === '/about/');
+  }
+
+  document.addEventListener('astro:after-swap', syncCurrent);
 
   // Delegated on document, so it keeps working after client navigations without re-binding.
   document.addEventListener('click', (event) => {

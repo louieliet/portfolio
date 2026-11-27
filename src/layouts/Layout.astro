@@ -12,6 +12,7 @@ import Footer from '../components/Footer.astro';
  * Layout renders Header and Footer. Pages must not render their own <header>/<footer>.
  * Elements with class "reveal" fade in on scroll (see global.css). Set --i for stagger.
  * window.__lenis exposes the smooth scroller (undefined under reduced motion).
+ * Header is persisted (transition:persist), so it is not re-rendered between pages.
  */
 
 interface Props {
@@ -96,12 +97,15 @@ const height = isDefaultImage ? 630 : imageHeight;
 
     <script>
       import Lenis from 'lenis';
-      import { destroyMotion, initMotion, startScrollClock } from '../lib/motion';
+      import { destroyMotion, initMotion, settleReturnCard, startScrollClock } from '../lib/motion';
+      import { applyAfterSwap, rememberSwap } from '../lib/page-transition';
 
       /*
        * One module for the whole site. Runs once; re-initialises on every client navigation
        * (astro:page-load), tears down before the swap (astro:before-swap).
        * Lenis is driven by gsap.ticker (see startScrollClock), so ScrollTrigger and Lenis share one clock.
+       * Card travel (WorkStack, NextProject) and the way back are in lib/page-transition.ts: before-swap records the
+       * URL being left, after-swap applies the transition state before the new snapshot is taken.
        */
 
       type LenisWindow = Window & { __lenis?: Lenis };
@@ -162,23 +166,32 @@ const height = isDefaultImage ? 630 : imageHeight;
         items.forEach((el) => revealObserver?.observe(el));
       }
 
-      document.addEventListener('astro:before-swap', () => {
+      // The before-swap event carries the URL being left (from); the card travel and the way back read it.
+      interface SwapEvent extends Event {
+        from: URL;
+      }
+
+      document.addEventListener('astro:before-swap', (event) => {
+        rememberSwap((event as SwapEvent).from);
         destroyMotion();
         stopLenis();
         revealObserver?.disconnect();
         revealObserver = null;
       });
 
-      // ClientRouter swaps the <html> attributes, so restore the js flag and theme on the new page.
+      // ClientRouter swaps the <html> attributes, so restore the js flag and theme on the new page. Then the card
+      // travel state (page-transition.ts) is applied before the new snapshot is taken.
       document.addEventListener('astro:after-swap', () => {
         document.documentElement.classList.add('js');
         applyTheme();
+        applyAfterSwap();
       });
 
       document.addEventListener('astro:page-load', () => {
         stopLenis();
         startLenis();
         initMotion();
+        settleReturnCard(lenis);
         observeReveals();
       });
 

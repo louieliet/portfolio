@@ -4,62 +4,43 @@
  * - src ending in .mp4 renders a muted looping <video> with the .webp sibling as poster.
  *   One shared IntersectionObserver plays it only while on screen; never plays under reduced motion.
  * - anything else renders an <img>.
- * - transitionName sets view-transition name (shared element between pages).
+ * - viewTransitionName sets a static view-transition-name inline (the case hero is vt-cover). It also marks the
+ *   element data-vt-static, so the card travel can strip it from the page being left (page-transition.ts).
  *
- * Props: { src, alt, class?, loading?: "lazy" | "eager", transitionName? }
+ * Props: { src, alt, class?, loading?: "lazy" | "eager", viewTransitionName? }
  */
 interface Props {
   src: string;
   alt: string;
   class?: string;
   loading?: 'lazy' | 'eager';
-  transitionName?: string;
+  viewTransitionName?: string;
 }
 
-const { src, alt, class: className, loading = 'lazy', transitionName } = Astro.props;
+const { src, alt, class: className, loading = 'lazy', viewTransitionName } = Astro.props;
 const isVideo = src.endsWith('.mp4');
 const poster = src.replace(/\.mp4$/, '.webp');
+const vt = viewTransitionName
+  ? { style: `view-transition-name: ${viewTransitionName}`, 'data-vt-static': '' }
+  : {};
 ---
 
 {
   isVideo ? (
-    transitionName ? (
-      <video
-        class:list={['media', className]}
-        src={src}
-        poster={poster}
-        muted
-        loop
-        playsinline
-        preload="none"
-        aria-label={alt}
-        data-media-video
-        transition:name={transitionName}
-      />
-    ) : (
-      <video
-        class:list={['media', className]}
-        src={src}
-        poster={poster}
-        muted
-        loop
-        playsinline
-        preload="none"
-        aria-label={alt}
-        data-media-video
-      />
-    )
-  ) : transitionName ? (
-    <img
+    <video
       class:list={['media', className]}
       src={src}
-      alt={alt}
-      loading={loading}
-      decoding="async"
-      transition:name={transitionName}
+      poster={poster}
+      muted
+      loop
+      playsinline
+      preload="none"
+      aria-label={alt}
+      data-media-video
+      {...vt}
     />
   ) : (
-    <img class:list={['media', className]} src={src} alt={alt} loading={loading} decoding="async" />
+    <img class:list={['media', className]} src={src} alt={alt} loading={loading} decoding="async" {...vt} />
   )
 }
 
